@@ -4,7 +4,7 @@ VisualStudioVersion = 16.0.28531.58
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cg_base", "..\cg_base\visual_studio\cg_base\cg_base.vcxproj", "{602F842F-50C1-466D-8696-1707937D8AB9}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ray_tracing_game", "ray_tracing_game.vcxproj", "{A6F7BF07-04D7-4141-98C7-6CC55127894F}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ray_tracing_game", "ray_tracing_game.vcxproj", "{B89769FD-6E5A-4313-AF23-A3B89F190AA2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -28,18 +28,18 @@ Global
 		{602F842F-50C1-466D-8696-1707937D8AB9}.Release_OpenGL|x64.Build.0 = Release_OpenGL|x64
 		{602F842F-50C1-466D-8696-1707937D8AB9}.Release_Vulkan|x64.ActiveCfg = Release_Vulkan|x64
 		{602F842F-50C1-466D-8696-1707937D8AB9}.Release_Vulkan|x64.Build.0 = Release_Vulkan|x64
-		{A6F7BF07-04D7-4141-98C7-6CC55127894F}.Debug_OpenGL|x64.ActiveCfg = Debug_OpenGL|x64
-		{A6F7BF07-04D7-4141-98C7-6CC55127894F}.Debug_OpenGL|x64.Build.0 = Debug_OpenGL|x64
-		{A6F7BF07-04D7-4141-98C7-6CC55127894F}.Debug_Vulkan|x64.ActiveCfg = Debug_Vulkan|x64
-		{A6F7BF07-04D7-4141-98C7-6CC55127894F}.Debug_Vulkan|x64.Build.0 = Debug_Vulkan|x64
-		{A6F7BF07-04D7-4141-98C7-6CC55127894F}.Publish_OpenGL|x64.ActiveCfg = Publish_OpenGL|x64
-		{A6F7BF07-04D7-4141-98C7-6CC55127894F}.Publish_OpenGL|x64.Build.0 = Publish_OpenGL|x64
-		{A6F7BF07-04D7-4141-98C7-6CC55127894F}.Publish_Vulkan|x64.ActiveCfg = Publish_Vulkan|x64
-		{A6F7BF07-04D7-4141-98C7-6CC55127894F}.Publish_Vulkan|x64.Build.0 = Publish_Vulkan|x64
-		{A6F7BF07-04D7-4141-98C7-6CC55127894F}.Release_OpenGL|x64.ActiveCfg = Release_OpenGL|x64
-		{A6F7BF07-04D7-4141-98C7-6CC55127894F}.Release_OpenGL|x64.Build.0 = Release_OpenGL|x64
-		{A6F7BF07-04D7-4141-98C7-6CC55127894F}.Release_Vulkan|x64.ActiveCfg = Release_Vulkan|x64
-		{A6F7BF07-04D7-4141-98C7-6CC55127894F}.Release_Vulkan|x64.Build.0 = Release_Vulkan|x64
+		{B89769FD-6E5A-4313-AF23-A3B89F190AA2}.Debug_OpenGL|x64.ActiveCfg = Debug_OpenGL|x64
+		{B89769FD-6E5A-4313-AF23-A3B89F190AA2}.Debug_OpenGL|x64.Build.0 = Debug_OpenGL|x64
+		{B89769FD-6E5A-4313-AF23-A3B89F190AA2}.Debug_Vulkan|x64.ActiveCfg = Debug_Vulkan|x64
+		{B89769FD-6E5A-4313-AF23-A3B89F190AA2}.Debug_Vulkan|x64.Build.0 = Debug_Vulkan|x64
+		{B89769FD-6E5A-4313-AF23-A3B89F190AA2}.Publish_OpenGL|x64.ActiveCfg = Publish_OpenGL|x64
+		{B89769FD-6E5A-4313-AF23-A3B89F190AA2}.Publish_OpenGL|x64.Build.0 = Publish_OpenGL|x64
+		{B89769FD-6E5A-4313-AF23-A3B89F190AA2}.Publish_Vulkan|x64.ActiveCfg = Publish_Vulkan|x64
+		{B89769FD-6E5A-4313-AF23-A3B89F190AA2}.Publish_Vulkan|x64.Build.0 = Publish_Vulkan|x64
+		{B89769FD-6E5A-4313-AF23-A3B89F190AA2}.Release_OpenGL|x64.ActiveCfg = Release_OpenGL|x64
+		{B89769FD-6E5A-4313-AF23-A3B89F190AA2}.Release_OpenGL|x64.Build.0 = Release_OpenGL|x64
+		{B89769FD-6E5A-4313-AF23-A3B89F190AA2}.Release_Vulkan|x64.ActiveCfg = Release_Vulkan|x64
+		{B89769FD-6E5A-4313-AF23-A3B89F190AA2}.Release_Vulkan|x64.Build.0 = Release_Vulkan|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

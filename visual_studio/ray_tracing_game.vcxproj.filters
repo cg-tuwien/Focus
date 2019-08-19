@@ -1,12 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClCompile Include="cg_stdafx.cpp">
-      <Filter>precompiled_headers</Filter>
-    </ClCompile>
-    <ClCompile Include="..\source_code\the_game.cpp" />
-  </ItemGroup>
-  <ItemGroup>
     <Filter Include="assets">
       <UniqueIdentifier>{24240a51-8fdb-478f-8c1c-27cbca7adc3f}</UniqueIdentifier>
       <SourceControlFiles>False</SourceControlFiles>
@@ -15,8 +9,14 @@
       <UniqueIdentifier>{1d345cf5-0451-42e0-83a8-6a3f5a7203ca}</UniqueIdentifier>
     </Filter>
     <Filter Include="precompiled_headers">
-      <UniqueIdentifier>{a5a0acc4-5b25-43eb-9da9-e70b5bd5a21e}</UniqueIdentifier>
+      <UniqueIdentifier>{01a7b8ad-6f1e-486f-b173-7f12ab65fa3d}</UniqueIdentifier>
     </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="cg_stdafx.cpp">
+      <Filter>precompiled_headers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source_code\the_game.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="cg_stdafx.hpp">
