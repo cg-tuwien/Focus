@@ -1,186 +1,224 @@
-class draw_a_triangle_app : public cgb::cg_element
+#include <cg_base.hpp>
+
+class vertex_buffers_app : public cgb::cg_element
 {
-	/*void createGraphicsPipeline() {
-        auto vertShaderCode = cgb::shader::create(cgb::shader_info::create("shaders/a_triangle.vert"));
-        auto fragShaderCode = cgb::shader::create(cgb::shader_info::create("shaders/a_triangle.frag"));
+	struct data_for_draw_call
+	{
+		std::vector<glm::vec3> mPositions;
+		std::vector<glm::vec2> mTexCoords;
+		std::vector<glm::vec3> mNormals;
+		std::vector<uint32_t> mIndices;
 
-        VkShaderModule vertShaderModule = vertShaderCode.handle();
-        VkShaderModule fragShaderModule = fragShaderCode.handle();
+		cgb::vertex_buffer mPositionsBuffer;
+		cgb::vertex_buffer mTexCoordsBuffer;
+		cgb::vertex_buffer mNormalsBuffer;
+		cgb::index_buffer mIndexBuffer;
 
-        VkPipelineShaderStageCreateInfo vertShaderStageInfo = {};
-        vertShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-        vertShaderStageInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
-        vertShaderStageInfo.module = vertShaderModule;
-        vertShaderStageInfo.pName = "main";
+		int mMaterialIndex;
+	};
 
-        VkPipelineShaderStageCreateInfo fragShaderStageInfo = {};
-        fragShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-        fragShaderStageInfo.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
-        fragShaderStageInfo.module = fragShaderModule;
-        fragShaderStageInfo.pName = "main";
-
-        VkPipelineShaderStageCreateInfo shaderStages[] = {vertShaderStageInfo, fragShaderStageInfo};
-
-        VkPipelineVertexInputStateCreateInfo vertexInputInfo = {};
-        vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-        vertexInputInfo.vertexBindingDescriptionCount = 0;
-        vertexInputInfo.vertexAttributeDescriptionCount = 0;
-
-        VkPipelineInputAssemblyStateCreateInfo inputAssembly = {};
-        inputAssembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
-        inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
-        inputAssembly.primitiveRestartEnable = VK_FALSE;
-
-        VkViewport viewport = {};
-        viewport.x = 0.0f;
-        viewport.y = 0.0f;
-        viewport.width = (float) 640;
-        viewport.height = (float) 480;
-        viewport.minDepth = 0.0f;
-        viewport.maxDepth = 1.0f;
-
-        VkRect2D scissor = {};
-        scissor.offset = {0, 0};
-        scissor.extent = { 640, 480 };
-
-        VkPipelineViewportStateCreateInfo viewportState = {};
-        viewportState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
-        viewportState.viewportCount = 1;
-        viewportState.pViewports = &viewport;
-        viewportState.scissorCount = 1;
-        viewportState.pScissors = &scissor;
-
-        VkPipelineRasterizationStateCreateInfo rasterizer = {};
-        rasterizer.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
-        rasterizer.depthClampEnable = VK_FALSE;
-        rasterizer.rasterizerDiscardEnable = VK_FALSE;
-        rasterizer.polygonMode = VK_POLYGON_MODE_FILL;
-        rasterizer.lineWidth = 1.0f;
-        rasterizer.cullMode = VK_CULL_MODE_BACK_BIT;
-        rasterizer.frontFace = VK_FRONT_FACE_CLOCKWISE;
-        rasterizer.depthBiasEnable = VK_FALSE;
-
-        VkPipelineMultisampleStateCreateInfo multisampling = {};
-        multisampling.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
-        multisampling.sampleShadingEnable = VK_FALSE;
-        multisampling.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
-
-        VkPipelineColorBlendAttachmentState colorBlendAttachment = {};
-        colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
-        colorBlendAttachment.blendEnable = VK_FALSE;
-
-        VkPipelineColorBlendStateCreateInfo colorBlending = {};
-        colorBlending.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
-        colorBlending.logicOpEnable = VK_FALSE;
-        colorBlending.logicOp = VK_LOGIC_OP_COPY;
-        colorBlending.attachmentCount = 1;
-        colorBlending.pAttachments = &colorBlendAttachment;
-        colorBlending.blendConstants[0] = 0.0f;
-        colorBlending.blendConstants[1] = 0.0f;
-        colorBlending.blendConstants[2] = 0.0f;
-        colorBlending.blendConstants[3] = 0.0f;
-
-        VkPipelineLayoutCreateInfo pipelineLayoutInfo = {};
-        pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-        pipelineLayoutInfo.setLayoutCount = 0;
-        pipelineLayoutInfo.pushConstantRangeCount = 0;
-
-        if (vkCreatePipelineLayout(cgb::context().logical_device(), &pipelineLayoutInfo, nullptr, &pipelineLayout) != VK_SUCCESS) {
-            throw std::runtime_error("failed to create pipeline layout!");
-        }
-
-        VkGraphicsPipelineCreateInfo pipelineInfo = {};
-        pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
-        pipelineInfo.stageCount = 2;
-        pipelineInfo.pStages = shaderStages;
-        pipelineInfo.pVertexInputState = &vertexInputInfo;
-        pipelineInfo.pInputAssemblyState = &inputAssembly;
-        pipelineInfo.pViewportState = &viewportState;
-        pipelineInfo.pRasterizationState = &rasterizer;
-        pipelineInfo.pMultisampleState = &multisampling;
-        pipelineInfo.pColorBlendState = &colorBlending;
-        pipelineInfo.layout = pipelineLayout;
-        pipelineInfo.renderPass = cgb::context().main_window()->renderpass_handle();
-        pipelineInfo.subpass = 0;
-        pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
-
-        if (vkCreateGraphicsPipelines(cgb::context().logical_device(), VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &graphicsPipeline) != VK_SUCCESS) {
-            throw std::runtime_error("failed to create graphics pipeline!");
-        }
-
-    }
-
-	VkPipelineLayout pipelineLayout;
-	VkPipeline graphicsPipeline;
-*/
+	struct transformation_matrices {
+		glm::mat4 mModelMatrix;
+		glm::mat4 mProjViewMatrix;
+		int mMaterialIndex;
+	};
 
 	void initialize() override
 	{
+		mInitTime = std::chrono::high_resolution_clock::now();
+
+		// Load a model from file:
+		auto sponza = cgb::model_t::load_from_file("assets/sponza_structure.obj", aiProcess_Triangulate | aiProcess_PreTransformVertices);
+		// Get all the different materials of the model:
+		auto distinctMaterials = sponza->distinct_material_configs();
+
+		mDrawCalls.reserve(distinctMaterials.size()); // Due to an internal error, all the buffers can't properly be moved right now => reserve as a workaround. Sorry, and thanks for your patience. :-S
+		
+		// The following might be a bit tedious still, but maybe it's not. For what it's worth, it is expressive.
+		// The following loop gathers all the vertex and index data PER MATERIAL and constructs the buffers and materials.
+		// Later, we'll use ONE draw call PER MATERIAL to draw the whole scene.
+		std::vector<cgb::material_config> allMatCofigs;
+		for (const auto& pair : distinctMaterials) {
+			auto& newElement = mDrawCalls.emplace_back();
+			allMatCofigs.push_back(pair.first);
+			newElement.mMaterialIndex = static_cast<int>(allMatCofigs.size() - 1);
+			
+			// 1. Gather all the vertex and index data from the sub meshes:
+			for (auto index : pair.second) {
+				cgb::append_indices_and_vertex_data(
+					cgb::additional_index_data(	newElement.mIndices,	[&]() { return sponza->indices_for_mesh<uint32_t>(index);					} ),
+					cgb::additional_vertex_data(newElement.mPositions,	[&]() { return sponza->positions_for_mesh(index);							} ),
+					cgb::additional_vertex_data(newElement.mTexCoords,	[&]() { return sponza->texture_coordinates_for_mesh<glm::vec2>(index, 0);	} ),
+					cgb::additional_vertex_data(newElement.mNormals,	[&]() { return sponza->normals_for_mesh(index);								} )
+				);
+			}
+			
+			// 2. Build all the buffers for the GPU
+			// 2.1 Positions:
+			newElement.mPositionsBuffer = cgb::create_and_fill(
+				cgb::vertex_buffer_meta::create_from_data(newElement.mPositions),
+				cgb::memory_usage::device,
+				newElement.mPositions.data(),
+				// Handle the semaphore, if one gets created (which will happen 
+				// since we've requested to upload the buffer to the device)
+				[] (auto _Semaphore) {  
+					// TODO: Do we have to set these extra dependencies to ALL (three or so) frames in flight??
+					cgb::context().main_window()->set_extra_semaphore_dependency(std::move(_Semaphore)); 
+				}
+			);
+			// 2.2 Texture Coordinates:
+			newElement.mTexCoordsBuffer = cgb::create_and_fill(
+				cgb::vertex_buffer_meta::create_from_data(newElement.mTexCoords),
+				cgb::memory_usage::device,
+				newElement.mTexCoords.data(),
+				// Handle the semaphore, if one gets created (which will happen 
+				// since we've requested to upload the buffer to the device)
+				[] (auto _Semaphore) { 
+					cgb::context().main_window()->set_extra_semaphore_dependency(std::move(_Semaphore)); 
+				}
+			);
+			// 2.3 Normals:
+			newElement.mNormalsBuffer = cgb::create_and_fill(
+				cgb::vertex_buffer_meta::create_from_data(newElement.mNormals),
+				cgb::memory_usage::device,
+				newElement.mNormals.data(),
+				// Handle the semaphore, if one gets created (which will happen 
+				// since we've requested to upload the buffer to the device)
+				[] (auto _Semaphore) { 
+					cgb::context().main_window()->set_extra_semaphore_dependency(std::move(_Semaphore)); 
+				}
+			);
+			// 2.4 Indices:
+			newElement.mIndexBuffer = cgb::create_and_fill(
+				cgb::index_buffer_meta::create_from_data(newElement.mIndices),
+				// Where to put our memory? => On the device
+				cgb::memory_usage::device,
+				// Pass pointer to the data:
+				newElement.mIndices.data(),
+				// Handle the semaphore, if one gets created (which will happen 
+				// since we've requested to upload the buffer to the device)
+				[] (auto _Semaphore) { 
+					cgb::context().main_window()->set_extra_semaphore_dependency(std::move(_Semaphore)); 
+				}
+			);
+		}
+
+		auto [gpuMaterials, imageSamplers] = cgb::convert_for_gpu_usage(allMatCofigs, 
+			[](auto _Semaphore) {
+				cgb::context().main_window()->set_extra_semaphore_dependency(std::move(_Semaphore));
+			});
+		mGpuMaterialData = std::move(gpuMaterials);
+		mImageSamplers = std::move(imageSamplers);
+
+		mMaterialBuffer.reserve(cgb::context().main_window()->number_of_concurrent_frames());
+		for (int i = 0; i < cgb::context().main_window()->number_of_concurrent_frames(); ++i) {
+			mMaterialBuffer.emplace_back(cgb::create_and_fill(
+				cgb::storage_buffer_meta::create_from_data(mGpuMaterialData),
+				cgb::memory_usage::host_coherent,
+				&mGpuMaterialData[0]
+			));			
+		}
+
 		auto swapChainFormat = cgb::context().main_window()->swap_chain_image_format();
+		// Create our rasterization graphics pipeline with the required configuration:
 		mPipeline = cgb::graphics_pipeline_for(
-			cgb::vertex_shader("shaders/a_triangle.vert"),
-			cgb::fragment_shader("shaders/a_triangle.frag"),
-			cgb::cfg::front_face::define_front_faces_to_be_clockwise(),
+			// Specify which shaders the pipeline consists of:
+			cgb::vertex_shader("shaders/transform_and_pass_pos_nrm_uv.vert"),
+			cgb::fragment_shader("shaders/diffuse_shading_fixed_lightsource.frag"),
+			// The next 3 lines define the format and location of the vertex shader inputs:
+			// (The dummy values (like glm::vec3) tell the pipeline the format of the respective input)
+			cgb::vertex_input_location(0, glm::vec3{}).from_buffer_at_binding(0), // <-- corresponds to vertex shader's inPosition
+			cgb::vertex_input_location(1, glm::vec2{}).from_buffer_at_binding(1), // <-- corresponds to vertex shader's inTexCoord
+			cgb::vertex_input_location(2, glm::vec3{}).from_buffer_at_binding(2), // <-- corresponds to vertex shader's inNormal
+			// Some further settings:
+			cgb::cfg::front_face::define_front_faces_to_be_counter_clockwise(),
 			cgb::cfg::viewport_depth_scissors_config::from_window(cgb::context().main_window()),
-			cgb::attachment::create_color(swapChainFormat)
+			// We'll render to the back buffer, which has a color attachment always, and in our case additionally a depth 
+			// attachment, which has been configured when creating the window. See main() function!
+			cgb::attachment::create_color(swapChainFormat),
+			cgb::attachment::create_depth(),
+			// The following define additional data which we'll pass to the pipeline:
+			//   We'll pass two matrices to our vertex shader via push constants:
+			cgb::push_constant_binding_data { cgb::shader_type::vertex, 0, sizeof(transformation_matrices) },
+			cgb::binding(0, 0, mImageSamplers),
+			cgb::binding(1, 0, static_cast<cgb::storage_buffer_t&>(mMaterialBuffer[0])) // Just take any buffer, this is just for the layout
 		);
 
-		mCmdBfrs = cgb::context().graphics_queue().pool().get_command_buffers(cgb::context().main_window()->number_of_concurrent_frames(), vk::CommandBufferUsageFlagBits::eSimultaneousUse);
-		for (auto i = 0; i < mCmdBfrs.size(); ++i) { // TODO: WTF, this must be abstracted somehow!
-			auto& cmdbfr = mCmdBfrs[i];
-			cmdbfr.begin_recording();
-
-			//auto renderPassHandle = cgb::get(mPipeline).renderpass_handle();
-			auto renderPassHandle = cgb::context().main_window()->renderpass_handle();
-			auto extent = cgb::context().main_window()->swap_chain_extent();
-
-			cmdbfr.begin_render_pass(renderPassHandle, cgb::context().main_window()->backbuffer_at_index(i)->handle(), { 0, 0 }, extent);
-			//cmdbfr.handle().bindDescriptorSets(vk::PipelineBindPoint::eGraphics, pipe.layout_handle(), 0u, { }, {});
-			cmdbfr.handle().bindPipeline(vk::PipelineBindPoint::eGraphics, mPipeline->handle());
-			cmdbfr.handle().draw(3u, 1u, 0u, 0u);
-			//cgb::context().draw_triangle(cgb::get(mPipeline), cmdbfr);
-			//cgb::context().draw_vertices(mPipeline, cmdbfr, mVertexBuffer);
-			//cgb::context().draw_indexed(mPipeline, cmdbfr, mVertexBuffer, mIndexBuffer);
-			//cgb::context().draw_indexed(mPipeline, cmdbfr, mModelVertices, mModelIndices);
-			cmdbfr.end_render_pass();
-
-			// TODO: image barriers instead of wait idle!!
-			cgb::context().graphics_queue().handle().waitIdle();
-
-			//cmdbfr.set_image_barrier(mOffscreenImages[i]->create_barrier(vk::AccessFlags(), vk::AccessFlagBits::eShaderWrite, vk::ImageLayout::eUndefined, vk::ImageLayout::eGeneral));
-
-			//cmdbfr.handle().bindPipeline(vk::PipelineBindPoint::eRayTracingNV, mRtPipeline.mPipeline);
-			//cmdbfr.handle().bindDescriptorSets(vk::PipelineBindPoint::eRayTracingNV, mRtPipeline.mPipelineLayout, 0u, { mRtDescriptorSets[i].mDescriptorSet }, {});
-			//cmdbfr.handle().traceRaysNV(
-			//	mShaderBindingTable.mBuffer, 0,
-			//	mShaderBindingTable.mBuffer, 3 * rtProps.shaderGroupHandleSize, rtProps.shaderGroupHandleSize,
-			//	mShaderBindingTable.mBuffer, 1 * rtProps.shaderGroupHandleSize, rtProps.shaderGroupHandleSize,
-			//	nullptr, 0, 0,
-			//	extent.width, extent.height, 1,
-			//	cgb::context().dynamic_dispatch());
-
-			//cmdbfr.set_image_barrier(cgb::create_image_barrier(mSwapChainData->mSwapChainImages[i], mSwapChainData->mSwapChainImageFormat.mFormat, vk::AccessFlags(), vk::AccessFlagBits::eTransferWrite, vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal));
-			//cmdbfr.set_image_barrier(mOffscreenImages[i]->create_barrier(vk::AccessFlagBits::eShaderWrite, vk::AccessFlagBits::eTransferRead, vk::ImageLayout::eGeneral, vk::ImageLayout::eTransferSrcOptimal));
-
-			//cmdbfr.copy_image(*mOffscreenImages[i], mSwapChainData->mSwapChainImages[i]);
-
-			//cmdbfr.set_image_barrier(cgb::create_image_barrier(mSwapChainData->mSwapChainImages[i], mSwapChainData->mSwapChainImageFormat.mFormat, vk::AccessFlagBits::eTransferWrite, vk::AccessFlags(), vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::ePresentSrcKHR));
-	
-
-			cmdbfr.end_recording();
+		// The following is a bit ugly and needs to be abstracted sometime in the future. Sorry for that.
+		// Right now it is neccessary to upload the resource descriptors to the GPU (the information about the uniform buffer, in particular).
+		// This descriptor set will be used in render(). It is only created once to save memory/to make lifetime management easier.
+		mDescriptorSet.reserve(cgb::context().main_window()->number_of_concurrent_frames());
+		for (int i = 0; i < cgb::context().main_window()->number_of_concurrent_frames(); ++i) {
+			mDescriptorSet.emplace_back(std::make_shared<cgb::descriptor_set>());
+			*mDescriptorSet.back() = std::move(cgb::descriptor_set::create({ 
+				cgb::binding(0, 0, mImageSamplers),
+				cgb::binding(1, 0, static_cast<cgb::storage_buffer_t&>(mMaterialBuffer[i]))
+			}));	
 		}
+		
+		// Add the camera to the composition (and let it handle the updates)
+		mQuakeCam.set_translation({ 0.0f, 0.0f, 0.0f });
+		mQuakeCam.set_perspective_projection(glm::radians(60.0f), cgb::context().main_window()->aspect_ratio(), 0.5f, 100.0f);
+		//mQuakeCam.set_orthographic_projection(-5, 5, -5, 5, 0.5, 100);
+		cgb::current_composition().add_element(mQuakeCam);
 	}
 
 	void render() override
 	{
-		auto bufferIndex = cgb::context().main_window()->image_index_for_frame();
-		//auto& lol = cgb::context().main_window()->backbuffer_at_index(cgb::context().main_window()->image_index_for_frame(cgb::context().main_window()->current_frame()));
-		//LOG_INFO(fmt::format("Current Frame's back buffer id: {}", fmt::ptr(&lol.handle())));
-		cgb::context().main_window()->render_frame({ mCmdBfrs[bufferIndex] });
+		auto cmdbfr = cgb::context().graphics_queue().pool().get_command_buffer(vk::CommandBufferUsageFlagBits::eSimultaneousUse);
+		cmdbfr.begin_recording();
+
+		cmdbfr.begin_render_pass_for_window(cgb::context().main_window());
+
+		// Bind the pipeline
+		cmdbfr.handle().bindPipeline(vk::PipelineBindPoint::eGraphics, mPipeline->handle());
+			
+
+		// Set the descriptors of the uniform buffer
+		cmdbfr.handle().bindDescriptorSets(vk::PipelineBindPoint::eGraphics, mPipeline->layout_handle(), 0, 
+			mDescriptorSet[cgb::context().main_window()->sync_index_for_frame()]->number_of_descriptor_sets(),
+			mDescriptorSet[cgb::context().main_window()->sync_index_for_frame()]->descriptor_sets_addr(), 
+			0, nullptr);
+
+		for (auto& drawCall : mDrawCalls) {
+			// Bind the vertex input buffers in the right order (corresponding to the layout specifiers in the vertex shader)
+			cmdbfr.handle().bindVertexBuffers(0u, {
+				drawCall.mPositionsBuffer->buffer_handle(), 
+				drawCall.mTexCoordsBuffer->buffer_handle(), 
+				drawCall.mNormalsBuffer->buffer_handle()
+			}, { 0, 0, 0 });
+
+			// Set the push constants:
+			auto pushConstantsForThisDrawCall = transformation_matrices { 
+				glm::scale(glm::vec3(0.01f)),							// <-- mModelMatrix
+				mQuakeCam.projection_matrix() * mQuakeCam.view_matrix(),// <-- mProjViewMatrix
+				drawCall.mMaterialIndex
+			};
+			cmdbfr.handle().pushConstants(mPipeline->layout_handle(), vk::ShaderStageFlagBits::eVertex, 0, sizeof(pushConstantsForThisDrawCall), &pushConstantsForThisDrawCall);
+
+			// Bind and use the index buffer to create the draw call:
+			vk::IndexType indexType = cgb::to_vk_index_type(drawCall.mIndexBuffer->meta_data().sizeof_one_element());
+			cmdbfr.handle().bindIndexBuffer(drawCall.mIndexBuffer->buffer_handle(), 0u, indexType);
+			cmdbfr.handle().drawIndexed(drawCall.mIndexBuffer->meta_data().num_elements(), 1u, 0u, 0u, 0u);
+		}
+
+		cmdbfr.end_render_pass();
+		cmdbfr.end_recording();
+		submit_command_buffer_ownership(std::move(cmdbfr));
 	}
 
 	void update() override
 	{
+		static int counter = 0;
+		if (++counter == 4) {
+			auto current = std::chrono::high_resolution_clock::now();
+			auto time_span = current - mInitTime;
+			auto int_min = std::chrono::duration_cast<std::chrono::minutes>(time_span).count();
+			auto int_sec = std::chrono::duration_cast<std::chrono::seconds>(time_span).count();
+			auto fp_ms = std::chrono::duration<double, std::milli>(time_span).count();
+			printf("Time from init to fourth frame: %d min, %lld sec %lf ms", int_min, int_sec - static_cast<decltype(int_sec)>(int_min) * 60, fp_ms - 1000.0 * int_sec);
+		}
+
 		if (cgb::input().key_pressed(cgb::key_code::h)) {
 			// Log a message:
 			LOG_INFO_EM("Hello cg_base!");
@@ -194,11 +232,32 @@ class draw_a_triangle_app : public cgb::cg_element
 			// Stop the current composition:
 			cgb::current_composition().stop();
 		}
+		if (cgb::input().key_pressed(cgb::key_code::tab)) {
+			if (mQuakeCam.is_enabled()) {
+				mQuakeCam.disable();
+			}
+			else {
+				mQuakeCam.enable();
+			}
+		}
+	}
+
+	void finalize() override
+	{
+		cgb::context().logical_device().waitIdle();
 	}
 
 private:
+	std::chrono::high_resolution_clock::time_point mInitTime;
+
+	std::vector<cgb::material_gpu_data> mGpuMaterialData;
+	std::vector<cgb::image_sampler> mImageSamplers;
+
+	std::vector<data_for_draw_call> mDrawCalls;
+	std::vector<cgb::storage_buffer> mMaterialBuffer;
+	std::vector<std::shared_ptr<cgb::descriptor_set>> mDescriptorSet;
 	cgb::graphics_pipeline mPipeline;
-	std::vector<cgb::command_buffer> mCmdBfrs;
+	cgb::quake_camera mQuakeCam;
 };
 
 int main()
@@ -211,11 +270,12 @@ int main()
 		auto mainWnd = cgb::context().create_window("Hello World Window");
 		mainWnd->set_resolution({ 640, 480 });
 		mainWnd->set_presentaton_mode(cgb::presentation_mode::vsync);
+		mainWnd->set_additional_back_buffer_attachments({ cgb::attachment::create_depth(cgb::image_format::default_depth_format()) });
 		mainWnd->open(); 
 
-		// Create an instance of my_first_cgb_app which, in this case,
+		// Create an instance of vertex_buffers_app which, in this case,
 		// contains the entire functionality of our application. 
-		auto element = draw_a_triangle_app();
+		auto element = vertex_buffers_app();
 
 		// Create a composition of:
 		//  - a timer

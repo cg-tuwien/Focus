@@ -32,9 +32,18 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\cg_base\examples\model_loader\shaders\diffuse_shading_fixed_lightsource.frag" />
+    <None Include="..\cg_base\examples\model_loader\shaders\transform_and_pass_pos_nrm_uv.vert" />
+  </ItemGroup>
+  <ItemGroup>
     <ClCompile Include="..\source_code\the_game.cpp" />
     <ClCompile Include="cg_stdafx.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release_OpenGL|x64'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Publish_Vulkan|x64'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Publish_OpenGL|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug_Vulkan|x64'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release_Vulkan|x64'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug_OpenGL|x64'">Create</PrecompiledHeader>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -42,16 +51,23 @@
     <ClInclude Include="cg_targetver.hpp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\shaders\a_triangle.frag" />
-    <None Include="..\shaders\a_triangle.vert" />
+    <None Include="..\cg_base\assets\3rd_party\models\sponza\sponza_structure.obj">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_OpenGL|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Publish_Vulkan|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Publish_OpenGL|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_Vulkan|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_Vulkan|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_OpenGL|x64'">false</ExcludedFromBuild>
+      <FileType>Document</FileType>
+    </None>
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
-    <ProjectGuid>{b89769fd-6e5a-4313-af23-a3b89f190aa2}</ProjectGuid>
+    <ProjectGuid>{936c412c-9f27-40ba-bb9d-00bbb3564e31}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>raytracinggame</RootNamespace>
+    <RootNamespace>focusrt</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
-    <ProjectName>ray_tracing_game</ProjectName>
+    <ProjectName>focus_rt</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug_Vulkan|x64'" Label="Configuration">
