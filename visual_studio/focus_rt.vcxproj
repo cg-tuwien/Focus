@@ -32,10 +32,6 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\cg_base\examples\model_loader\shaders\diffuse_shading_fixed_lightsource.frag" />
-    <None Include="..\cg_base\examples\model_loader\shaders\transform_and_pass_pos_nrm_uv.vert" />
-  </ItemGroup>
-  <ItemGroup>
     <ClCompile Include="..\source_code\the_game.cpp" />
     <ClCompile Include="cg_stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release_OpenGL|x64'">Create</PrecompiledHeader>
@@ -51,15 +47,12 @@
     <ClInclude Include="cg_targetver.hpp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\cg_base\assets\3rd_party\models\sponza\sponza_structure.obj">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_OpenGL|x64'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Publish_Vulkan|x64'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Publish_OpenGL|x64'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_Vulkan|x64'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_Vulkan|x64'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_OpenGL|x64'">false</ExcludedFromBuild>
-      <FileType>Document</FileType>
-    </None>
+    <None Include="..\cg_base\assets\3rd_party\models\sponza\sponza.fscene" />
+    <None Include="..\cg_base\examples\real_time_ray_tracing\shaders\rt_09_first.rchit" />
+    <None Include="..\cg_base\examples\real_time_ray_tracing\shaders\rt_09_first.rgen" />
+    <None Include="..\cg_base\examples\real_time_ray_tracing\shaders\rt_09_first.rmiss" />
+    <None Include="..\cg_base\examples\real_time_ray_tracing\shaders\rt_09_secondary.rchit" />
+    <None Include="..\cg_base\examples\real_time_ray_tracing\shaders\rt_09_secondary.rmiss" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>

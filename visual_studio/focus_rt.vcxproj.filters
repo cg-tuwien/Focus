@@ -13,11 +13,24 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\cg_base\examples\model_loader\shaders\diffuse_shading_fixed_lightsource.frag">
+    <None Include="..\cg_base\assets\3rd_party\models\sponza\sponza_structure.obj" />
+    <None Include="..\cg_base\examples\real_time_ray_tracing\shaders\rt_09_first.rchit">
       <Filter>shaders</Filter>
     </None>
-    <None Include="..\cg_base\examples\model_loader\shaders\transform_and_pass_pos_nrm_uv.vert">
+    <None Include="..\cg_base\examples\real_time_ray_tracing\shaders\rt_09_first.rgen">
       <Filter>shaders</Filter>
+    </None>
+    <None Include="..\cg_base\examples\real_time_ray_tracing\shaders\rt_09_first.rmiss">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="..\cg_base\examples\real_time_ray_tracing\shaders\rt_09_secondary.rchit">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="..\cg_base\examples\real_time_ray_tracing\shaders\rt_09_secondary.rmiss">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="..\cg_base\assets\3rd_party\models\sponza\sponza.fscene">
+      <Filter>assets</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
@@ -33,10 +46,5 @@
     <ClInclude Include="cg_targetver.hpp">
       <Filter>precompiled_headers</Filter>
     </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <Object Include="..\cg_base\assets\3rd_party\models\sponza\sponza_structure.obj">
-      <Filter>assets</Filter>
-    </Object>
   </ItemGroup>
 </Project>
