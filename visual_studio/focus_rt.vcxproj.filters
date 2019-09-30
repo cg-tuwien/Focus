@@ -13,7 +13,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\cg_base\assets\3rd_party\models\sponza\sponza_structure.obj" />
     <None Include="..\cg_base\examples\real_time_ray_tracing\shaders\rt_09_first.rchit">
       <Filter>shaders</Filter>
     </None>
