@@ -32,7 +32,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\source_code\the_game.cpp" />
+    <ClCompile Include="..\source_code\focus_rt.cpp" />
     <ClCompile Include="cg_stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release_OpenGL|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Publish_Vulkan|x64'">Create</PrecompiledHeader>
@@ -48,11 +48,11 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="..\cg_base\assets\3rd_party\models\sponza\sponza.fscene" />
-    <None Include="..\cg_base\examples\real_time_ray_tracing\shaders\rt_09_first.rchit" />
-    <None Include="..\cg_base\examples\real_time_ray_tracing\shaders\rt_09_first.rgen" />
-    <None Include="..\cg_base\examples\real_time_ray_tracing\shaders\rt_09_first.rmiss" />
-    <None Include="..\cg_base\examples\real_time_ray_tracing\shaders\rt_09_secondary.rchit" />
-    <None Include="..\cg_base\examples\real_time_ray_tracing\shaders\rt_09_secondary.rmiss" />
+    <None Include="..\shaders\rt_09_first.rchit" />
+    <None Include="..\shaders\rt_09_first.rgen" />
+    <None Include="..\shaders\rt_09_first.rmiss" />
+    <None Include="..\shaders\rt_09_secondary.rchit" />
+    <None Include="..\shaders\rt_09_secondary.rmiss" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
