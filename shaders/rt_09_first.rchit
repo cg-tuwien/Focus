@@ -96,6 +96,8 @@ void main()
 //    hitValue = (barycentrics * 0.5 + vec3(0.5, 0.5, 0.5))
 //		* uniformBuffers[nonuniformEXT(gl_InstanceCustomIndexNV)].color.rgb
 //		* ( secondaryRayHitValue < tmax ? 0.25 : 1.0 );
-//	hitValue = barycentrics * 0.5 + vec3(0.5, 0.5, 0.5);
-	hitValue = vec3(uv, 0);
+	hitValue = barycentrics * 0.5 + vec3(0.5, 0.5, 0.5);
+	//hitValue = vec3(uv, 0);
+	//float ic = float(indices.x / 100.0f);
+	//hitValue = vec3(ic);
 }

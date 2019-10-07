@@ -13,9 +13,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\cg_base\assets\3rd_party\models\sponza\sponza.fscene">
-      <Filter>assets</Filter>
-    </None>
     <None Include="..\shaders\rt_09_first.rchit">
       <Filter>shaders</Filter>
     </None>
@@ -31,12 +28,43 @@
     <None Include="..\shaders\rt_09_secondary.rmiss">
       <Filter>shaders</Filter>
     </None>
+    <None Include="..\assets\level01c.dae">
+      <Filter>assets</Filter>
+    </None>
+    <None Include="..\assets\cgbtest1.dae">
+      <Filter>assets</Filter>
+    </None>
+    <None Include="..\assets\cgbtest1.fbx">
+      <Filter>assets</Filter>
+    </None>
+    <None Include="..\assets\cgbtest1.mtl">
+      <Filter>assets</Filter>
+    </None>
+    <None Include="..\assets\cgbtest2.dae">
+      <Filter>assets</Filter>
+    </None>
+    <None Include="..\assets\cgbtest2.fbx">
+      <Filter>assets</Filter>
+    </None>
+    <None Include="..\assets\cgbtest2.mtl">
+      <Filter>assets</Filter>
+    </None>
+    <None Include="..\assets\cgbtest2sm.fbx">
+      <Filter>assets</Filter>
+    </None>
+    <None Include="..\assets\cgbtest1.obj">
+      <Filter>assets</Filter>
+    </None>
+    <None Include="..\assets\cgbtest2.obj">
+      <Filter>assets</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="cg_stdafx.cpp">
       <Filter>precompiled_headers</Filter>
     </ClCompile>
     <ClCompile Include="..\source_code\focus_rt.cpp" />
+    <ClCompile Include="xtest.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="cg_stdafx.hpp">
@@ -45,5 +73,112 @@
     <ClInclude Include="cg_targetver.hpp">
       <Filter>precompiled_headers</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\assets\Lava4.png">
+      <Filter>assets</Filter>
+    </Image>
+    <Image Include="..\assets\Marble01_col.jpg">
+      <Filter>assets</Filter>
+    </Image>
+    <Image Include="..\assets\Marble01_nrm.jpg">
+      <Filter>assets</Filter>
+    </Image>
+    <Image Include="..\assets\Marble05_col.jpg">
+      <Filter>assets</Filter>
+    </Image>
+    <Image Include="..\assets\Marble05_nrm.jpg">
+      <Filter>assets</Filter>
+    </Image>
+    <Image Include="..\assets\MarbleTiles_albedo.png">
+      <Filter>assets</Filter>
+    </Image>
+    <Image Include="..\assets\MarbleTiles_albedo.tif">
+      <Filter>assets</Filter>
+    </Image>
+    <Image Include="..\assets\MarbleTiles_normal.png">
+      <Filter>assets</Filter>
+    </Image>
+    <Image Include="..\assets\MarbleTiles_normal.tif">
+      <Filter>assets</Filter>
+    </Image>
+    <Image Include="..\assets\MarbleTiles_normal-fake.png">
+      <Filter>assets</Filter>
+    </Image>
+    <Image Include="..\assets\Metal07_col.jpg">
+      <Filter>assets</Filter>
+    </Image>
+    <Image Include="..\assets\Metal07_nrm.jpg">
+      <Filter>assets</Filter>
+    </Image>
+    <Image Include="..\assets\Metal15_col.jpg">
+      <Filter>assets</Filter>
+    </Image>
+    <Image Include="..\assets\Metal15_nrm.jpg">
+      <Filter>assets</Filter>
+    </Image>
+    <Image Include="..\assets\Metal18_col.jpg">
+      <Filter>assets</Filter>
+    </Image>
+    <Image Include="..\assets\Metal18_nrm.jpg">
+      <Filter>assets</Filter>
+    </Image>
+    <Image Include="..\assets\PavingStones36_col.jpg">
+      <Filter>assets</Filter>
+    </Image>
+    <Image Include="..\assets\PavingStones36_nrm.jpg">
+      <Filter>assets</Filter>
+    </Image>
+    <Image Include="..\assets\Tiles13_col.jpg">
+      <Filter>assets</Filter>
+    </Image>
+    <Image Include="..\assets\Tiles13_nrm.jpg">
+      <Filter>assets</Filter>
+    </Image>
+    <Image Include="..\assets\Wood26_col.jpg">
+      <Filter>assets</Filter>
+    </Image>
+    <Image Include="..\assets\Wood26_nrm.jpg">
+      <Filter>assets</Filter>
+    </Image>
+    <Image Include="..\assets\bark_0004.jpg">
+      <Filter>assets</Filter>
+    </Image>
+    <Image Include="..\assets\Bricks29_col.jpg">
+      <Filter>assets</Filter>
+    </Image>
+    <Image Include="..\assets\Bricks29_nrm.jpg">
+      <Filter>assets</Filter>
+    </Image>
+    <Image Include="..\assets\Concrete07_col.jpg">
+      <Filter>assets</Filter>
+    </Image>
+    <Image Include="..\assets\Concrete07_nrm.jpg">
+      <Filter>assets</Filter>
+    </Image>
+    <Image Include="..\assets\DB2X2_L01.png">
+      <Filter>assets</Filter>
+    </Image>
+    <Image Include="..\assets\DB2X2_L02.png">
+      <Filter>assets</Filter>
+    </Image>
+    <Image Include="..\assets\DB2X2_L02_NRM.png">
+      <Filter>assets</Filter>
+    </Image>
+    <Image Include="..\assets\DiamondPlate02_col.jpg">
+      <Filter>assets</Filter>
+    </Image>
+    <Image Include="..\assets\DiamondPlate02_nrm.jpg">
+      <Filter>assets</Filter>
+    </Image>
+    <Image Include="..\assets\dirt.png">
+      <Filter>assets</Filter>
+    </Image>
+    <Image Include="..\assets\Ground03_col.jpg">
+      <Filter>assets</Filter>
+    </Image>
+    <Image Include="..\assets\Ground03_nrm.jpg">
+      <Filter>assets</Filter>
+    </Image>
   </ItemGroup>
 </Project>

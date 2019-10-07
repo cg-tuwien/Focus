@@ -6,17 +6,43 @@ class focus_rt_app : public cgb::cg_element
 		glm::mat4 mViewMatrix;
 	};
 
+	struct model
+	{
+		std::vector<glm::vec3> mPositions;
+		std::vector<glm::vec2> mTexCoords;
+		std::vector<glm::vec3> mNormals;
+		std::vector<uint32_t> mIndices;
+
+		cgb::vertex_buffer mPositionsBuffer;
+		cgb::uniform_texel_buffer mTexCoordsBuffer;
+		cgb::uniform_texel_buffer mNormalsBuffer;
+		cgb::index_buffer mIndexBuffer;
+		cgb::uniform_texel_buffer mIndexTexelBuffer;
+		cgb::bottom_level_acceleration_structure blas;
+
+		int mMaterialIndex;
+	};
+
+	std::vector<model> mModels;
+
 public: // v== cgb::cg_element overrides which will be invoked by the framework ==v
 
 	void initialize() override
 	{
 		mInitTime = std::chrono::high_resolution_clock::now();
 
-		// Load an ORCA scene from file:
-		auto orca = cgb::orca_scene_t::load_from_file("assets/sponza.fscene");
+		// Load a collada scene from file:
+		auto loadedscene = cgb::model_t::load_from_file("assets/level01c.dae");
+		//auto loadedscene = cgb::model_t::load_from_file("assets/level01cf1.fbx");
+		//auto loadedscene = cgb::model_t::load_from_file("assets/monkey.fbx");
+		//auto loadedscene = cgb::model_t::load_from_file("assets/cgbtest2.obj");
+		//auto loadedscene = cgb::model_t::load_from_file("assets/cgbtest2.dae");
+		//auto loadedscene = cgb::model_t::load_from_file("assets/cgbtest2sm.fbx");
 		// Get all the different materials from the whole scene:
-		auto distinctMaterialsOrca = orca->distinct_material_configs_for_all_models();
+		auto distinctMaterials = loadedscene->distinct_material_configs();
 		
+		mModels.reserve(distinctMaterials.size());
+
 		// The following loop gathers all the vertex and index data PER MATERIAL and constructs the buffers and materials.
 		std::vector<cgb::material_config> allMatConfigs;
 		mBLASs.reserve(100);				// Due to an internal problem, all the buffers can't properly be moved right now => use `reserve` as a workaround.
@@ -24,15 +50,14 @@ public: // v== cgb::cg_element overrides which will be invoked by the framework 
 		blasWaitSemaphores.reserve(100);	// Due to an internal problem, all the buffers can't properly be moved right now => use `reserve` as a workaround.
 		mTexCoordBufferViews.reserve(100);	// Due to an internal problem, all the buffers can't properly be moved right now => use `reserve` as a workaround.
 		mIndexBufferViews.reserve(100);		// Due to an internal problem, all the buffers can't properly be moved right now => use `reserve` as a workaround.
-		for (const auto& pair : distinctMaterialsOrca) {
+		for (const auto& pair : distinctMaterials) {
 			auto it = std::find(std::begin(allMatConfigs), std::end(allMatConfigs), pair.first);
 			allMatConfigs.push_back(pair.first);
 			auto matIndex = allMatConfigs.size() - 1;
 
 			// The data in distinctMaterialsOrca also references all the models and submesh-indices (at pair.second) which have a specific material (pair.first) 
-			for (const auto& indices : pair.second) {
+			for (const auto& meshindex : pair.second) {
 				// However, we have to pay attention to the specific model's scene-properties,...
-				auto& modelData = orca->model_at_index(indices.mModelIndex);
 				// ... specifically, to its instances:
 				// (Generally, we can't combine the vertex data in this case with the vertex
 				//  data of other models if we have to draw multiple instances; because in 
@@ -41,58 +66,80 @@ public: // v== cgb::cg_element overrides which will be invoked by the framework 
 				//  Therefore, in this example, we take the approach of building separate 
 				//  buffers for everything which could potentially be instanced.)
 
+				auto& newElement = mModels.emplace_back();
+				newElement.mMaterialIndex = matIndex;
+
 				// Get a buffer containing all positions, and one containing all indices for all submeshes with this material
-				auto [positionsBuffer, indicesBuffer] = cgb::get_combined_vertex_and_index_buffers_for_selected_meshes({ cgb::make_tuple_model_and_indices(modelData.mLoadedModel, indices.mMeshIndices) });
-				positionsBuffer.enable_shared_ownership();
-				indicesBuffer.enable_shared_ownership();
+				//auto [positionsBuffer, indicesBuffer] = cgb::get_combined_vertex_and_index_buffers_for_selected_meshes({ cgb::make_tuple_model_and_indices(modelData.mLoadedModel, indices.mMeshIndices) });
+				cgb::append_indices_and_vertex_data(
+					cgb::additional_index_data(newElement.mIndices, [&]() { return loadedscene->indices_for_mesh<uint32_t>(meshindex);						}),
+					cgb::additional_vertex_data(newElement.mPositions, [&]() { return loadedscene->positions_for_mesh(meshindex);							}),
+					cgb::additional_vertex_data(newElement.mTexCoords, [&]() { return loadedscene->texture_coordinates_for_mesh<glm::vec2>(meshindex);		}),
+					cgb::additional_vertex_data(newElement.mNormals, [&]() { return loadedscene->normals_for_mesh(meshindex);								})
+				);
+
+				newElement.mPositionsBuffer = cgb::create_and_fill(
+					cgb::vertex_buffer_meta::create_from_data(newElement.mPositions).describe_only_member(newElement.mPositions[0], 0, cgb::content_description::position),
+					cgb::memory_usage::device,
+					newElement.mPositions.data(),
+					[](auto _Semaphore) {
+						cgb::context().main_window()->set_extra_semaphore_dependency(std::move(_Semaphore));
+					}
+				);
+				newElement.mPositionsBuffer.enable_shared_ownership();
+
+				newElement.mTexCoordsBuffer = cgb::create_and_fill(
+					cgb::uniform_texel_buffer_meta::create_from_data(newElement.mTexCoords).describe_only_member(newElement.mTexCoords[0]),
+					cgb::memory_usage::device,
+					newElement.mTexCoords.data()
+				);
+				newElement.mTexCoordsBuffer.enable_shared_ownership();
+				mTexCoordBufferViews.push_back(cgb::buffer_view_t::create(newElement.mTexCoordsBuffer));
+
+				newElement.mNormalsBuffer = cgb::create_and_fill(
+					cgb::uniform_texel_buffer_meta::create_from_data(newElement.mNormals).describe_only_member(newElement.mNormals[0]),
+					cgb::memory_usage::device,
+					newElement.mNormals.data()
+				);
+				newElement.mNormalsBuffer.enable_shared_ownership();
+
+				newElement.mIndexBuffer = cgb::create_and_fill(
+					cgb::index_buffer_meta::create_from_data(newElement.mIndices),
+					cgb::memory_usage::device,
+					newElement.mIndices.data(),
+					[](auto _Semaphore) {
+						cgb::context().main_window()->set_extra_semaphore_dependency(std::move(_Semaphore));
+					}
+				);
+				newElement.mIndexBuffer.enable_shared_ownership();
+
+				newElement.mIndexTexelBuffer = cgb::create_and_fill(
+					cgb::uniform_texel_buffer_meta::create_from_data(newElement.mIndices).describe_only_member(newElement.mIndices[0]),
+					cgb::memory_usage::device,
+					newElement.mIndices.data()
+				);
+				newElement.mIndexTexelBuffer.enable_shared_ownership();
+				mIndexBufferViews.push_back(cgb::buffer_view_t::create(newElement.mIndexTexelBuffer));
 				
-				// Get a buffer containing all texture coordinates for all submeshes with this material
-				auto bufferViewIndex = static_cast<uint32_t>(mTexCoordBufferViews.size());
-				auto texCoordsData = cgb::get_combined_2d_texture_coordinates_for_selected_meshes({ cgb::make_tuple_model_and_indices(modelData.mLoadedModel, indices.mMeshIndices) }, 0);
-				auto texCoordsTexelBuffer = cgb::create_and_fill(
-					cgb::uniform_texel_buffer_meta::create_from_data(texCoordsData)
-						.describe_only_member(texCoordsData[0]),
-					cgb::memory_usage::device,
-					texCoordsData.data()
-				);
-				mTexCoordBufferViews.push_back( cgb::buffer_view_t::create(std::move(texCoordsTexelBuffer)) );
-
-				// The following call is quite redundant => TODO: optimize!
-				auto [positionsData, indicesData] = cgb::get_combined_vertices_and_indices_for_selected_meshes({ cgb::make_tuple_model_and_indices(modelData.mLoadedModel, indices.mMeshIndices) });
-				auto indexTexelBuffer = cgb::create_and_fill(
-					cgb::uniform_texel_buffer_meta::create_from_data(indicesData)
-						.describe_only_member(indicesData[0]),
-					cgb::memory_usage::device,
-					indicesData.data()
-				);
-				mIndexBufferViews.push_back( cgb::buffer_view_t::create(std::move(indexTexelBuffer)) );
-
-				//// Get a buffer containing all normals for all submeshes with this material
-				//newElement.mNormalsBuffer = cgb::get_combined_normal_buffers_for_selected_meshes({ cgb::make_tuple_model_and_indices(modelData.mLoadedModel, std::get<1>(tpl)) }, 
-				//	[] (auto _Semaphore) {  
-				//		cgb::context().main_window()->set_extra_semaphore_dependency(std::move(_Semaphore)); 
-				//	});
 
 				// Create one bottom level acceleration structure per model
-				auto blas = cgb::bottom_level_acceleration_structure_t::create(std::move(positionsBuffer), std::move(indicesBuffer));
+				newElement.blas = cgb::bottom_level_acceleration_structure_t::create(newElement.mPositionsBuffer, newElement.mIndexBuffer);
 				// Enable shared ownership because we'll have one TLAS per frame in flight, each one referencing the SAME BLASs
 				// (But that also means that we may not modify the BLASs. They must stay the same, otherwise concurrent access will fail.)
-				blas.enable_shared_ownership();
-				mBLASs.push_back(blas); // No need to move, because a BLAS is now represented by a shared pointer internally. We could, though.
+				newElement.blas.enable_shared_ownership();
 
 
 				// Handle the instances. There must at least be one!
-				assert(modelData.mInstances.size() > 0);
-				for (size_t i = 0; i < modelData.mInstances.size(); ++i) {
-					mBLASs.back()->add_instance(
-						cgb::geometry_instance::create(cgb::matrix_from_transforms(modelData.mInstances[i].mTranslation, glm::quat(modelData.mInstances[i].mRotation), modelData.mInstances[i].mScaling))
-					);
-				}
+				newElement.blas->add_instance(
+					cgb::geometry_instance::create(loadedscene->transformation_matrix_for_mesh(meshindex))
+				);
 
-				mBLASs.back()->build([&] (cgb::semaphore _Semaphore) {
+				newElement.blas->build([&] (cgb::semaphore _Semaphore) {
 					// Store them and pass them as a dependency to the TLAS-build
 					blasWaitSemaphores.push_back(std::move(_Semaphore));
 				});
+
+				mBLASs.push_back(newElement.blas);
 			}
 		}
 

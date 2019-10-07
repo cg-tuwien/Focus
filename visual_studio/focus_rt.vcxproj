@@ -41,18 +41,71 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release_Vulkan|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug_OpenGL|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="xtest.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="cg_stdafx.hpp" />
     <ClInclude Include="cg_targetver.hpp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\cg_base\assets\3rd_party\models\sponza\sponza.fscene" />
+    <None Include="..\assets\cgbtest1.dae" />
+    <None Include="..\assets\cgbtest1.fbx" />
+    <None Include="..\assets\cgbtest1.mtl" />
+    <None Include="..\assets\cgbtest2.dae" />
+    <None Include="..\assets\cgbtest2.fbx" />
+    <None Include="..\assets\cgbtest2.mtl" />
+    <None Include="..\assets\cgbtest2sm.fbx" />
+    <None Include="..\assets\level01c.dae" />
     <None Include="..\shaders\rt_09_first.rchit" />
     <None Include="..\shaders\rt_09_first.rgen" />
     <None Include="..\shaders\rt_09_first.rmiss" />
     <None Include="..\shaders\rt_09_secondary.rchit" />
     <None Include="..\shaders\rt_09_secondary.rmiss" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\assets\bark_0004.jpg" />
+    <Image Include="..\assets\Bricks29_col.jpg" />
+    <Image Include="..\assets\Bricks29_nrm.jpg" />
+    <Image Include="..\assets\Concrete07_col.jpg" />
+    <Image Include="..\assets\Concrete07_nrm.jpg" />
+    <Image Include="..\assets\DB2X2_L01.png" />
+    <Image Include="..\assets\DB2X2_L02.png" />
+    <Image Include="..\assets\DB2X2_L02_NRM.png" />
+    <Image Include="..\assets\DiamondPlate02_col.jpg" />
+    <Image Include="..\assets\DiamondPlate02_nrm.jpg" />
+    <Image Include="..\assets\dirt.png" />
+    <Image Include="..\assets\Ground03_col.jpg" />
+    <Image Include="..\assets\Ground03_nrm.jpg" />
+    <Image Include="..\assets\Lava4.png" />
+    <Image Include="..\assets\Marble01_col.jpg" />
+    <Image Include="..\assets\Marble01_nrm.jpg" />
+    <Image Include="..\assets\Marble05_col.jpg" />
+    <Image Include="..\assets\Marble05_nrm.jpg" />
+    <Image Include="..\assets\MarbleTiles_albedo.png" />
+    <Image Include="..\assets\MarbleTiles_albedo.tif" />
+    <Image Include="..\assets\MarbleTiles_normal-fake.png" />
+    <Image Include="..\assets\MarbleTiles_normal.png" />
+    <Image Include="..\assets\MarbleTiles_normal.tif" />
+    <Image Include="..\assets\Metal07_col.jpg" />
+    <Image Include="..\assets\Metal07_nrm.jpg" />
+    <Image Include="..\assets\Metal15_col.jpg" />
+    <Image Include="..\assets\Metal15_nrm.jpg" />
+    <Image Include="..\assets\Metal18_col.jpg" />
+    <Image Include="..\assets\Metal18_nrm.jpg" />
+    <Image Include="..\assets\PavingStones36_col.jpg" />
+    <Image Include="..\assets\PavingStones36_nrm.jpg" />
+    <Image Include="..\assets\Tiles13_col.jpg" />
+    <Image Include="..\assets\Tiles13_nrm.jpg" />
+    <Image Include="..\assets\Wood26_col.jpg" />
+    <Image Include="..\assets\Wood26_nrm.jpg" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\assets\cgbtest1.obj">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="..\assets\cgbtest2.obj">
+      <FileType>Document</FileType>
+    </None>
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
