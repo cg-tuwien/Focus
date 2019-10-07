@@ -90,14 +90,20 @@ void main()
     float tmin = 0.001;
     float tmax = 100.0;
 
-//    traceNV(topLevelAS, rayFlags, cullMask, 1 /* sbtRecordOffset */, 0 /* sbtRecordStride */, 1 /* missIndex */, origin, tmin, direction, tmax, 2 /*payload location*/);
+    traceNV(topLevelAS, rayFlags, cullMask, 1 /* sbtRecordOffset */, 0 /* sbtRecordStride */, 1 /* missIndex */, origin, tmin, direction, tmax, 2 /*payload location*/);
 
-	// gl_InstanceCustomIndex = VkGeometryInstance::instanceId
-//    hitValue = (barycentrics * 0.5 + vec3(0.5, 0.5, 0.5))
-//		* uniformBuffers[nonuniformEXT(gl_InstanceCustomIndexNV)].color.rgb
+	//gl_InstanceCustomIndex = VkGeometryInstance::instanceId
+    //hitValue = (barycentrics * 0.5 + vec3(0.5, 0.5, 0.5))
+//		* matSsbo.materials[nonuniformEXT(gl_InstanceCustomIndexNV)].mAlbedo.rgb
 //		* ( secondaryRayHitValue < tmax ? 0.25 : 1.0 );
-	hitValue = barycentrics * 0.5 + vec3(0.5, 0.5, 0.5);
-	//hitValue = vec3(uv, 0);
+	//hitValue = matSsbo.materials[nonuniformEXT(gl_InstanceCustomIndexNV)].mDiffuseReflectivity.rgb;
+	int texid = matSsbo.materials[nonuniformEXT(gl_InstanceCustomIndexNV)].mDiffuseTexIndex;
+	//hitValue = texture(textures[texid], uv).rgb;
+	//hitValue = barycentrics * 0.5 + vec3(0.5, 0.5, 0.5);
+	//hitValue = vec3( secondaryRayHitValue < tmax ? 0.25 : 1.0 );
+	hitValue = vec3(uv, 0);
+	//hitValue = vec3(indices.x/100.0f);
+	//hitValue = vec3(instanceIndex / 100.0f);
 	//float ic = float(indices.x / 100.0f);
 	//hitValue = vec3(ic);
 }

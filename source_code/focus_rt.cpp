@@ -131,7 +131,7 @@ public: // v== cgb::cg_element overrides which will be invoked by the framework 
 
 				// Handle the instances. There must at least be one!
 				newElement.blas->add_instance(
-					cgb::geometry_instance::create(loadedscene->transformation_matrix_for_mesh(meshindex))
+					cgb::geometry_instance::create(loadedscene->transformation_matrix_for_mesh(meshindex)).set_custom_index(mBLASs.size())
 				);
 
 				newElement.blas->build([&] (cgb::semaphore _Semaphore) {
