@@ -6,6 +6,12 @@ class focus_rt_app : public cgb::cg_element
 		glm::mat4 mViewMatrix;
 	};
 
+	struct model_gpudata {
+		unsigned int mMaterialIndex;
+		glm::mat4 normalMatrix;
+		unsigned int flags;
+	};
+
 	struct model
 	{
 		std::vector<glm::vec3> mPositions;
@@ -19,8 +25,11 @@ class focus_rt_app : public cgb::cg_element
 		cgb::index_buffer mIndexBuffer;
 		cgb::uniform_texel_buffer mIndexTexelBuffer;
 		cgb::bottom_level_acceleration_structure blas;
+		cgb::geometry_instance instance;
 
-		int mMaterialIndex;
+		unsigned int mMaterialIndex;
+
+		model_gpudata mGpuData;
 	};
 
 	std::vector<model> mModels;
@@ -114,7 +123,7 @@ public: // v== cgb::cg_element overrides which will be invoked by the framework 
 				newElement.mIndexBuffer.enable_shared_ownership();
 
 				newElement.mIndexTexelBuffer = cgb::create_and_fill(
-					cgb::uniform_texel_buffer_meta::create_from_data(newElement.mIndices).describe_only_member(newElement.mIndices[0]),
+					cgb::uniform_texel_buffer_meta::create_from_data(newElement.mIndices).set_format<glm::vec3>(),
 					cgb::memory_usage::device,
 					newElement.mIndices.data()
 				);
@@ -130,9 +139,8 @@ public: // v== cgb::cg_element overrides which will be invoked by the framework 
 
 
 				// Handle the instances. There must at least be one!
-				newElement.blas->add_instance(
-					cgb::geometry_instance::create(loadedscene->transformation_matrix_for_mesh(meshindex)).set_custom_index(mBLASs.size())
-				);
+				newElement.instance = cgb::geometry_instance::create(newElement.blas).set_transform(loadedscene->transformation_matrix_for_mesh(meshindex)).set_custom_index(mBLASs.size());
+				mGeometryInstances.push_back(newElement.instance);
 
 				newElement.blas->build([&] (cgb::semaphore _Semaphore) {
 					// Store them and pass them as a dependency to the TLAS-build
@@ -140,6 +148,9 @@ public: // v== cgb::cg_element overrides which will be invoked by the framework 
 				});
 
 				mBLASs.push_back(newElement.blas);
+
+				newElement.mGpuData = { newElement.mMaterialIndex, glm::mat4(1.0f), 0 };
+				mModelData.push_back(newElement.mGpuData);
 			}
 		}
 
@@ -162,9 +173,9 @@ public: // v== cgb::cg_element overrides which will be invoked by the framework 
 			std::vector<cgb::semaphore> toWaitOnInNextBuild;
 			
 			// Each TLAS owns every BLAS (this will only work, if the BLASs themselves stay constant, i.e. read access
-			auto tlas = cgb::top_level_acceleration_structure_t::create(mBLASs);
+			auto tlas = cgb::top_level_acceleration_structure_t::create(mGeometryInstances.size());
 			// Build the TLAS, ...
-			tlas->build([&] (cgb::semaphore _Semaphore) {
+			tlas->build(mGeometryInstances, [&] (cgb::semaphore _Semaphore) {
 					// ... the SUBSEQUENT build must wait on THIS build, ...
 					toWaitOnInNextBuild.push_back(std::move(_Semaphore));
 				},
@@ -217,9 +228,10 @@ public: // v== cgb::cg_element overrides which will be invoked by the framework 
 			// Define push constants and descriptor bindings:
 			cgb::push_constant_binding_data { cgb::shader_type::ray_generation, 0, sizeof(transformation_matrices) },
 			cgb::binding(0, 0, mImageSamplers),
-			cgb::binding(0, 1, mMaterialBuffer),
-			cgb::binding(0, 2, mIndexBufferViews),
-			cgb::binding(0, 3, mTexCoordBufferViews),
+			cgb::binding(0, 1, mModelData),
+			cgb::binding(0, 2, mMaterialBuffer),
+			cgb::binding(0, 3, mIndexBufferViews),
+			cgb::binding(0, 4, mTexCoordBufferViews),
 			cgb::binding(1, 0, mOffscreenImageViews[0]), // Just take any, this is just to define the layout
 			cgb::binding(2, 0, mTLAS[0])				 // Just take any, this is just to define the layout
 		);
@@ -232,9 +244,10 @@ public: // v== cgb::cg_element overrides which will be invoked by the framework 
 			mDescriptorSet.emplace_back(std::make_shared<cgb::descriptor_set>());
 			*mDescriptorSet.back() = cgb::descriptor_set::create({ 
 				cgb::binding(0, 0, mImageSamplers),
-				cgb::binding(0, 1, mMaterialBuffer),
-				cgb::binding(0, 2, mIndexBufferViews),
-				cgb::binding(0, 3, mTexCoordBufferViews),
+				cgb::binding(0, 1, mModelData),
+				cgb::binding(0, 2, mMaterialBuffer),
+				cgb::binding(0, 3, mIndexBufferViews),
+				cgb::binding(0, 4, mTexCoordBufferViews),
 				cgb::binding(1, 0, mOffscreenImageViews[i]),
 				cgb::binding(2, 0, mTLAS[i])
 			});	
@@ -280,16 +293,17 @@ public: // v== cgb::cg_element overrides which will be invoked by the framework 
 			// Change the position of one of the current TLASs BLAS, and update-build the TLAS.
 			// The changes do not affect the BLAS, only the instance-data that the TLAS stores to each one of the BLAS.
 			//
-			// 1. Change all the BLAS-positions on the CPU-side:
-			for (auto& blas : mBLASs) {
-				for (auto& inst : blas->instances()) {
-					inst.mTransform = glm::translate(inst.mTransform, glm::vec3{x, y, z} * speed);
-					break; // only transform the first
-				}
+			// 1. Change every other instance:
+			bool evenOdd = true;
+			for (auto& inst : mGeometryInstances) {
+				evenOdd = !evenOdd;
+				if (evenOdd) { continue;}
+				inst.set_transform(glm::translate(inst.mTransform, glm::vec3{x, y, z} * speed));
+				break; // only transform the first
 			}
 			//
 			// 2. Update the TLAS for the current inFlightIndex, copying the changed BLAS-data into an internal buffer:
-			mTLAS[inFlightIndex]->update([](cgb::semaphore _Semaphore) {
+			mTLAS[inFlightIndex]->update(mGeometryInstances, [](cgb::semaphore _Semaphore) {
 				cgb::context().main_window()->set_extra_semaphore_dependency(std::move(_Semaphore));
 			});
 		}
@@ -359,11 +373,11 @@ public: // v== cgb::cg_element overrides which will be invoked by the framework 
 				vk::AccessFlagBits::eShaderWrite, vk::AccessFlagBits::eTransferRead, vk::ImageLayout::eGeneral, vk::ImageLayout::eTransferSrcOptimal)
 		);
 
-		cmdbfr.copy_image(mOffscreenImageViews[inFlightIndex]->get_image(), cgb::context().main_window()->swap_chain_images()[inFlightIndex]);
+		//cmdbfr.copy_image(mOffscreenImageViews[inFlightIndex]->get_image(), cgb::context().main_window()->swap_chain_images()[inFlightIndex]);
 
 		cmdbfr.end_recording();
 		submit_command_buffer_ownership(std::move(cmdbfr));
-
+		present_image(mOffscreenImageViews[inFlightIndex]->get_image());
 	}
 
 	void finalize() override
@@ -385,6 +399,8 @@ private: // v== Member variables ==v
 	std::vector<cgb::image_sampler> mImageSamplers;
 	std::vector<cgb::buffer_view> mIndexBufferViews;
 	std::vector<cgb::buffer_view> mTexCoordBufferViews;
+	std::vector<cgb::geometry_instance> mGeometryInstances;
+	std::vector<model_gpudata> mModelData;
 
 	std::vector<std::shared_ptr<cgb::descriptor_set>> mDescriptorSet;
 

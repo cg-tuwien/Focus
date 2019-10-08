@@ -59,13 +59,23 @@ struct MaterialGpuData
 	vec4 mExtraTexOffsetTiling;
 };
 
-layout(set = 0, binding = 1) buffer Material 
+struct ModelInstanceGpuData {
+	uint mMaterialIndex;
+	mat4 mNormalMatrix;
+	uint mFlags;
+};
+
+layout(set = 0, binding = 1) buffer ModelInstance {
+	ModelInstanceGpuData instances[];
+} instanceSsbo;
+
+layout(set = 0, binding = 2) buffer Material 
 {
 	MaterialGpuData materials[];
 } matSsbo;
 
-layout(set = 0, binding = 2) uniform usamplerBuffer indexBuffers[];
-layout(set = 0, binding = 3) uniform samplerBuffer vertexDataBuffers[];
+layout(set = 0, binding = 3) uniform usamplerBuffer indexBuffers[];
+layout(set = 0, binding = 4) uniform samplerBuffer vertexDataBuffers[];
 
 layout(set = 2, binding = 0) uniform accelerationStructureNV topLevelAS;
 
@@ -92,16 +102,18 @@ void main()
 
     traceNV(topLevelAS, rayFlags, cullMask, 1 /* sbtRecordOffset */, 0 /* sbtRecordStride */, 1 /* missIndex */, origin, tmin, direction, tmax, 2 /*payload location*/);
 
+	uint materialIndex = instanceSsbo.instances[nonuniformEXT(gl_InstanceCustomIndexNV)].mMaterialIndex;
+
 	//gl_InstanceCustomIndex = VkGeometryInstance::instanceId
     //hitValue = (barycentrics * 0.5 + vec3(0.5, 0.5, 0.5))
 //		* matSsbo.materials[nonuniformEXT(gl_InstanceCustomIndexNV)].mAlbedo.rgb
 //		* ( secondaryRayHitValue < tmax ? 0.25 : 1.0 );
 	//hitValue = matSsbo.materials[nonuniformEXT(gl_InstanceCustomIndexNV)].mDiffuseReflectivity.rgb;
-	int texid = matSsbo.materials[nonuniformEXT(gl_InstanceCustomIndexNV)].mDiffuseTexIndex;
-	//hitValue = texture(textures[texid], uv).rgb;
+	int texid = matSsbo.materials[materialIndex].mDiffuseTexIndex;
+	hitValue = texture(textures[texid], uv).rgb;
 	//hitValue = barycentrics * 0.5 + vec3(0.5, 0.5, 0.5);
 	//hitValue = vec3( secondaryRayHitValue < tmax ? 0.25 : 1.0 );
-	hitValue = vec3(uv, 0);
+	//hitValue = vec3(uv, 0);
 	//hitValue = vec3(indices.x/100.0f);
 	//hitValue = vec3(instanceIndex / 100.0f);
 	//float ic = float(indices.x / 100.0f);
