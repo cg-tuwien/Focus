@@ -7,9 +7,10 @@ class focus_rt_app : public cgb::cg_element
 	};
 
 	struct model_gpudata {
-		unsigned int mMaterialIndex;
-		glm::mat4 normalMatrix;
-		unsigned int flags;
+		//alignas(16) uint32_t mMeshIndex;
+		uint32_t mMaterialIndex;
+		//alignas(16) glm::mat4 mNormalMatrix;
+		//alignas(16) uint32_t mFlags;
 	};
 
 	struct model
@@ -18,6 +19,7 @@ class focus_rt_app : public cgb::cg_element
 		std::vector<glm::vec2> mTexCoords;
 		std::vector<glm::vec3> mNormals;
 		std::vector<uint32_t> mIndices;
+		model_gpudata mGpuData;
 
 		cgb::vertex_buffer mPositionsBuffer;
 		cgb::uniform_texel_buffer mTexCoordsBuffer;
@@ -28,8 +30,6 @@ class focus_rt_app : public cgb::cg_element
 		cgb::geometry_instance instance;
 
 		unsigned int mMaterialIndex;
-
-		model_gpudata mGpuData;
 	};
 
 	std::vector<model> mModels;
@@ -149,10 +149,18 @@ public: // v== cgb::cg_element overrides which will be invoked by the framework 
 
 				mBLASs.push_back(newElement.blas);
 
-				newElement.mGpuData = { newElement.mMaterialIndex, glm::mat4(1.0f), 0 };
+				newElement.mGpuData = { (uint32_t)newElement.mMaterialIndex };//{ (uint32_t)mModelData.size(), (uint32_t)newElement.mMaterialIndex, glm::mat4(1.0f), 0 };
+				//newElement.mGpuData = { 2 };//{ (uint32_t)mModelData.size(), (uint32_t)newElement.mMaterialIndex, glm::mat4(1.0f), 0 };
 				mModelData.push_back(newElement.mGpuData);
 			}
 		}
+
+		mModelBuffer = cgb::create_and_fill(
+			//cgb::uniform_buffer_meta::create_from_data(mModelData),
+			cgb::storage_buffer_meta::create_from_data(mModelData),
+			cgb::memory_usage::device,
+			mModelData.data()
+		);
 
 		// Convert the materials that were gathered above into a GPU-compatible format, and upload into a GPU storage buffer:
 		auto [gpuMaterials, imageSamplers] = cgb::convert_for_gpu_usage(allMatConfigs, 
@@ -228,10 +236,10 @@ public: // v== cgb::cg_element overrides which will be invoked by the framework 
 			// Define push constants and descriptor bindings:
 			cgb::push_constant_binding_data { cgb::shader_type::ray_generation, 0, sizeof(transformation_matrices) },
 			cgb::binding(0, 0, mImageSamplers),
-			cgb::binding(0, 1, mModelData),
-			cgb::binding(0, 2, mMaterialBuffer),
-			cgb::binding(0, 3, mIndexBufferViews),
-			cgb::binding(0, 4, mTexCoordBufferViews),
+			cgb::binding(4, 0, mModelBuffer),
+			cgb::binding(0, 1, mMaterialBuffer),
+			cgb::binding(0, 2, mIndexBufferViews),
+			cgb::binding(0, 3, mTexCoordBufferViews),
 			cgb::binding(1, 0, mOffscreenImageViews[0]), // Just take any, this is just to define the layout
 			cgb::binding(2, 0, mTLAS[0])				 // Just take any, this is just to define the layout
 		);
@@ -244,10 +252,10 @@ public: // v== cgb::cg_element overrides which will be invoked by the framework 
 			mDescriptorSet.emplace_back(std::make_shared<cgb::descriptor_set>());
 			*mDescriptorSet.back() = cgb::descriptor_set::create({ 
 				cgb::binding(0, 0, mImageSamplers),
-				cgb::binding(0, 1, mModelData),
-				cgb::binding(0, 2, mMaterialBuffer),
-				cgb::binding(0, 3, mIndexBufferViews),
-				cgb::binding(0, 4, mTexCoordBufferViews),
+				cgb::binding(4, 0, mModelBuffer),
+				cgb::binding(0, 1, mMaterialBuffer),
+				cgb::binding(0, 2, mIndexBufferViews),
+				cgb::binding(0, 3, mTexCoordBufferViews),
 				cgb::binding(1, 0, mOffscreenImageViews[i]),
 				cgb::binding(2, 0, mTLAS[i])
 			});	
@@ -401,6 +409,7 @@ private: // v== Member variables ==v
 	std::vector<cgb::buffer_view> mTexCoordBufferViews;
 	std::vector<cgb::geometry_instance> mGeometryInstances;
 	std::vector<model_gpudata> mModelData;
+	cgb::storage_buffer mModelBuffer;
 
 	std::vector<std::shared_ptr<cgb::descriptor_set>> mDescriptorSet;
 

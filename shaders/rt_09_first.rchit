@@ -59,23 +59,28 @@ struct MaterialGpuData
 	vec4 mExtraTexOffsetTiling;
 };
 
+//layout(set = 4, binding = 0) uniform ModelInstanceGpuData {
+//	//uint mMeshIndex;
+//	uint mMaterialIndex;
+//	//mat4 mNormalMatrix;
+//	//uint mFlags;
+//} instances[];
+
 struct ModelInstanceGpuData {
 	uint mMaterialIndex;
-	mat4 mNormalMatrix;
-	uint mFlags;
 };
 
-layout(set = 0, binding = 1) buffer ModelInstance {
+layout(set = 4, binding = 0) buffer InstanceBuffer {
 	ModelInstanceGpuData instances[];
 } instanceSsbo;
 
-layout(set = 0, binding = 2) buffer Material 
+layout(set = 0, binding = 1) buffer Material 
 {
 	MaterialGpuData materials[];
 } matSsbo;
 
-layout(set = 0, binding = 3) uniform usamplerBuffer indexBuffers[];
-layout(set = 0, binding = 4) uniform samplerBuffer vertexDataBuffers[];
+layout(set = 0, binding = 2) uniform usamplerBuffer indexBuffers[];
+layout(set = 0, binding = 3) uniform samplerBuffer vertexDataBuffers[];
 
 layout(set = 2, binding = 0) uniform accelerationStructureNV topLevelAS;
 
@@ -94,8 +99,8 @@ void main()
 	const vec2 uv = (barycentrics.x * uv0 + barycentrics.y * uv1 + barycentrics.z * uv2);
 
     vec3 origin = gl_WorldRayOriginNV + gl_WorldRayDirectionNV * gl_HitTNV;
-    vec3 direction = normalize(vec3(0.8, 1, 0));
-    uint rayFlags = gl_RayFlagsOpaqueNV | gl_RayFlagsTerminateOnFirstHitNV;
+    vec3 direction = normalize(vec3(0.8, 1, 0.2));
+    uint rayFlags = gl_RayFlagsCullFrontFacingTrianglesNV;	//(this doesn't make sense...)
     uint cullMask = 0xff;
     float tmin = 0.001;
     float tmax = 100.0;
@@ -110,7 +115,12 @@ void main()
 //		* ( secondaryRayHitValue < tmax ? 0.25 : 1.0 );
 	//hitValue = matSsbo.materials[nonuniformEXT(gl_InstanceCustomIndexNV)].mDiffuseReflectivity.rgb;
 	int texid = matSsbo.materials[materialIndex].mDiffuseTexIndex;
-	hitValue = texture(textures[texid], uv).rgb;
+	if (texid != 0) {
+		hitValue = texture(textures[texid], uv).rgb * ( secondaryRayHitValue < tmax ? 0.25 : 1.0 );
+	} else {
+		hitValue = vec3(1,1,0) * ( secondaryRayHitValue < tmax ? 0.25 : 1.0 );
+	}
+	//hitValue = vec3(materialIndex / 5.0f);
 	//hitValue = barycentrics * 0.5 + vec3(0.5, 0.5, 0.5);
 	//hitValue = vec3( secondaryRayHitValue < tmax ? 0.25 : 1.0 );
 	//hitValue = vec3(uv, 0);
