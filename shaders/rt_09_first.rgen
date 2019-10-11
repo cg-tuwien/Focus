@@ -30,7 +30,7 @@ void main()
 	
     imageStore(image, ivec2(gl_LaunchIDNV.xy), vec4(gl_LaunchIDNV.x / 1000.0, gl_LaunchIDNV.y / 1000.0, 0.0, 0.0));
 
-    uint rayFlags = gl_RayFlagsOpaqueNV | gl_RayFlagsCullBackFacingTrianglesNV;
+    uint rayFlags = gl_RayFlagsOpaqueNV;
     uint cullMask = 0xff;
     float tmin = 0.001;
     float tmax = 100.0;

@@ -20,6 +20,7 @@ class focus_rt_app : public cgb::cg_element
 		std::vector<glm::vec3> mNormals;
 		std::vector<uint32_t> mIndices;
 		model_gpudata mGpuData;
+		glm::mat4 mTransformation;
 
 		cgb::vertex_buffer mPositionsBuffer;
 		cgb::uniform_texel_buffer mTexCoordsBuffer;
@@ -63,7 +64,7 @@ public: // v== cgb::cg_element overrides which will be invoked by the framework 
 			auto it = std::find(std::begin(allMatConfigs), std::end(allMatConfigs), pair.first);
 			allMatConfigs.push_back(pair.first);
 			auto matIndex = allMatConfigs.size() - 1;
-
+			
 			// The data in distinctMaterialsOrca also references all the models and submesh-indices (at pair.second) which have a specific material (pair.first) 
 			for (const auto& meshindex : pair.second) {
 				// However, we have to pay attention to the specific model's scene-properties,...
@@ -137,9 +138,10 @@ public: // v== cgb::cg_element overrides which will be invoked by the framework 
 				// (But that also means that we may not modify the BLASs. They must stay the same, otherwise concurrent access will fail.)
 				newElement.blas.enable_shared_ownership();
 
+				newElement.mTransformation = loadedscene->transformation_matrix_for_mesh(meshindex);
 
 				// Handle the instances. There must at least be one!
-				newElement.instance = cgb::geometry_instance::create(newElement.blas).set_transform(loadedscene->transformation_matrix_for_mesh(meshindex)).set_custom_index(mBLASs.size());
+				newElement.instance = cgb::geometry_instance::create(newElement.blas).set_transform(newElement.mTransformation).set_custom_index(mBLASs.size());
 				mGeometryInstances.push_back(newElement.instance);
 
 				newElement.blas->build([&] (cgb::semaphore _Semaphore) {
@@ -280,41 +282,54 @@ public: // v== cgb::cg_element overrides which will be invoked by the framework 
 			printf("Time from init to fourth frame: %d min, %lld sec %lf ms\n", int_min, int_sec - static_cast<decltype(int_sec)>(int_min) * 60, fp_ms - 1000.0 * int_sec);
 		}
 
-		// Arrow Keys || Page Up/Down Keys => Move the TLAS
-		static int64_t updateUntilFrame = -1;
-		if (cgb::input().key_down(cgb::key_code::left) || cgb::input().key_down(cgb::key_code::right) || cgb::input().key_down(cgb::key_code::page_down) || cgb::input().key_down(cgb::key_code::page_up) || cgb::input().key_down(cgb::key_code::up) || cgb::input().key_down(cgb::key_code::down)) {
-			// Make sure to update all of the in-flight TLASs, otherwise we'll get some geometry jumping:
-			updateUntilFrame = cgb::context().main_window()->current_frame() + cgb::context().main_window()->number_of_in_flight_frames() - 1;
+		//// Arrow Keys || Page Up/Down Keys => Move the TLAS
+		//static int64_t updateUntilFrame = -1;
+		//if (cgb::input().key_down(cgb::key_code::left) || cgb::input().key_down(cgb::key_code::right) || cgb::input().key_down(cgb::key_code::page_down) || cgb::input().key_down(cgb::key_code::page_up) || cgb::input().key_down(cgb::key_code::up) || cgb::input().key_down(cgb::key_code::down)) {
+		//	// Make sure to update all of the in-flight TLASs, otherwise we'll get some geometry jumping:
+		//	updateUntilFrame = cgb::context().main_window()->current_frame() + cgb::context().main_window()->number_of_in_flight_frames() - 1;
+		//}
+		//if (cgb::context().main_window()->current_frame() <= updateUntilFrame)
+		//{
+		//	auto inFlightIndex = cgb::context().main_window()->in_flight_index_for_frame();
+		//	
+		//	auto x = (cgb::input().key_down(cgb::key_code::left)      ? -cgb::time().delta_time() : 0.0f)
+		//			+(cgb::input().key_down(cgb::key_code::right)     ?  cgb::time().delta_time() : 0.0f);
+		//	auto y = (cgb::input().key_down(cgb::key_code::page_down) ? -cgb::time().delta_time() : 0.0f)
+		//			+(cgb::input().key_down(cgb::key_code::page_up)   ?  cgb::time().delta_time() : 0.0f);
+		//	auto z = (cgb::input().key_down(cgb::key_code::up)        ? -cgb::time().delta_time() : 0.0f)
+		//			+(cgb::input().key_down(cgb::key_code::down)      ?  cgb::time().delta_time() : 0.0f);
+		//	auto speed = 10.0f;
+		//	
+		//	// Change the position of one of the current TLASs BLAS, and update-build the TLAS.
+		//	// The changes do not affect the BLAS, only the instance-data that the TLAS stores to each one of the BLAS.
+		//	//
+		//	// 1. Change every other instance:
+		//	bool evenOdd = true;
+		//	for (auto& inst : mGeometryInstances) {
+		//		evenOdd = !evenOdd;
+		//		if (evenOdd) { continue;}
+		//		inst.set_transform(glm::translate(inst.mTransform, glm::vec3{x, y, z} * speed));
+		//		//break; // only transform the first
+		//	}
+		//	//
+		//	// 2. Update the TLAS for the current inFlightIndex, copying the changed BLAS-data into an internal buffer:
+		//	mTLAS[inFlightIndex]->update(mGeometryInstances, [](cgb::semaphore _Semaphore) {
+		//		cgb::context().main_window()->set_extra_semaphore_dependency(std::move(_Semaphore));
+		//	});
+		//}
+
+		float passedtime = cgb::time().time_since_start();
+		float posy = sin(passedtime);
+
+		for (size_t i = 0; i < mGeometryInstances.size(); ++i) {
+			auto& inst = mGeometryInstances[i];
+			auto model = mModels[i];
+			inst.set_transform(glm::translate(glm::vec3(0, posy, 0)) * model.mTransformation);
 		}
-		if (cgb::context().main_window()->current_frame() <= updateUntilFrame)
-		{
-			auto inFlightIndex = cgb::context().main_window()->in_flight_index_for_frame();
-			
-			auto x = (cgb::input().key_down(cgb::key_code::left)      ? -cgb::time().delta_time() : 0.0f)
-					+(cgb::input().key_down(cgb::key_code::right)     ?  cgb::time().delta_time() : 0.0f);
-			auto y = (cgb::input().key_down(cgb::key_code::page_down) ? -cgb::time().delta_time() : 0.0f)
-					+(cgb::input().key_down(cgb::key_code::page_up)   ?  cgb::time().delta_time() : 0.0f);
-			auto z = (cgb::input().key_down(cgb::key_code::up)        ? -cgb::time().delta_time() : 0.0f)
-					+(cgb::input().key_down(cgb::key_code::down)      ?  cgb::time().delta_time() : 0.0f);
-			auto speed = 1000.0f;
-			
-			// Change the position of one of the current TLASs BLAS, and update-build the TLAS.
-			// The changes do not affect the BLAS, only the instance-data that the TLAS stores to each one of the BLAS.
-			//
-			// 1. Change every other instance:
-			bool evenOdd = true;
-			for (auto& inst : mGeometryInstances) {
-				evenOdd = !evenOdd;
-				if (evenOdd) { continue;}
-				inst.set_transform(glm::translate(inst.mTransform, glm::vec3{x, y, z} * speed));
-				break; // only transform the first
-			}
-			//
-			// 2. Update the TLAS for the current inFlightIndex, copying the changed BLAS-data into an internal buffer:
-			mTLAS[inFlightIndex]->update(mGeometryInstances, [](cgb::semaphore _Semaphore) {
-				cgb::context().main_window()->set_extra_semaphore_dependency(std::move(_Semaphore));
-			});
-		}
+		auto inFlightIndex = cgb::context().main_window()->in_flight_index_for_frame();
+		mTLAS[inFlightIndex]->update(mGeometryInstances, [](cgb::semaphore _Semaphore) {
+			cgb::context().main_window()->set_extra_semaphore_dependency(std::move(_Semaphore));
+		});
 
 		if (cgb::input().key_pressed(cgb::key_code::space)) {
 			// Print the current camera position
