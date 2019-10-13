@@ -58,6 +58,9 @@
     <None Include="..\assets\cgbtest2.obj">
       <Filter>assets</Filter>
     </None>
+    <None Include="..\assets\lighttest.dae">
+      <Filter>assets</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="cg_stdafx.cpp">

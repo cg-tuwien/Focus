@@ -8,8 +8,8 @@ class focus_rt_app : public cgb::cg_element
 
 	struct model_gpudata {
 		//alignas(16) uint32_t mMeshIndex;
-		uint32_t mMaterialIndex;
-		//alignas(16) glm::mat4 mNormalMatrix;
+		alignas(4) uint32_t mMaterialIndex;
+		alignas(16) glm::mat4 mNormalMatrix;
 		//alignas(16) uint32_t mFlags;
 	};
 
@@ -43,11 +43,7 @@ public: // v== cgb::cg_element overrides which will be invoked by the framework 
 
 		// Load a collada scene from file:
 		auto loadedscene = cgb::model_t::load_from_file("assets/level01c.dae");
-		//auto loadedscene = cgb::model_t::load_from_file("assets/level01cf1.fbx");
-		//auto loadedscene = cgb::model_t::load_from_file("assets/monkey.fbx");
-		//auto loadedscene = cgb::model_t::load_from_file("assets/cgbtest2.obj");
-		//auto loadedscene = cgb::model_t::load_from_file("assets/cgbtest2.dae");
-		//auto loadedscene = cgb::model_t::load_from_file("assets/cgbtest2sm.fbx");
+		//auto loadedscene = cgb::model_t::load_from_file("assets/lighttest.dae");
 		// Get all the different materials from the whole scene:
 		auto distinctMaterials = loadedscene->distinct_material_configs();
 		
@@ -59,6 +55,7 @@ public: // v== cgb::cg_element overrides which will be invoked by the framework 
 		std::vector<cgb::semaphore> blasWaitSemaphores;
 		blasWaitSemaphores.reserve(100);	// Due to an internal problem, all the buffers can't properly be moved right now => use `reserve` as a workaround.
 		mTexCoordBufferViews.reserve(100);	// Due to an internal problem, all the buffers can't properly be moved right now => use `reserve` as a workaround.
+		mNormalBufferViews.reserve(100);
 		mIndexBufferViews.reserve(100);		// Due to an internal problem, all the buffers can't properly be moved right now => use `reserve` as a workaround.
 		for (const auto& pair : distinctMaterials) {
 			auto it = std::find(std::begin(allMatConfigs), std::end(allMatConfigs), pair.first);
@@ -112,6 +109,7 @@ public: // v== cgb::cg_element overrides which will be invoked by the framework 
 					newElement.mNormals.data()
 				);
 				newElement.mNormalsBuffer.enable_shared_ownership();
+				mNormalBufferViews.push_back(cgb::buffer_view_t::create(newElement.mNormalsBuffer));
 
 				newElement.mIndexBuffer = cgb::create_and_fill(
 					cgb::index_buffer_meta::create_from_data(newElement.mIndices),
@@ -151,15 +149,15 @@ public: // v== cgb::cg_element overrides which will be invoked by the framework 
 
 				mBLASs.push_back(newElement.blas);
 
-				newElement.mGpuData = { (uint32_t)newElement.mMaterialIndex };//{ (uint32_t)mModelData.size(), (uint32_t)newElement.mMaterialIndex, glm::mat4(1.0f), 0 };
+				newElement.mGpuData = { (uint32_t)newElement.mMaterialIndex, glm::transpose(glm::inverse(newElement.mTransformation)) };//{ (uint32_t)mModelData.size(), (uint32_t)newElement.mMaterialIndex, glm::mat4(1.0f), 0 };
 				//newElement.mGpuData = { 2 };//{ (uint32_t)mModelData.size(), (uint32_t)newElement.mMaterialIndex, glm::mat4(1.0f), 0 };
 				mModelData.push_back(newElement.mGpuData);
 			}
 		}
 
 		mModelBuffer = cgb::create_and_fill(
-			//cgb::uniform_buffer_meta::create_from_data(mModelData),
 			cgb::storage_buffer_meta::create_from_data(mModelData),
+			//cgb::storage_buffer_meta::create_from_data(mModelData),
 			cgb::memory_usage::device,
 			mModelData.data()
 		);
@@ -175,6 +173,20 @@ public: // v== cgb::cg_element overrides which will be invoked by the framework 
 			gpuMaterials.data()
 		);
 		mImageSamplers = std::move(imageSamplers);
+
+		//Create light buffer
+		std::vector<cgb::lightsource_gpu_data> lights = cgb::convert_lights_for_gpu_usage(loadedscene->get_all_lights());
+		mLightBuffer = cgb::create_and_fill(
+			cgb::storage_buffer_meta::create_from_data(lights),
+			cgb::memory_usage::device,
+			lights.data()
+		);
+		uint32_t lightCount = lights.size();
+		mLightInfoBuffer = cgb::create_and_fill(
+			cgb::uniform_buffer_meta::create_from_data(lightCount),
+			cgb::memory_usage::device,
+			&lightCount
+		);
 
 		auto fif = cgb::context().main_window()->number_of_in_flight_frames();
 		mTLAS.reserve(fif);
@@ -242,6 +254,9 @@ public: // v== cgb::cg_element overrides which will be invoked by the framework 
 			cgb::binding(0, 1, mMaterialBuffer),
 			cgb::binding(0, 2, mIndexBufferViews),
 			cgb::binding(0, 3, mTexCoordBufferViews),
+			cgb::binding(0, 4, mNormalBufferViews),
+			cgb::binding(0, 5, mLightInfoBuffer),
+			cgb::binding(5, 0, mLightBuffer),
 			cgb::binding(1, 0, mOffscreenImageViews[0]), // Just take any, this is just to define the layout
 			cgb::binding(2, 0, mTLAS[0])				 // Just take any, this is just to define the layout
 		);
@@ -258,6 +273,9 @@ public: // v== cgb::cg_element overrides which will be invoked by the framework 
 				cgb::binding(0, 1, mMaterialBuffer),
 				cgb::binding(0, 2, mIndexBufferViews),
 				cgb::binding(0, 3, mTexCoordBufferViews),
+				cgb::binding(0, 4, mNormalBufferViews),
+				cgb::binding(0, 5, mLightInfoBuffer),
+				cgb::binding(5, 0, mLightBuffer),
 				cgb::binding(1, 0, mOffscreenImageViews[i]),
 				cgb::binding(2, 0, mTLAS[i])
 			});	
@@ -318,18 +336,20 @@ public: // v== cgb::cg_element overrides which will be invoked by the framework 
 		//	});
 		//}
 
-		float passedtime = cgb::time().time_since_start();
-		float posy = sin(passedtime);
+		////SIMPLE ANIMATION
+		//float passedtime = cgb::time().time_since_start();
+		//float posy = sin(passedtime);
 
-		for (size_t i = 0; i < mGeometryInstances.size(); ++i) {
-			auto& inst = mGeometryInstances[i];
-			auto model = mModels[i];
-			inst.set_transform(glm::translate(glm::vec3(0, posy, 0)) * model.mTransformation);
-		}
-		auto inFlightIndex = cgb::context().main_window()->in_flight_index_for_frame();
-		mTLAS[inFlightIndex]->update(mGeometryInstances, [](cgb::semaphore _Semaphore) {
-			cgb::context().main_window()->set_extra_semaphore_dependency(std::move(_Semaphore));
-		});
+		//for (size_t i = 0; i < mGeometryInstances.size(); ++i) {
+		//	auto& inst = mGeometryInstances[i];
+		//	auto model = mModels[i];
+		//	inst.set_transform(glm::translate(glm::vec3(0, posy, 0)) * model.mTransformation);
+		//	//ToDo: Update Normal Matrix
+		//}
+		//auto inFlightIndex = cgb::context().main_window()->in_flight_index_for_frame();
+		//mTLAS[inFlightIndex]->update(mGeometryInstances, [](cgb::semaphore _Semaphore) {
+		//	cgb::context().main_window()->set_extra_semaphore_dependency(std::move(_Semaphore));
+		//});
 
 		if (cgb::input().key_pressed(cgb::key_code::space)) {
 			// Print the current camera position
@@ -422,9 +442,12 @@ private: // v== Member variables ==v
 	std::vector<cgb::image_sampler> mImageSamplers;
 	std::vector<cgb::buffer_view> mIndexBufferViews;
 	std::vector<cgb::buffer_view> mTexCoordBufferViews;
+	std::vector<cgb::buffer_view> mNormalBufferViews;
 	std::vector<cgb::geometry_instance> mGeometryInstances;
 	std::vector<model_gpudata> mModelData;
 	cgb::storage_buffer mModelBuffer;
+	cgb::uniform_buffer mLightInfoBuffer;
+	cgb::storage_buffer mLightBuffer;
 
 	std::vector<std::shared_ptr<cgb::descriptor_set>> mDescriptorSet;
 
