@@ -84,17 +84,14 @@ layout(set = 0, binding = 5) uniform LightInfo {
 } lightInfo;
 
 struct LightGpuData {
-	float mAngleInnerCone;
-	float mAngleOuterCone;
-	float mAttenuationConstant;
-	float mAttenuationLinear;
-	float mAttenuationQuadratic;
 	vec4 mColorAmbient;
 	vec4 mColorDiffuse;
 	vec4 mColorSpecular;
 	vec4 mDirection;
 	vec4 mPosition;
-	int mType;
+	vec4 mAngles;
+	vec4 mAttenuation;
+	ivec4 mInfo;
 };
 
 layout(set = 5, binding = 0) buffer Light {
@@ -187,9 +184,9 @@ void main()
 
 	vec3 ownColor = matSsbo.materials[materialIndex].mAmbientReflectivity.rgb*dColor;
 	for (uint i = 0; i < lightInfo.lightCount; ++i) {
-		if (lightSsbo.lights[i].mType == 2) {
-			ownColor += phongPoint(position, eye, normal, dColor, materialIndex, lightSsbo.lights[i].mPosition.xyz, lightSsbo.lights[i].mColorDiffuse.rgb, vec3(lightSsbo.lights[i].mAttenuationConstant, lightSsbo.lights[i].mAttenuationLinear, lightSsbo.lights[i].mAttenuationQuadratic), true);
-		} else if (lightSsbo.lights[i].mType == 1) {
+		if (lightSsbo.lights[i].mInfo.x == 2) {
+			ownColor += phongPoint(position, eye, normal, dColor, materialIndex, lightSsbo.lights[i].mPosition.xyz, lightSsbo.lights[i].mColorDiffuse.rgb, lightSsbo.lights[i].mAttenuation.xyz, true);
+		} else if (lightSsbo.lights[i].mInfo.x == 1) {
 			ownColor += phongDirectional(position, eye, normal, dColor, materialIndex, lightSsbo.lights[i].mDirection.xyz, lightSsbo.lights[i].mColorDiffuse.rgb, true);
 		}
 	}
