@@ -18,6 +18,7 @@ class focus_rt_app : public cgb::cg_element
 		std::vector<glm::vec3> mPositions;
 		std::vector<glm::vec2> mTexCoords;
 		std::vector<glm::vec3> mNormals;
+		std::vector<glm::vec3> mTangents;
 		std::vector<uint32_t> mIndices;
 		model_gpudata mGpuData;
 		glm::mat4 mTransformation;
@@ -25,6 +26,7 @@ class focus_rt_app : public cgb::cg_element
 		cgb::vertex_buffer mPositionsBuffer;
 		cgb::uniform_texel_buffer mTexCoordsBuffer;
 		cgb::uniform_texel_buffer mNormalsBuffer;
+		cgb::uniform_texel_buffer mTangentsBuffer;
 		cgb::index_buffer mIndexBuffer;
 		cgb::uniform_texel_buffer mIndexTexelBuffer;
 		cgb::bottom_level_acceleration_structure blas;
@@ -42,7 +44,7 @@ public: // v== cgb::cg_element overrides which will be invoked by the framework 
 		mInitTime = std::chrono::high_resolution_clock::now();
 
 		// Load a collada scene from file:
-		auto loadedscene = cgb::model_t::load_from_file("assets/level01c.dae");
+		auto loadedscene = cgb::model_t::load_from_file("assets/level01c.dae", aiProcess_Triangulate | aiProcess_CalcTangentSpace);
 		//auto loadedscene = cgb::model_t::load_from_file("assets/lighttest.dae");
 		// Get all the different materials from the whole scene:
 		auto distinctMaterials = loadedscene->distinct_material_configs();
@@ -56,6 +58,7 @@ public: // v== cgb::cg_element overrides which will be invoked by the framework 
 		blasWaitSemaphores.reserve(100);	// Due to an internal problem, all the buffers can't properly be moved right now => use `reserve` as a workaround.
 		mTexCoordBufferViews.reserve(100);	// Due to an internal problem, all the buffers can't properly be moved right now => use `reserve` as a workaround.
 		mNormalBufferViews.reserve(100);
+		mTangentBufferViews.reserve(100);
 		mIndexBufferViews.reserve(100);		// Due to an internal problem, all the buffers can't properly be moved right now => use `reserve` as a workaround.
 		for (const auto& pair : distinctMaterials) {
 			auto it = std::find(std::begin(allMatConfigs), std::end(allMatConfigs), pair.first);
@@ -82,7 +85,8 @@ public: // v== cgb::cg_element overrides which will be invoked by the framework 
 					cgb::additional_index_data(newElement.mIndices, [&]() { return loadedscene->indices_for_mesh<uint32_t>(meshindex);						}),
 					cgb::additional_vertex_data(newElement.mPositions, [&]() { return loadedscene->positions_for_mesh(meshindex);							}),
 					cgb::additional_vertex_data(newElement.mTexCoords, [&]() { return loadedscene->texture_coordinates_for_mesh<glm::vec2>(meshindex);		}),
-					cgb::additional_vertex_data(newElement.mNormals, [&]() { return loadedscene->normals_for_mesh(meshindex);								})
+					cgb::additional_vertex_data(newElement.mNormals, [&]() { return loadedscene->normals_for_mesh(meshindex);								}),
+					cgb::additional_vertex_data(newElement.mTangents, [&]() { return loadedscene->tangents_for_mesh(meshindex);								})
 				);
 
 				newElement.mPositionsBuffer = cgb::create_and_fill(
@@ -110,6 +114,14 @@ public: // v== cgb::cg_element overrides which will be invoked by the framework 
 				);
 				newElement.mNormalsBuffer.enable_shared_ownership();
 				mNormalBufferViews.push_back(cgb::buffer_view_t::create(newElement.mNormalsBuffer));
+
+				newElement.mTangentsBuffer = cgb::create_and_fill(
+					cgb::uniform_texel_buffer_meta::create_from_data(newElement.mTangents).describe_only_member(newElement.mTangents[0]),
+					cgb::memory_usage::device,
+					newElement.mTangents.data()
+				);
+				newElement.mTangentsBuffer.enable_shared_ownership();
+				mTangentBufferViews.push_back(cgb::buffer_view_t::create(newElement.mTangentsBuffer));
 
 				newElement.mIndexBuffer = cgb::create_and_fill(
 					cgb::index_buffer_meta::create_from_data(newElement.mIndices),
@@ -255,8 +267,9 @@ public: // v== cgb::cg_element overrides which will be invoked by the framework 
 			cgb::binding(0, 2, mIndexBufferViews),
 			cgb::binding(0, 3, mTexCoordBufferViews),
 			cgb::binding(0, 4, mNormalBufferViews),
-			cgb::binding(0, 5, mLightInfoBuffer),
-			cgb::binding(5, 0, mLightBuffer),
+			cgb::binding(0, 5, mTangentBufferViews),
+			cgb::binding(5, 0, mLightInfoBuffer),
+			cgb::binding(5, 1, mLightBuffer),
 			cgb::binding(1, 0, mOffscreenImageViews[0]), // Just take any, this is just to define the layout
 			cgb::binding(2, 0, mTLAS[0])				 // Just take any, this is just to define the layout
 		);
@@ -274,8 +287,9 @@ public: // v== cgb::cg_element overrides which will be invoked by the framework 
 				cgb::binding(0, 2, mIndexBufferViews),
 				cgb::binding(0, 3, mTexCoordBufferViews),
 				cgb::binding(0, 4, mNormalBufferViews),
-				cgb::binding(0, 5, mLightInfoBuffer),
-				cgb::binding(5, 0, mLightBuffer),
+				cgb::binding(0, 5, mTangentBufferViews),
+				cgb::binding(5, 0, mLightInfoBuffer),
+				cgb::binding(5, 1, mLightBuffer),
 				cgb::binding(1, 0, mOffscreenImageViews[i]),
 				cgb::binding(2, 0, mTLAS[i])
 			});	
@@ -443,6 +457,7 @@ private: // v== Member variables ==v
 	std::vector<cgb::buffer_view> mIndexBufferViews;
 	std::vector<cgb::buffer_view> mTexCoordBufferViews;
 	std::vector<cgb::buffer_view> mNormalBufferViews;
+	std::vector<cgb::buffer_view> mTangentBufferViews;
 	std::vector<cgb::geometry_instance> mGeometryInstances;
 	std::vector<model_gpudata> mModelData;
 	cgb::storage_buffer mModelBuffer;

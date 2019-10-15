@@ -2,6 +2,11 @@
 #extension GL_NV_ray_tracing : require
 #extension GL_EXT_nonuniform_qualifier : require
 
+struct RayTracingHit {
+	vec4 color;
+	uint recursions;
+};
+
 layout(set = 0, binding = 0) uniform sampler2D textures[];
 
 struct MaterialGpuData
@@ -78,8 +83,9 @@ layout(set = 0, binding = 1) buffer Material
 layout(set = 0, binding = 2) uniform usamplerBuffer indexBuffers[];
 layout(set = 0, binding = 3) uniform samplerBuffer texCoordBuffers[];
 layout(set = 0, binding = 4) uniform samplerBuffer normalBuffers[];
+layout(set = 0, binding = 5) uniform samplerBuffer tangentBuffers[];
 
-layout(set = 0, binding = 5) uniform LightInfo {
+layout(set = 5, binding = 0) uniform LightInfo {
 	uint lightCount;
 } lightInfo;
 
@@ -94,14 +100,15 @@ struct LightGpuData {
 	ivec4 mInfo;
 };
 
-layout(set = 5, binding = 0) buffer Light {
+layout(set = 5, binding = 1) buffer Light {
 	LightGpuData[] lights;
 } lightSsbo;
 
 layout(set = 2, binding = 0) uniform accelerationStructureNV topLevelAS;
 
-layout(location = 0) rayPayloadInNV vec3 hitValue;
+layout(location = 0) rayPayloadInNV RayTracingHit hitValue;
 hitAttributeNV vec3 attribs;
+layout(location = 1) rayPayloadNV RayTracingHit reflectionHit;
 layout(location = 2) rayPayloadNV float shadowHit;
 
 vec3 phongDirectional(vec3 iPosition, vec3 iEye, vec3 iNormal, vec3 iColor, uint iMatIndex, vec3 lDirection, vec3 lIntensity, bool lCheckShadow) {
@@ -152,6 +159,7 @@ void main()
 {
     const vec3 barycentrics = vec3(1.0 - attribs.x - attribs.y, attribs.x, attribs.y);
 	const int instanceIndex = nonuniformEXT(gl_InstanceCustomIndexNV);
+	uint materialIndex = instanceSsbo.instances[instanceIndex].mMaterialIndex;
 	mat3 normalMat = mat3(instanceSsbo.instances[instanceIndex].mNormalMat);
 	const ivec3 indices = ivec3(texelFetch(indexBuffers[instanceIndex], gl_PrimitiveID).rgb);
 	const vec2 uv0 = texelFetch(texCoordBuffers[instanceIndex], indices.x).rg;
@@ -161,20 +169,33 @@ void main()
 	const vec3 normal0 = texelFetch(normalBuffers[instanceIndex], indices.x).rgb;
 	const vec3 normal1 = texelFetch(normalBuffers[instanceIndex], indices.y).rgb;
 	const vec3 normal2 = texelFetch(normalBuffers[instanceIndex], indices.z).rgb;
-	const vec3 normal = normalize(normalMat*(barycentrics.x * normal0 + barycentrics.y * normal1 + barycentrics.z * normal2));
-
-    //vec3 origin = gl_WorldRayOriginNV + gl_WorldRayDirectionNV * gl_HitTNV;
-    //vec3 direction = normalize(vec3(0.8, 1, 0.2));
-    //uint rayFlags = gl_RayFlagsCullFrontFacingTrianglesNV;	//(this doesn't make sense...)
-    //uint cullMask = 0xff;
-    //float tmin = 0.001;
-    //float tmax = 100.0;
-    //traceNV(topLevelAS, rayFlags, cullMask, 1 /* sbtRecordOffset */, 0 /* sbtRecordStride */, 1 /* missIndex */, origin, tmin, direction, tmax, 2 /*payload location*/);
+	const vec3 N = normalize(normalMat*(barycentrics.x * normal0 + barycentrics.y * normal1 + barycentrics.z * normal2));
+	const vec3 tangent0 = texelFetch(tangentBuffers[instanceIndex], indices.x).rgb;
+	const vec3 tangent1 = texelFetch(tangentBuffers[instanceIndex], indices.y).rgb;
+	const vec3 tangent2 = texelFetch(tangentBuffers[instanceIndex], indices.z).rgb;
+	const vec3 T = normalize(normalMat*(barycentrics.x * tangent0 + barycentrics.y * tangent1 + barycentrics.z * tangent2));
+	const vec3 B = cross(N,T);
+	const mat3 TBN = mat3(T,B,N);
+	vec3 normal = N;
+	int normalMapIdx = matSsbo.materials[materialIndex].mNormalsTexIndex;
+	if (normalMapIdx > 1) {
+		normal = texture(textures[normalMapIdx], uv).rgb;
+		normal = normalize(normal * 2.0 - 1.0);
+		normal = normalize(TBN * normal.xyz);
+	}
 
 	vec3 position = gl_WorldRayOriginNV + gl_WorldRayDirectionNV * gl_HitTNV;
 	vec3 eye = normalize(gl_WorldRayOriginNV - position);
 
-	uint materialIndex = instanceSsbo.instances[instanceIndex].mMaterialIndex;
+	vec3 reflColor = vec3(0);
+	float reflCoeff = matSsbo.materials[materialIndex].mReflectivity;
+	if (reflCoeff > 0.01 && hitValue.recursions > 0) {
+		vec3 rDirection = reflect(-eye, normal);
+		reflectionHit.recursions = hitValue.recursions - 1;
+		reflectionHit.color = vec4(0);
+		traceNV(topLevelAS, 0, 0xff, 0, 0, 0, position, 0.001, rDirection, 100.0, 1);
+		reflColor = reflectionHit.color.rgb;
+	}
 
 	int texid = matSsbo.materials[materialIndex].mDiffuseTexIndex;
 	vec3 dColor = matSsbo.materials[materialIndex].mDiffuseReflectivity.rgb;
@@ -185,13 +206,12 @@ void main()
 	vec3 ownColor = matSsbo.materials[materialIndex].mAmbientReflectivity.rgb*dColor;
 	for (uint i = 0; i < lightInfo.lightCount; ++i) {
 		if (lightSsbo.lights[i].mInfo.x == 2) {
-			ownColor += phongPoint(position, eye, normal, dColor, materialIndex, lightSsbo.lights[i].mPosition.xyz, lightSsbo.lights[i].mColorDiffuse.rgb, lightSsbo.lights[i].mAttenuation.xyz, true);
+			ownColor += phongPoint(position, eye, normal, dColor, materialIndex, lightSsbo.lights[i].mPosition.xyz, lightSsbo.lights[i].mColorDiffuse.rgb, lightSsbo.lights[i].mAttenuation.xyz, reflCoeff <= 0.5);
 		} else if (lightSsbo.lights[i].mInfo.x == 1) {
-			ownColor += phongDirectional(position, eye, normal, dColor, materialIndex, lightSsbo.lights[i].mDirection.xyz, lightSsbo.lights[i].mColorDiffuse.rgb, true);
+			ownColor += phongDirectional(position, eye, normal, dColor, materialIndex, lightSsbo.lights[i].mDirection.xyz, lightSsbo.lights[i].mColorDiffuse.rgb, reflCoeff <= 0.5);
 		}
 	}
 
-	hitValue = ownColor;
-	//hitValue = vec3(materialIndex / 10.0f);
-	//hitValue = normal;
+	vec3 finalColor = (1-reflCoeff)*ownColor + reflCoeff*reflColor;
+	hitValue.color.rgb = finalColor;
 }
