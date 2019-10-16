@@ -41,11 +41,13 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release_Vulkan|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug_OpenGL|x64'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="xtest.cpp" />
+    <ClCompile Include="..\source_code\fscene.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\source_code\includes.h" />
     <ClInclude Include="cg_stdafx.hpp" />
     <ClInclude Include="cg_targetver.hpp" />
+    <ClInclude Include="..\source_code\fscene.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\assets\cgbtest1.dae" />

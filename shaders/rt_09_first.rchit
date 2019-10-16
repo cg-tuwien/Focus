@@ -85,10 +85,6 @@ layout(set = 0, binding = 3) uniform samplerBuffer texCoordBuffers[];
 layout(set = 0, binding = 4) uniform samplerBuffer normalBuffers[];
 layout(set = 0, binding = 5) uniform samplerBuffer tangentBuffers[];
 
-layout(set = 5, binding = 0) uniform LightInfo {
-	uint lightCount;
-} lightInfo;
-
 struct LightGpuData {
 	vec4 mColorAmbient;
 	vec4 mColorDiffuse;
@@ -100,7 +96,8 @@ struct LightGpuData {
 	ivec4 mInfo;
 };
 
-layout(set = 5, binding = 1) buffer Light {
+layout(set = 5, binding = 0, std430) buffer Light {
+	uvec4 lightCount;
 	LightGpuData[] lights;
 } lightSsbo;
 
@@ -204,7 +201,7 @@ void main()
 	}
 
 	vec3 ownColor = matSsbo.materials[materialIndex].mAmbientReflectivity.rgb*dColor;
-	for (uint i = 0; i < lightInfo.lightCount; ++i) {
+	for (uint i = 0; i < lightSsbo.lightCount.x; ++i) {
 		if (lightSsbo.lights[i].mInfo.x == 2) {
 			ownColor += phongPoint(position, eye, normal, dColor, materialIndex, lightSsbo.lights[i].mPosition.xyz, lightSsbo.lights[i].mColorDiffuse.rgb, lightSsbo.lights[i].mAttenuation.xyz, reflCoeff <= 0.5);
 		} else if (lightSsbo.lights[i].mInfo.x == 1) {
