@@ -7,8 +7,6 @@ struct RayTracingHit {
 	uint recursions;
 };
 
-layout(set = 0, binding = 0) uniform sampler2D textures[];
-
 struct MaterialGpuData
 {
 	vec4 mDiffuseReflectivity;
@@ -70,21 +68,6 @@ struct ModelInstanceGpuData {
 	uint mMaterialIndex;
 	mat4 mNormalMat;
 };
-
-layout(set = 4, binding = 0) buffer InstanceBuffer {
-	ModelInstanceGpuData instances[];
-} instanceSsbo;
-
-layout(set = 0, binding = 1) buffer Material 
-{
-	MaterialGpuData materials[];
-} matSsbo;
-
-layout(set = 0, binding = 2) uniform usamplerBuffer indexBuffers[];
-layout(set = 0, binding = 3) uniform samplerBuffer texCoordBuffers[];
-layout(set = 0, binding = 4) uniform samplerBuffer normalBuffers[];
-layout(set = 0, binding = 5) uniform samplerBuffer tangentBuffers[];
-
 struct LightGpuData {
 	vec4 mColorAmbient;
 	vec4 mColorDiffuse;
@@ -96,10 +79,22 @@ struct LightGpuData {
 	ivec4 mInfo;
 };
 
-layout(set = 5, binding = 0, std430) buffer Light {
+layout(set = 0, binding = 0) buffer InstanceBuffer {
+	ModelInstanceGpuData instances[];
+} instanceSsbo;
+layout(set = 0, binding = 1) buffer Material 
+{
+	MaterialGpuData materials[];
+} matSsbo;
+layout(set = 0, binding = 2, std430) buffer Light {
 	uvec4 lightCount;
 	LightGpuData[] lights;
 } lightSsbo;
+layout(set = 0, binding = 3) uniform sampler2D textures[];
+layout(set = 0, binding = 4) uniform usamplerBuffer indexBuffers[];
+layout(set = 0, binding = 5) uniform samplerBuffer texCoordBuffers[];
+layout(set = 0, binding = 6) uniform samplerBuffer normalBuffers[];
+layout(set = 0, binding = 7) uniform samplerBuffer tangentBuffers[];
 
 layout(set = 2, binding = 0) uniform accelerationStructureNV topLevelAS;
 
@@ -211,4 +206,5 @@ void main()
 
 	vec3 finalColor = (1-reflCoeff)*ownColor + reflCoeff*reflColor;
 	hitValue.color.rgb = finalColor;
+
 }

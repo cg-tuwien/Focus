@@ -34,14 +34,14 @@ void frenderer::initialize()
 		cgb::max_recursion_depth::set_to_max(),
 		// Define push constants and descriptor bindings:
 		cgb::push_constant_binding_data{ cgb::shader_type::ray_generation, 0, sizeof(glm::mat4) },
-		cgb::binding(0, 0, mScene->get_image_samplers()),
-		cgb::binding(4, 0, mScene->get_model_buffer()),
+		cgb::binding(0, 0, mScene->get_model_buffer()),
 		cgb::binding(0, 1, mScene->get_material_buffer()),
-		cgb::binding(0, 2, mScene->get_index_buffer_views()),
-		cgb::binding(0, 3, mScene->get_texcoord_buffer_views()),
-		cgb::binding(0, 4, mScene->get_normal_buffer_views()),
-		cgb::binding(0, 5, mScene->get_tangent_buffer_views()),
-		cgb::binding(5, 0, mScene->get_light_buffer()),
+		cgb::binding(0, 2, mScene->get_light_buffer()),
+		cgb::binding(0, 3, mScene->get_image_samplers()),
+		cgb::binding(0, 4, mScene->get_index_buffer_views()),
+		cgb::binding(0, 5, mScene->get_texcoord_buffer_views()),
+		cgb::binding(0, 6, mScene->get_normal_buffer_views()),
+		cgb::binding(0, 7, mScene->get_tangent_buffer_views()),
 		cgb::binding(1, 0, mOffscreenImageViews[0]),	// Just take any, this is just to define the layout
 		cgb::binding(2, 0, mScene->get_tlas()[0])		// Just take any, this is just to define the layout
 	);
@@ -49,14 +49,14 @@ void frenderer::initialize()
 	for (int i = 0; i < n; ++i) {
 		mDescriptorSet.emplace_back(std::make_shared<cgb::descriptor_set>());
 		*mDescriptorSet.back() = cgb::descriptor_set::create({
-			cgb::binding(0, 0, mScene->get_image_samplers()),
-			cgb::binding(4, 0, mScene->get_model_buffer()),
+			cgb::binding(0, 0, mScene->get_model_buffer()),
 			cgb::binding(0, 1, mScene->get_material_buffer()),
-			cgb::binding(0, 2, mScene->get_index_buffer_views()),
-			cgb::binding(0, 3, mScene->get_texcoord_buffer_views()),
-			cgb::binding(0, 4, mScene->get_normal_buffer_views()),
-			cgb::binding(0, 5, mScene->get_tangent_buffer_views()),
-			cgb::binding(5, 0, mScene->get_light_buffer()),
+			cgb::binding(0, 2, mScene->get_light_buffer()),
+			cgb::binding(0, 3, mScene->get_image_samplers()),
+			cgb::binding(0, 4, mScene->get_index_buffer_views()),
+			cgb::binding(0, 5, mScene->get_texcoord_buffer_views()),
+			cgb::binding(0, 6, mScene->get_normal_buffer_views()),
+			cgb::binding(0, 7, mScene->get_tangent_buffer_views()),
 			cgb::binding(1, 0, mOffscreenImageViews[i]),
 			cgb::binding(2, 0, mScene->get_tlas()[0])
 		});
