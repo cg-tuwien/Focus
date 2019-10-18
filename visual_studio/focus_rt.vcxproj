@@ -33,6 +33,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\source_code\focus_rt.cpp" />
+    <ClCompile Include="..\source_code\frenderer.cpp" />
     <ClCompile Include="cg_stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release_OpenGL|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Publish_Vulkan|x64'">Create</PrecompiledHeader>
@@ -44,6 +45,7 @@
     <ClCompile Include="..\source_code\fscene.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\source_code\frenderer.h" />
     <ClInclude Include="..\source_code\includes.h" />
     <ClInclude Include="cg_stdafx.hpp" />
     <ClInclude Include="cg_targetver.hpp" />
