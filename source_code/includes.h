@@ -3,3 +3,6 @@
 #include <memory>
 #include "fscene.h"
 #include "frenderer.h"
+
+#include <PxPhysicsAPI.h>
+#include <PxFoundation.h>

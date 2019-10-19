@@ -90,9 +90,28 @@ private: // v== Member variables ==v
 
 }; // focus_rt_app
 
+class PhysicsErrorCallback : public physx::PxErrorCallback {
+public:
+	void PhysicsErrorCallback::reportError(physx::PxErrorCode::Enum code, const char* message, const char* file, int line) override
+	{
+		std::cout << "PhysX Error (" << code << "): \"" << message << "\" in file \"" << file << "\"::" << line;
+		std::cout << std::endl;
+	}
+};
+
 int main() // <== Starting point ==
 {
 	try {
+		
+		// Hello, PhysX!
+		PhysicsErrorCallback gDefaultErrorCallback;
+		physx::PxDefaultAllocator gDefaultAllocatorCallback;
+		auto foundation = PxCreateFoundation(PX_PHYSICS_VERSION, gDefaultAllocatorCallback, gDefaultErrorCallback);
+		if (!foundation) {
+			throw std::runtime_error("PxCreateFoundation failed!");
+		}
+
+		
 		// What's the name of our application
 		cgb::settings::gApplicationName = "cg_base::focus_rt";
 		cgb::settings::gQueueSelectionPreference = cgb::device_queue_selection_strategy::prefer_everything_on_single_queue;
