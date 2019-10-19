@@ -13,21 +13,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\shaders\rt_09_first.rchit">
-      <Filter>shaders</Filter>
-    </None>
-    <None Include="..\shaders\rt_09_first.rgen">
-      <Filter>shaders</Filter>
-    </None>
-    <None Include="..\shaders\rt_09_first.rmiss">
-      <Filter>shaders</Filter>
-    </None>
-    <None Include="..\shaders\rt_09_secondary.rchit">
-      <Filter>shaders</Filter>
-    </None>
-    <None Include="..\shaders\rt_09_secondary.rmiss">
-      <Filter>shaders</Filter>
-    </None>
     <None Include="..\assets\level01c.dae">
       <Filter>assets</Filter>
     </None>
@@ -60,6 +45,27 @@
     </None>
     <None Include="..\assets\lighttest.dae">
       <Filter>assets</Filter>
+    </None>
+    <None Include="..\shaders\default.rchit">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="..\shaders\default.rgen">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="..\shaders\default.rmiss">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="..\shaders\shadowray.rchit">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="..\shaders\shadowray.rmiss">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="..\shaders\default.rahit">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="..\shaders\shadowray.rahit">
+      <Filter>shaders</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>

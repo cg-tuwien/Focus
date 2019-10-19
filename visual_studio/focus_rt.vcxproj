@@ -61,11 +61,13 @@
     <None Include="..\assets\cgbtest2sm.fbx" />
     <None Include="..\assets\level01c.dae" />
     <None Include="..\assets\lighttest.dae" />
-    <None Include="..\shaders\rt_09_first.rchit" />
-    <None Include="..\shaders\rt_09_first.rgen" />
-    <None Include="..\shaders\rt_09_first.rmiss" />
-    <None Include="..\shaders\rt_09_secondary.rchit" />
-    <None Include="..\shaders\rt_09_secondary.rmiss" />
+    <None Include="..\shaders\default.rahit" />
+    <None Include="..\shaders\default.rchit" />
+    <None Include="..\shaders\default.rgen" />
+    <None Include="..\shaders\default.rmiss" />
+    <None Include="..\shaders\shadowray.rahit" />
+    <None Include="..\shaders\shadowray.rchit" />
+    <None Include="..\shaders\shadowray.rmiss" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\assets\bark_0004.jpg" />

@@ -48,6 +48,8 @@ private:
 	cgb::storage_buffer mMaterialBuffer;
 	cgb::storage_buffer mModelBuffer;
 	cgb::storage_buffer mLightBuffer;
+	cgb::uniform_buffer mPerlinBackgroundBuffer;
+	cgb::storage_buffer mPerlinGradientBuffer;
 	//Acceleration Structures
 	std::vector<cgb::bottom_level_acceleration_structure> mBLASs;
 	std::vector<cgb::top_level_acceleration_structure> mTLASs;
@@ -70,6 +72,14 @@ public:
 
 	const cgb::storage_buffer& get_light_buffer() const {
 		return mLightBuffer;
+	}
+
+	const cgb::uniform_buffer& get_background_buffer() const {
+		return mPerlinBackgroundBuffer;
+	}
+
+	const cgb::storage_buffer& get_gradient_buffer() const {
+		return mPerlinGradientBuffer;
 	}
 
 	const std::vector<cgb::buffer_view>& get_index_buffer_views() const {

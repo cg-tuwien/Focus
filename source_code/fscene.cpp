@@ -26,6 +26,8 @@ std::unique_ptr<fscene> fscene::load_scene(const std::string& filename)
 			newElement.mModelIndex = s->mModels.size() - 1;
 			newElement.mMaterialIndex = matIndex;
 
+			std::string name = s->mLoadedScene->name_of_mesh(meshindex);
+
 			//Get CPU-Data
 			cgb::append_indices_and_vertex_data(
 				cgb::additional_index_data(newElement.mIndices, [&]() { return s->mLoadedScene->indices_for_mesh<uint32_t>(meshindex);						}),
@@ -88,6 +90,7 @@ std::unique_ptr<fscene> fscene::load_scene(const std::string& filename)
 			auto blas = cgb::bottom_level_acceleration_structure_t::create(positionsBuffer, indexBuffer);
 			blas.enable_shared_ownership();
 			auto instance = cgb::geometry_instance::create(blas).set_transform(newElement.mTransformation).set_custom_index(s->mBLASs.size());
+			instance.mFlags = (name == "Sphere") ? vk::GeometryInstanceFlagBitsNV::eForceNoOpaque : vk::GeometryInstanceFlagBitsNV::eForceOpaque;
 			s->mGeometryInstances.push_back(instance);
 			blas->build([&](cgb::semaphore _Semaphore) {
 				// Store them and pass them as a dependency to the TLAS-build
@@ -133,6 +136,36 @@ std::unique_ptr<fscene> fscene::load_scene(const std::string& filename)
 		data
 	);
 	delete data;
+
+	//Background Color Buffer
+	glm::vec4 initialColor = glm::vec4(0.3, 0.3, 0.3, 0);
+	s->mPerlinBackgroundBuffer = cgb::create_and_fill(
+		cgb::uniform_buffer_meta::create_from_data(initialColor),
+		cgb::memory_usage::host_coherent,
+		&initialColor
+	);
+
+	//Perlin Gradient Buffer
+	uint32_t lonsegs = 100;
+	uint32_t latsegs = 50;
+	float* gdata = new float[lonsegs * latsegs * 2];
+	srand(s->mModels.size());
+	for (uint32_t i = 0; i < lonsegs; ++i) {
+		for (uint32_t j = 0; j < latsegs; ++j) {
+			float x = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
+			float y = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
+			glm::vec2 vec = glm::vec2(x, y);
+			vec = glm::normalize(vec);
+			gdata[latsegs * i + 2 * j + 0] = vec.x;
+			gdata[latsegs * i + 2 * j + 1] = vec.y;
+		}
+	}
+	s->mPerlinGradientBuffer = cgb::create_and_fill(
+		cgb::storage_buffer_meta::create_from_size(sizeof(float) * lonsegs * latsegs * 2),
+		cgb::memory_usage::host_coherent,
+		gdata
+	);
+	delete gdata;
 
 	//---- CREATE TLAS -----
 	auto fif = cgb::context().main_window()->number_of_in_flight_frames();

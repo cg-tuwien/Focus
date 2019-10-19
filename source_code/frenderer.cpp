@@ -25,11 +25,11 @@ void frenderer::initialize()
 
 	mPipeline = cgb::ray_tracing_pipeline_for(
 		cgb::define_shader_table(
-			cgb::ray_generation_shader("shaders/rt_09_first.rgen"),
-			cgb::triangles_hit_group::create_with_rchit_only("shaders/rt_09_first.rchit"),
-			cgb::triangles_hit_group::create_with_rchit_only("shaders/rt_09_secondary.rchit"),
-			cgb::miss_shader("shaders/rt_09_first.rmiss.spv"),
-			cgb::miss_shader("shaders/rt_09_secondary.rmiss.spv")
+			cgb::ray_generation_shader("shaders/default.rgen.spv"),
+			cgb::triangles_hit_group::create_with_rahit_and_rchit("shaders/default.rahit.spv", "shaders/default.rchit.spv"),
+			cgb::triangles_hit_group::create_with_rahit_and_rchit("shaders/shadowray.rahit.spv", "shaders/shadowray.rchit.spv"),
+			cgb::miss_shader("shaders/default.rmiss.spv"),
+			cgb::miss_shader("shaders/shadowray.rmiss.spv")
 		),
 		cgb::max_recursion_depth::set_to_max(),
 		// Define push constants and descriptor bindings:
@@ -43,7 +43,9 @@ void frenderer::initialize()
 		cgb::binding(0, 6, mScene->get_normal_buffer_views()),
 		cgb::binding(0, 7, mScene->get_tangent_buffer_views()),
 		cgb::binding(1, 0, mOffscreenImageViews[0]),	// Just take any, this is just to define the layout
-		cgb::binding(2, 0, mScene->get_tlas()[0])		// Just take any, this is just to define the layout
+		cgb::binding(2, 0, mScene->get_tlas()[0]),		// Just take any, this is just to define the layout
+		cgb::binding(3, 0, mScene->get_background_buffer()),
+		cgb::binding(3, 1, mScene->get_gradient_buffer())
 	);
 	mDescriptorSet.reserve(n);
 	for (int i = 0; i < n; ++i) {
@@ -58,7 +60,9 @@ void frenderer::initialize()
 			cgb::binding(0, 6, mScene->get_normal_buffer_views()),
 			cgb::binding(0, 7, mScene->get_tangent_buffer_views()),
 			cgb::binding(1, 0, mOffscreenImageViews[i]),
-			cgb::binding(2, 0, mScene->get_tlas()[0])
+			cgb::binding(2, 0, mScene->get_tlas()[0]),
+			cgb::binding(3, 0, mScene->get_background_buffer()),
+			cgb::binding(3, 1, mScene->get_gradient_buffer())
 		});
 	}
 }
