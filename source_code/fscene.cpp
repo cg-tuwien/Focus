@@ -7,6 +7,9 @@ std::unique_ptr<fscene> fscene::load_scene(const std::string& filename)
 
 	std::unique_ptr<fscene> s = std::make_unique<fscene>();
 	s->mLoadedScene = cgb::model_t::load_from_file(filename, aiProcess_Triangulate | aiProcess_CalcTangentSpace);
+
+	s->mCamera = s->mLoadedScene->get_cameras()[0];
+
 	auto distinctMaterials = s->mLoadedScene->distinct_material_configs();
 	s->mMaterials.reserve(distinctMaterials.size());
 	s->mModels.reserve(distinctMaterials.size());
@@ -97,6 +100,8 @@ std::unique_ptr<fscene> fscene::load_scene(const std::string& filename)
 				blasWaitSemaphores.push_back(std::move(_Semaphore));
 			});
 			s->mBLASs.push_back(std::move(blas));
+
+			newElement.mName = s->mLoadedScene->name_of_mesh(meshindex);
 
 			s->mModelData.emplace_back(newElement);
 		}
@@ -197,4 +202,30 @@ std::unique_ptr<fscene> fscene::load_scene(const std::string& filename)
 	cgb::context().main_window()->set_extra_semaphore_dependency(std::move(waitSemaphores[0]));
 
 	return std::move(s);
+}
+
+std::optional<fmodel*> fscene::get_model_by_name(const std::string& name)
+{
+	for (fmodel& model : mModels) {
+		if (model.mName == name) {
+			return &model;
+		}
+	}
+	return {};
+}
+
+void fscene::update()
+{
+	int i = 0;
+	//ToDo: Update Normal Matrix and Model Flags?
+	for (fmodel& model : mModels) {
+		mGeometryInstances[i].set_transform(model.mTransformation);
+		mGeometryInstances[i].mFlags = (model.mName == "Sphere") ? vk::GeometryInstanceFlagBitsNV::eForceNoOpaque : vk::GeometryInstanceFlagBitsNV::eForceOpaque;
+		++i;
+	}
+
+	auto inFlightIndex = cgb::context().main_window()->in_flight_index_for_frame();
+	mTLASs[inFlightIndex]->update(mGeometryInstances, [](cgb::semaphore _Semaphore) {
+		cgb::context().main_window()->set_extra_semaphore_dependency(std::move(_Semaphore));
+	});
 }

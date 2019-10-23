@@ -14,6 +14,7 @@ public: // v== cgb::cg_element overrides which will be invoked by the framework 
 
 		mScene = fscene::load_scene("assets/level01c.dae");
 		mRenderer = std::make_unique<frenderer>(mScene.get());
+		mLevelLogic = std::make_unique<flevel1logic>(mScene.get());
 
 		mRenderer->initialize();
 		
@@ -22,6 +23,10 @@ public: // v== cgb::cg_element overrides which will be invoked by the framework 
 		mQuakeCam.set_perspective_projection(glm::radians(60.0f), cgb::context().main_window()->aspect_ratio(), 0.5f, 100.0f);
 		//mQuakeCam.set_orthographic_projection(-5, 5, -5, 5, 0.5, 100);
 		cgb::current_composition().add_element(mQuakeCam);
+	}
+
+	void fixed_update() override {
+		mLevelLogic->fixed_update(cgb::time().fixed_delta_time());
 	}
 
 	void update() override
@@ -36,20 +41,9 @@ public: // v== cgb::cg_element overrides which will be invoked by the framework 
 			printf("Time from init to fourth frame: %d min, %lld sec %lf ms\n", int_min, int_sec - static_cast<decltype(int_sec)>(int_min) * 60, fp_ms - 1000.0 * int_sec);
 		}
 
-		////SIMPLE ANIMATION
-		//float passedtime = cgb::time().time_since_start();
-		//float posy = sin(passedtime);
+		mLevelLogic->update(cgb::time().delta_time(), 0);
 
-		//for (size_t i = 0; i < mGeometryInstances.size(); ++i) {
-		//	auto& inst = mGeometryInstances[i];
-		//	auto model = mModels[i];
-		//	inst.set_transform(glm::translate(glm::vec3(0, posy, 0)) * model.mTransformation);
-		//	//ToDo: Update Normal Matrix
-		//}
-		//auto inFlightIndex = cgb::context().main_window()->in_flight_index_for_frame();
-		//mTLAS[inFlightIndex]->update(mGeometryInstances, [](cgb::semaphore _Semaphore) {
-		//	cgb::context().main_window()->set_extra_semaphore_dependency(std::move(_Semaphore));
-		//});
+		mScene->update();
 
 		if (cgb::input().key_pressed(cgb::key_code::space)) {
 			// Print the current camera position
@@ -72,7 +66,8 @@ public: // v== cgb::cg_element overrides which will be invoked by the framework 
 
 	void render() override
 	{
-		mRenderer->render(this, mQuakeCam.view_matrix());
+		mRenderer->render(this, mScene->get_camera().view_matrix());
+		//mRenderer->render(this, mQuakeCam.view_matrix());
 	}
 
 	void finalize() override
@@ -85,32 +80,15 @@ private: // v== Member variables ==v
 
 	std::unique_ptr<fscene> mScene;
 	std::unique_ptr<frenderer> mRenderer;
+	std::unique_ptr<flevellogic> mLevelLogic;
 
 	cgb::quake_camera mQuakeCam;
 
 }; // focus_rt_app
 
-class PhysicsErrorCallback : public physx::PxErrorCallback {
-public:
-	void PhysicsErrorCallback::reportError(physx::PxErrorCode::Enum code, const char* message, const char* file, int line) override
-	{
-		std::cout << "PhysX Error (" << code << "): \"" << message << "\" in file \"" << file << "\"::" << line;
-		std::cout << std::endl;
-	}
-};
-
 int main() // <== Starting point ==
 {
 	try {
-		
-		// Hello, PhysX!
-		PhysicsErrorCallback gDefaultErrorCallback;
-		physx::PxDefaultAllocator gDefaultAllocatorCallback;
-		auto foundation = PxCreateFoundation(PX_PHYSICS_VERSION, gDefaultAllocatorCallback, gDefaultErrorCallback);
-		if (!foundation) {
-			throw std::runtime_error("PxCreateFoundation failed!");
-		}
-
 		
 		// What's the name of our application
 		cgb::settings::gApplicationName = "cg_base::focus_rt";

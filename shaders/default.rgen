@@ -15,6 +15,10 @@ layout(push_constant) uniform PushConstants {
 layout(set = 2, binding = 0) uniform accelerationStructureNV topLevelAS;
 layout(set = 1, binding = 0, rgba8) uniform image2D image;
 
+layout(set = 4, binding = 0) buffer FocusHit {
+	uint foundHit;
+};
+
 layout(location = 0) rayPayloadNV RayTracingHit hitValue;
 
 void main() 
@@ -46,6 +50,18 @@ void main()
 	hitValue.transparentDist[1] = 200.0;
 	hitValue.various = uvec4(0, 4, 0, 0);
     traceNV(topLevelAS, rayFlags, cullMask, 0 /*sbtRecordOffset*/, 0 /*sbtRecordStride*/, 0 /*missIndex*/, origin, tmin, direction, tmax, 0 /*payload*/);
+
+	if (abs(d.x) < 0.2 && abs(d.y) < 0.2*aspectRatio) {
+		atomicAdd(foundHit, hitValue.various.x);
+			if (abs(abs(d.x)-0.2) < 0.001 || abs(abs(d.y)-0.2*aspectRatio) < 0.001*aspectRatio) {
+				hitValue.color.rgb -= vec3(0.1);
+			}
+			if (abs(d.x) < 0.05 && abs(d.y) < 0.001*aspectRatio || abs(d.y) < 0.05*aspectRatio && abs(d.x) < 0.001) {
+				hitValue.color.rgb += vec3(0.2);
+			}
+	}
+
+	//hitValue.color.rgb = (1-options.winval)*hitValue.color.rgb + options.winval*vec3(1,1,0.5);
 
     imageStore(image, ivec2(gl_LaunchIDNV.xy), vec4(hitValue.color.rgb, 0.0));
 }

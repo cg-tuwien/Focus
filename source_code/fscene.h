@@ -10,6 +10,7 @@ struct fmodel {
 	std::vector<uint32_t> mIndices;
 	glm::mat4 mTransformation;
 	size_t mMaterialIndex;
+	std::string mName;
 };
 
 struct fmodel_gpudata {
@@ -30,6 +31,7 @@ private:
 	cgb::model mLoadedScene;
 	std::vector<cgb::material_config> mMaterials;
 	std::vector<fmodel> mModels;
+	cgb::camera mCamera;
 
 	//For GPU
 	std::vector<fmodel_gpudata> mModelData;
@@ -101,4 +103,12 @@ public:
 	const std::vector<cgb::top_level_acceleration_structure>& get_tlas() const {
 		return mTLASs;
 	}
+
+	cgb::camera& get_camera() {
+		return mCamera;
+	}
+
+	std::optional<fmodel*> get_model_by_name(const std::string& name);
+
+	void update();
 };

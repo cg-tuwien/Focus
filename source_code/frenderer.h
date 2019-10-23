@@ -8,6 +8,7 @@ private:
 	std::vector<cgb::image_view> mOffscreenImageViews;
 	cgb::ray_tracing_pipeline mPipeline;
 	std::vector<std::shared_ptr<cgb::descriptor_set>> mDescriptorSet;
+	cgb::storage_buffer mFocusHitBuffer;
 
 public:
 	frenderer(fscene* scene) : mScene(scene) {}

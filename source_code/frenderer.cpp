@@ -2,6 +2,14 @@
 
 void frenderer::initialize()
 {
+	//Create Focus Hit Buffer
+	uint32_t initialfocushit = 0;
+	mFocusHitBuffer = cgb::create_and_fill(
+		cgb::storage_buffer_meta::create_from_size(sizeof(uint32_t)),
+		cgb::memory_usage::host_coherent,
+		&initialfocushit
+	);
+
 	//Create Image Views
 	size_t n = cgb::context().main_window()->number_of_in_flight_frames();
 	mOffscreenImageViews.reserve(n);
@@ -45,7 +53,8 @@ void frenderer::initialize()
 		cgb::binding(1, 0, mOffscreenImageViews[0]),	// Just take any, this is just to define the layout
 		cgb::binding(2, 0, mScene->get_tlas()[0]),		// Just take any, this is just to define the layout
 		cgb::binding(3, 0, mScene->get_background_buffer()),
-		cgb::binding(3, 1, mScene->get_gradient_buffer())
+		cgb::binding(3, 1, mScene->get_gradient_buffer()),
+		cgb::binding(4, 0, mFocusHitBuffer)
 	);
 	mDescriptorSet.reserve(n);
 	for (int i = 0; i < n; ++i) {
@@ -62,7 +71,8 @@ void frenderer::initialize()
 			cgb::binding(1, 0, mOffscreenImageViews[i]),
 			cgb::binding(2, 0, mScene->get_tlas()[0]),
 			cgb::binding(3, 0, mScene->get_background_buffer()),
-			cgb::binding(3, 1, mScene->get_gradient_buffer())
+			cgb::binding(3, 1, mScene->get_gradient_buffer()),
+			cgb::binding(4, 0, mFocusHitBuffer)
 		});
 	}
 }
@@ -110,8 +120,9 @@ void frenderer::render(cgb::cg_element* element, const glm::mat4& viewMatrix) {
 	);
 
 	//cmdbfr.copy_image(mOffscreenImageViews[inFlightIndex]->get_image(), cgb::context().main_window()->swap_chain_images()[inFlightIndex]);
-
+	
 	cmdbfr.end_recording();
 	element->submit_command_buffer_ownership(std::move(cmdbfr));
 	element->present_image(mOffscreenImageViews[inFlightIndex]->get_image());
+
 }
