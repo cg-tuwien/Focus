@@ -69,24 +69,29 @@ void frenderer::initialize()
 			cgb::binding(0, 6, mScene->get_normal_buffer_views()),
 			cgb::binding(0, 7, mScene->get_tangent_buffer_views()),
 			cgb::binding(1, 0, mOffscreenImageViews[i]),
-			cgb::binding(2, 0, mScene->get_tlas()[0]),
+			cgb::binding(2, 0, mScene->get_tlas()[i]),
 			cgb::binding(3, 0, mScene->get_background_buffer()),
 			cgb::binding(3, 1, mScene->get_gradient_buffer()),
 			cgb::binding(4, 0, mFocusHitBuffer)
 		});
 	}
+	//record_command_buffers();
 }
 
-void frenderer::render(cgb::cg_element* element, const glm::mat4& viewMatrix) {
+void frenderer::render() {
 	auto inFlightIndex = cgb::context().main_window()->in_flight_index_for_frame();
+	auto i = inFlightIndex;
+
+	/*submit_command_buffer_ownership(std::move(mCommandBuffers[inFlightIndex]));
+	present_image(mOffscreenImageViews[inFlightIndex]->get_image());*/
 
 	auto cmdbfr = cgb::context().graphics_queue().pool().get_command_buffer(vk::CommandBufferUsageFlagBits::eSimultaneousUse);
 	cmdbfr.begin_recording();
 
 	cmdbfr.set_image_barrier(
 		cgb::create_image_barrier(
-			mOffscreenImageViews[inFlightIndex]->get_image().image_handle(),
-			mOffscreenImageViews[inFlightIndex]->get_image().format().mFormat,
+			mOffscreenImageViews[i]->get_image().image_handle(),
+			mOffscreenImageViews[i]->get_image().format().mFormat,
 			vk::AccessFlagBits::eShaderWrite, vk::AccessFlagBits::eTransferRead, vk::ImageLayout::eUndefined, vk::ImageLayout::eGeneral)
 	);
 
@@ -95,11 +100,12 @@ void frenderer::render(cgb::cg_element* element, const glm::mat4& viewMatrix) {
 
 	// Set the descriptors:
 	cmdbfr.handle().bindDescriptorSets(vk::PipelineBindPoint::eRayTracingNV, mPipeline->layout_handle(), 0,
-		mDescriptorSet[inFlightIndex]->number_of_descriptor_sets(),
-		mDescriptorSet[inFlightIndex]->descriptor_sets_addr(),
+		mDescriptorSet[i]->number_of_descriptor_sets(),
+		mDescriptorSet[i]->descriptor_sets_addr(),
 		0, nullptr);
 
 	// Set the push constants:
+	const glm::mat4& viewMatrix = mScene->get_camera().view_matrix();
 	cmdbfr.handle().pushConstants(mPipeline->layout_handle(), vk::ShaderStageFlagBits::eRaygenNV, 0, sizeof(viewMatrix), &viewMatrix);
 
 	// TRACE. THA. RAYZ.
@@ -114,15 +120,63 @@ void frenderer::render(cgb::cg_element* element, const glm::mat4& viewMatrix) {
 
 	cmdbfr.set_image_barrier(
 		cgb::create_image_barrier(
-			mOffscreenImageViews[inFlightIndex]->get_image().image_handle(),
-			mOffscreenImageViews[inFlightIndex]->get_image().format().mFormat,
+			mOffscreenImageViews[i]->get_image().image_handle(),
+			mOffscreenImageViews[i]->get_image().format().mFormat,
 			vk::AccessFlagBits::eShaderWrite, vk::AccessFlagBits::eTransferRead, vk::ImageLayout::eGeneral, vk::ImageLayout::eTransferSrcOptimal)
 	);
 
-	//cmdbfr.copy_image(mOffscreenImageViews[inFlightIndex]->get_image(), cgb::context().main_window()->swap_chain_images()[inFlightIndex]);
-	
 	cmdbfr.end_recording();
-	element->submit_command_buffer_ownership(std::move(cmdbfr));
-	element->present_image(mOffscreenImageViews[inFlightIndex]->get_image());
 
+	submit_command_buffer_ownership(std::move(cmdbfr));
+	present_image(mOffscreenImageViews[inFlightIndex]->get_image());
+
+}
+
+void frenderer::record_command_buffers()
+{
+	int64_t fif = cgb::context().main_window()->number_of_in_flight_frames();
+	mCommandBuffers = cgb::context().graphics_queue().pool().get_command_buffers(fif, vk::CommandBufferUsageFlagBits::eSimultaneousUse);
+	for (int i = 0; i < fif; ++i) {
+		auto& cmdbfr = mCommandBuffers[i];
+		cmdbfr.begin_recording();
+
+		cmdbfr.set_image_barrier(
+			cgb::create_image_barrier(
+				mOffscreenImageViews[i]->get_image().image_handle(),
+				mOffscreenImageViews[i]->get_image().format().mFormat,
+				vk::AccessFlagBits::eShaderWrite, vk::AccessFlagBits::eTransferRead, vk::ImageLayout::eUndefined, vk::ImageLayout::eGeneral)
+		);
+
+		// Bind the pipeline
+		cmdbfr.handle().bindPipeline(vk::PipelineBindPoint::eRayTracingNV, mPipeline->handle());
+
+		// Set the descriptors:
+		cmdbfr.handle().bindDescriptorSets(vk::PipelineBindPoint::eRayTracingNV, mPipeline->layout_handle(), 0,
+			mDescriptorSet[i]->number_of_descriptor_sets(),
+			mDescriptorSet[i]->descriptor_sets_addr(),
+			0, nullptr);
+
+		// Set the push constants:
+		const glm::mat4& viewMatrix = mScene->get_camera().view_matrix();
+		cmdbfr.handle().pushConstants(mPipeline->layout_handle(), vk::ShaderStageFlagBits::eRaygenNV, 0, sizeof(viewMatrix), &viewMatrix);
+
+		// TRACE. THA. RAYZ.
+		cmdbfr.handle().traceRaysNV(
+			mPipeline->shader_binding_table_handle(), 0,
+			mPipeline->shader_binding_table_handle(), 3 * mPipeline->table_entry_size(), mPipeline->table_entry_size(),
+			mPipeline->shader_binding_table_handle(), 1 * mPipeline->table_entry_size(), mPipeline->table_entry_size(),
+			nullptr, 0, 0,
+			cgb::context().main_window()->swap_chain_extent().width, cgb::context().main_window()->swap_chain_extent().height, 1,
+			cgb::context().dynamic_dispatch());
+
+
+		cmdbfr.set_image_barrier(
+			cgb::create_image_barrier(
+				mOffscreenImageViews[i]->get_image().image_handle(),
+				mOffscreenImageViews[i]->get_image().format().mFormat,
+				vk::AccessFlagBits::eShaderWrite, vk::AccessFlagBits::eTransferRead, vk::ImageLayout::eGeneral, vk::ImageLayout::eTransferSrcOptimal)
+		);
+
+		cmdbfr.end_recording();
+	}
 }

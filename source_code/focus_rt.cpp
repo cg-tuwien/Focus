@@ -15,18 +15,11 @@ public: // v== cgb::cg_element overrides which will be invoked by the framework 
 		mScene = fscene::load_scene("assets/level01c.dae");
 		mRenderer = std::make_unique<frenderer>(mScene.get());
 		mLevelLogic = std::make_unique<flevel1logic>(mScene.get());
-
-		mRenderer->initialize();
 		
-		// Add the camera to the composition (and let it handle the updates)
-		mQuakeCam.set_translation({ 0.0f, 0.0f, 0.0f });
-		mQuakeCam.set_perspective_projection(glm::radians(60.0f), cgb::context().main_window()->aspect_ratio(), 0.5f, 100.0f);
-		//mQuakeCam.set_orthographic_projection(-5, 5, -5, 5, 0.5, 100);
-		cgb::current_composition().add_element(mQuakeCam);
-	}
-
-	void fixed_update() override {
-		mLevelLogic->fixed_update(cgb::time().fixed_delta_time());
+		cgb::current_composition().add_element(*mScene.get());
+		cgb::current_composition().add_element(*mLevelLogic.get());
+		cgb::current_composition().add_element(*mRenderer.get());
+		cgb::input().set_cursor_disabled(true);
 	}
 
 	void update() override
@@ -41,33 +34,15 @@ public: // v== cgb::cg_element overrides which will be invoked by the framework 
 			printf("Time from init to fourth frame: %d min, %lld sec %lf ms\n", int_min, int_sec - static_cast<decltype(int_sec)>(int_min) * 60, fp_ms - 1000.0 * int_sec);
 		}
 
-		mLevelLogic->update(cgb::time().delta_time(), 0);
-
-		mScene->update();
-
-		if (cgb::input().key_pressed(cgb::key_code::space)) {
-			// Print the current camera position
-			auto pos = mQuakeCam.translation();
-			LOG_INFO(fmt::format("Current camera position: {}", cgb::to_string(pos)));
-		}
 		if (cgb::input().key_pressed(cgb::key_code::escape)) {
 			// Stop the current composition:
 			cgb::current_composition().stop();
 		}
 		if (cgb::input().key_pressed(cgb::key_code::tab)) {
-			if (mQuakeCam.is_enabled()) {
-				mQuakeCam.disable();
-			}
-			else {
-				mQuakeCam.enable();
-			}
+			bool newstate = cgb::input().is_cursor_disabled();
+			mLevelLogic->set_paused(newstate);
+			cgb::input().set_cursor_disabled(!newstate);
 		}
-	}
-
-	void render() override
-	{
-		mRenderer->render(this, mScene->get_camera().view_matrix());
-		//mRenderer->render(this, mQuakeCam.view_matrix());
 	}
 
 	void finalize() override
@@ -81,8 +56,6 @@ private: // v== Member variables ==v
 	std::unique_ptr<fscene> mScene;
 	std::unique_ptr<frenderer> mRenderer;
 	std::unique_ptr<flevellogic> mLevelLogic;
-
-	cgb::quake_camera mQuakeCam;
 
 }; // focus_rt_app
 

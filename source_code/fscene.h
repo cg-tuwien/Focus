@@ -10,21 +10,23 @@ struct fmodel {
 	std::vector<uint32_t> mIndices;
 	glm::mat4 mTransformation;
 	size_t mMaterialIndex;
+	uint32_t mFlags = 0; //1 = goal, 2 = selected-mirror
 	std::string mName;
 };
 
 struct fmodel_gpudata {
 	alignas(4) uint32_t mMaterialIndex;
 	alignas(16) glm::mat4 mNormalMatrix;
-	//alignas(16) uint32_t mFlags;
+	alignas(16) uint32_t mFlags = 0;
 
 	fmodel_gpudata(const fmodel& model) {
 		mMaterialIndex = static_cast<uint32_t>(model.mMaterialIndex);
 		mNormalMatrix = glm::transpose(glm::inverse(model.mTransformation));
+		mFlags = model.mFlags;
 	}
 };
 
-struct fscene {
+struct fscene : public cgb::cg_element {
 
 private:
 	//CPU-Data
@@ -110,5 +112,5 @@ public:
 
 	std::optional<fmodel*> get_model_by_name(const std::string& name);
 
-	void update();
+	void update() override;
 };

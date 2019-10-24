@@ -109,7 +109,7 @@ std::unique_ptr<fscene> fscene::load_scene(const std::string& filename)
 
 	s->mModelBuffer = cgb::create_and_fill(
 		cgb::storage_buffer_meta::create_from_data(s->mModelData),
-		cgb::memory_usage::device,
+		cgb::memory_usage::host_coherent,
 		s->mModelData.data()
 	);
 
@@ -217,12 +217,13 @@ std::optional<fmodel*> fscene::get_model_by_name(const std::string& name)
 void fscene::update()
 {
 	int i = 0;
-	//ToDo: Update Normal Matrix and Model Flags?
 	for (fmodel& model : mModels) {
 		mGeometryInstances[i].set_transform(model.mTransformation);
 		mGeometryInstances[i].mFlags = (model.mName == "Sphere") ? vk::GeometryInstanceFlagBitsNV::eForceNoOpaque : vk::GeometryInstanceFlagBitsNV::eForceOpaque;
+		mModelData[i] = model;
 		++i;
 	}
+	cgb::fill(mModelBuffer, mModelData.data());
 
 	auto inFlightIndex = cgb::context().main_window()->in_flight_index_for_frame();
 	mTLASs[inFlightIndex]->update(mGeometryInstances, [](cgb::semaphore _Semaphore) {

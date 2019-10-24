@@ -48,14 +48,14 @@ flevel1logic::flevel1logic(fscene* scene) : flevellogic(scene) {
 
 	//sphereInstance = &scene->findInstanceByName("Sphere_0", found);
 	//if (!found) throw new std::runtime_error("Did not find Sphere!");
-	//auto mirrorBorderInstance = &scene->findInstanceByName("MirrorBorder1_0", found);
-	//if (!found) throw new std::runtime_error("Did not find MirrorBorder1");
-	//auto mirrorPlaneInstance = &scene->findInstanceByName("MirrorPlane1_0", found);
-	//if (!found) throw new std::runtime_error("Did not find MirrorPlane1");
+	auto mirrorBorderInstance = scene->get_model_by_name("Cube");//MirrorBorder1
+	if (!mirrorBorderInstance.has_value()) throw new std::runtime_error("Did not find MirrorBorder1(Cube)");
+	auto mirrorPlaneInstance = scene->get_model_by_name("Plane");//MirrorPlane1
+	if (!mirrorPlaneInstance.has_value()) throw new std::runtime_error("Did not find MirrorPlane1(Plane)");
 
-	//mirrorBorderActor = physics->createRigidStaticForScaledUnitBox(mirrorBorderInstance, true);
-	//mirrorPlaneActor = physics->createRigidStaticForScaledPlane(mirrorPlaneInstance, true);
-	//player->addMirror({ mirrorBorderActor, mirrorPlaneActor });
+	mirrorBorderActor = physics->create_rigid_static_for_scaled_unit_box(mirrorBorderInstance.value(), true);
+	mirrorPlaneActor = physics->create_rigid_static_for_scaled_plane(mirrorPlaneInstance.value(), true);
+	player->add_mirror({ mirrorBorderActor, mirrorPlaneActor });
 
 	////Create Sphere
 	//sphereInstance->flags = 1;
@@ -64,7 +64,7 @@ flevel1logic::flevel1logic(fscene* scene) : flevellogic(scene) {
 	//interpolator.addSample(1, glm::vec3(60, 1, 1));
 }
 
-levelstatus flevel1logic::update(const float& deltaT, const double& focusHitValue)
+levelstatus flevel1logic::update(float deltaT, double focusHitCount)
 {
 	/*if (score > 2.0f) {
 		return WON;
@@ -83,14 +83,14 @@ levelstatus flevel1logic::update(const float& deltaT, const double& focusHitValu
 		scene->backgroundColor = glm::vec3(1, 1, 0.5);
 		score = 100.0f;
 		return WON;
-	}
-	if (player->fellDown()) {
-		return LOST;
 	}*/
-	return RUNNING;
+	if (player->fell_down()) {
+		return levelstatus::LOST;
+	}
+	return levelstatus::RUNNING;
 }
 
-void flevel1logic::fixed_update(const float& stepSize)
+void flevel1logic::fixed_update(float stepSize)
 {
 	accTime += stepSize;
 	float xA = -(22 + 1.5 * cos(2 * accTime));

@@ -33,23 +33,65 @@ fplayercontrol::fplayercontrol(fphysicscontroller* physics, fscene* scene, bool 
 //should be called via fixedupdate (after physics update)
 void fplayercontrol::pre_px_update(float deltaT)
 {
-	//TODO
+	//----- CHECK MIRROR INTERACTION -----
+	bool leftClicked = cgb::input().mouse_button_down(0); //TODO
+	//Click active -> interact with mirror
+	if (leftClicked) {
+		//No mirror hit yet -> Check for hit via raycasting
+		if (movingMirror == -1) {
+			int i = raycastMirror();
+			if (i != -1) {
+				movingMirror = i;
+			}
+		}
+		//Mirror hit -> Rotate according to mouse
+		if (movingMirror != -1) {
+			double deltaX = cgb::input().delta_cursor_position().x;
+			double deltaY = cgb::input().delta_cursor_position().y;
+			float angle = -deltaX * MOUSE_SENTIVITY;
+			PxQuat rotation = PxQuat(angle, PxVec3(0, 1, 0));
+			glm::vec3 mPosition;
+			for (PxRigidStatic* mirrorActor : mirrorActors[movingMirror]) {
+				PxTransform transform = mirrorActor->getGlobalPose();
+				PxQuat newQ = rotation * transform.q;
+				mirrorActor->setGlobalPose(PxTransform(transform.p, newQ));
+				mPosition = glm::vec3(transform.p.x, transform.p.y, transform.p.z);
+				fmodel* model = (fmodel*)mirrorActor->userData;
+				model->mFlags |= 2;
+			}
+			look_into_direction(glm::normalize(mPosition - camera->translation()));
+		}
+	}
+	else {
+		if (movingMirror != -1) {
+			//Mouse released -> release Mirror
+			movingMirror = -1;
+			look_into_direction(-camera->z_axis());
+		}
+		int i = raycastMirror();
+		int j = 0;
+		for (auto mirrorParts : mirrorActors) {
+			for (auto mirror : mirrorParts) {
+				fmodel* model = (fmodel*)mirror->userData;
+				if (j == i && (model->mFlags & 2) == 0) {
+					//Looked at
+					model->mFlags |= 2;
+				}
+				else if (j != i && (model->mFlags & 2) != 0) {
+					model->mFlags &= ~2;
+				}
+			}
+			++j;
+		}
+	}
 }
 
 void fplayercontrol::post_px_update(float deltaT) {
 	
 	//Check Mouse Interactions (only if no mirror is focused)
 	if (movingMirror == -1) {
-		double x = cgb::input().cursor_position().x;
-		double y = cgb::input().cursor_position().y;
-		if (isnan(lastCursorX)) {
-			lastCursorX = x;
-			lastCursorY = y;
-		}
-		double deltaX = lastCursorX - x;
-		double deltaY = lastCursorY - y;
-		lastCursorX = x;
-		lastCursorY = y;
+		double deltaX = cgb::input().delta_cursor_position().x;
+		double deltaY = cgb::input().delta_cursor_position().y;
 		horizontalAngle += deltaX * MOUSE_SENTIVITY;
 		verticalAngle = glm::max(glm::min(verticalAngle + deltaY * 0.005, M_PI / 2 - 0.01), -M_PI / 2 + 0.01);
 	}

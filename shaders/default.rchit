@@ -67,6 +67,7 @@ struct MaterialGpuData
 struct ModelInstanceGpuData {
 	uint mMaterialIndex;
 	mat4 mNormalMat;
+	uint mFlags;
 };
 
 struct LightGpuData {
@@ -211,6 +212,10 @@ void main()
 		} else if (lightSsbo.lights[i].mInfo.x == 1) {
 			ownColor += phongDirectional(position, eye, normal, dColor, materialIndex, lightSsbo.lights[i].mDirection.xyz, lightSsbo.lights[i].mColorDiffuse.rgb, reflCoeff <= 0.5);
 		}
+	}
+
+	if ((instanceSsbo.instances[instanceIndex].mFlags & 2) == 2 && reflCoeff < 0.01) {
+		ownColor += vec3(0.2f);
 	}
 
 	vec3 finalColor = (1-reflCoeff)*ownColor + reflCoeff*reflColor;

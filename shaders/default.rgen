@@ -53,12 +53,12 @@ void main()
 
 	if (abs(d.x) < 0.2 && abs(d.y) < 0.2*aspectRatio) {
 		atomicAdd(foundHit, hitValue.various.x);
-			if (abs(abs(d.x)-0.2) < 0.001 || abs(abs(d.y)-0.2*aspectRatio) < 0.001*aspectRatio) {
-				hitValue.color.rgb -= vec3(0.1);
-			}
-			if (abs(d.x) < 0.05 && abs(d.y) < 0.001*aspectRatio || abs(d.y) < 0.05*aspectRatio && abs(d.x) < 0.001) {
-				hitValue.color.rgb += vec3(0.2);
-			}
+		if (abs(abs(d.x)-0.2) < 0.001 || abs(abs(d.y)-0.2*aspectRatio) < 0.001*aspectRatio) {
+			hitValue.color.rgb -= vec3(0.1);
+		}
+		if (abs(d.x) < 0.05 && abs(d.y) < 0.001*aspectRatio || abs(d.y) < 0.05*aspectRatio && abs(d.x) < 0.001) {
+			hitValue.color.rgb += vec3(0.2);
+		}
 	}
 
 	//hitValue.color.rgb = (1-options.winval)*hitValue.color.rgb + options.winval*vec3(1,1,0.5);

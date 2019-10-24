@@ -6,8 +6,8 @@ public:
 
 	flevel1logic(fscene* scene);
 
-	levelstatus update(const float& deltaT, const double& focusHitValue) override;
-	void fixed_update(const float& stepSize) override;
+	levelstatus update(float deltaT, double focusHitCount) override;
+	void fixed_update(float stepSize) override;
 
 	void reset();
 
@@ -29,9 +29,9 @@ private:
 	glm::quat initialCameraRot;
 	std::unique_ptr<fphysicscontroller> physics;
 	std::unique_ptr<fplayercontrol> player;
-	/*ModelInstance* sphereInstance;
+	//ModelInstance* sphereInstance;
 	PxRigidStatic* mirrorBorderActor;
-	PxRigidStatic* mirrorPlaneActor;*/
+	PxRigidStatic* mirrorPlaneActor;
 	PxRigidStatic* movingFloors[3];
 	PxRigidStatic* finalRegionActor;
 	/*double score = 0;*/
