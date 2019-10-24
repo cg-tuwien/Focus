@@ -69,7 +69,7 @@ void frenderer::initialize()
 			cgb::binding(0, 6, mScene->get_normal_buffer_views()),
 			cgb::binding(0, 7, mScene->get_tangent_buffer_views()),
 			cgb::binding(1, 0, mOffscreenImageViews[i]),
-			cgb::binding(2, 0, mScene->get_tlas()[0]),
+			cgb::binding(2, 0, mScene->get_tlas()[i]),
 			cgb::binding(3, 0, mScene->get_background_buffer()),
 			cgb::binding(3, 1, mScene->get_gradient_buffer()),
 			cgb::binding(4, 0, mFocusHitBuffer)

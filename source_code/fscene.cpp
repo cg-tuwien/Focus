@@ -224,11 +224,14 @@ void fscene::update()
 		++i;
 	}
 
-	//auto inFlightIndex = cgb::context().main_window()->in_flight_index_for_frame();
+	auto inFlightIndex = cgb::context().main_window()->in_flight_index_for_frame();
 	auto fif = cgb::context().main_window()->number_of_in_flight_frames();
-	for (decltype(fif) i = 0; i < fif; ++i) {
-		mTLASs[i]->update(mGeometryInstances, [](cgb::semaphore _Semaphore) {
+	//for (decltype(fif) f = 0; f < fif; ++f) {
+		//auto f = ((inFlightIndex - 1) < 0) ? (fif - 1) : (inFlightIndex - 1);
+		//auto f = ((inFlightIndex + 1) >= fif) ? 0 : (inFlightIndex + 1);
+		auto f = inFlightIndex;
+		mTLASs[f]->update(mGeometryInstances, [](cgb::semaphore _Semaphore) {
 			cgb::context().main_window()->set_extra_semaphore_dependency(std::move(_Semaphore));
 		});
-	}
+	//}
 }
