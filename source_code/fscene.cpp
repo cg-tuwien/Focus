@@ -119,7 +119,7 @@ std::unique_ptr<fscene> fscene::load_scene(const std::string& filename)
 	s->mImageSamplers = std::move(imageSamplers);
 
 	//Lights
-	std::vector<cgb::lightsource_gpu_data> lights = cgb::convert_lights_for_gpu_usage(s->mLoadedScene->get_all_lights());
+	std::vector<cgb::lightsource_gpu_data> lights = cgb::convert_lights_for_gpu_usage(s->mLoadedScene->lights());
 	uint32_t lightCount = lights.size();
 	uint32_t buffersize = sizeof(cgb::lightsource_gpu_data) * lights.size() + sizeof(uint32_t)*4;
 	char* data = new char[buffersize];
