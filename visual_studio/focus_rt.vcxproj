@@ -32,8 +32,12 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\source_code\flevel1logic.cpp" />
     <ClCompile Include="..\source_code\focus_rt.cpp" />
+    <ClCompile Include="..\source_code\fphysicscontroller.cpp" />
+    <ClCompile Include="..\source_code\fplayercontrol.cpp" />
     <ClCompile Include="..\source_code\frenderer.cpp" />
+    <ClCompile Include="..\source_code\utility.cpp" />
     <ClCompile Include="cg_stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release_OpenGL|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Publish_Vulkan|x64'">Create</PrecompiledHeader>
@@ -45,8 +49,13 @@
     <ClCompile Include="..\source_code\fscene.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\source_code\flevellogic.h" />
+    <ClInclude Include="..\source_code\flevel1logic.h" />
+    <ClInclude Include="..\source_code\fphysicscontroller.h" />
+    <ClInclude Include="..\source_code\fplayercontrol.h" />
     <ClInclude Include="..\source_code\frenderer.h" />
     <ClInclude Include="..\source_code\includes.h" />
+    <ClInclude Include="..\source_code\utility.h" />
     <ClInclude Include="cg_stdafx.hpp" />
     <ClInclude Include="cg_targetver.hpp" />
     <ClInclude Include="..\source_code\fscene.h" />
@@ -60,12 +69,15 @@
     <None Include="..\assets\cgbtest2.mtl" />
     <None Include="..\assets\cgbtest2sm.fbx" />
     <None Include="..\assets\level01c.dae" />
+    <None Include="..\assets\level01campos.dae" />
     <None Include="..\assets\lighttest.dae" />
-    <None Include="..\shaders\rt_09_first.rchit" />
-    <None Include="..\shaders\rt_09_first.rgen" />
-    <None Include="..\shaders\rt_09_first.rmiss" />
-    <None Include="..\shaders\rt_09_secondary.rchit" />
-    <None Include="..\shaders\rt_09_secondary.rmiss" />
+    <None Include="..\shaders\default.rahit" />
+    <None Include="..\shaders\default.rchit" />
+    <None Include="..\shaders\default.rgen" />
+    <None Include="..\shaders\default.rmiss" />
+    <None Include="..\shaders\shadowray.rahit" />
+    <None Include="..\shaders\shadowray.rchit" />
+    <None Include="..\shaders\shadowray.rmiss" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\assets\bark_0004.jpg" />
@@ -260,15 +272,18 @@
       <ForcedIncludeFiles>cg_stdafx.hpp</ForcedIncludeFiles>
       <TreatSpecificWarningsAsErrors>4715</TreatSpecificWarningsAsErrors>
       <PrecompiledHeaderFile>cg_stdafx.hpp</PrecompiledHeaderFile>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\external\universal\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>$(SolutionDir)..\external\$(LibraryConfigurationType)\lib\$(Platform)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>PhysX_64.lib;PhysXCommon_64.lib;PhysXExtensions_static_64.lib;PhysXFoundation_64.lib;PhysXCooking_64.lib;PhysXPvdSDK_static_64.lib;PhysXCharacterKinematic_static_64.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <CustomBuildStep>
-      <Command>"$(ToolsBin)cmdow.exe" /RUN "$(ToolsBin)cgb_post_build_helper.exe" -configuration "$(Configuration)" -framework "$(FrameworkRoot)\"  -platform "$(Platform)" -vcxproj "$(ProjectPath)" -filters "$(ProjectPath).filters" -output "$(OutputPath)\" -executable "$(TargetPath)" -external "$(ExternalRoot)\"</Command>
+      <Command>"$(ToolsBin)cmdow.exe" /RUN "$(ToolsBin)cgb_post_build_helper.exe" -configuration "$(Configuration)" -framework "$(FrameworkRoot)\"  -platform "$(Platform)" -vcxproj "$(ProjectPath)" -filters "$(ProjectPath).filters" -output "$(OutputPath)\" -executable "$(TargetPath)" -external "$(ExternalRoot)\" -external "$(SolutionDir)..\external\\"</Command>
       <Outputs>some-non-existant-file-to-always-run-the-custom-build-step.txt;%(Outputs)</Outputs>
     </CustomBuildStep>
   </ItemDefinitionGroup>
@@ -286,15 +301,18 @@
       <ForcedIncludeFiles>cg_stdafx.hpp</ForcedIncludeFiles>
       <TreatSpecificWarningsAsErrors>4715</TreatSpecificWarningsAsErrors>
       <PrecompiledHeaderFile>cg_stdafx.hpp</PrecompiledHeaderFile>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\external\universal\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>$(SolutionDir)..\external\$(LibraryConfigurationType)\lib\$(Platform)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>PhysX_64.lib;PhysXCommon_64.lib;PhysXExtensions_static_64.lib;PhysXFoundation_64.lib;PhysXCooking_64.lib;PhysXPvdSDK_static_64.lib;PhysXCharacterKinematic_static_64.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <CustomBuildStep>
-      <Command>"$(ToolsBin)cmdow.exe" /RUN "$(ToolsBin)cgb_post_build_helper.exe" -configuration "$(Configuration)" -framework "$(FrameworkRoot)\"  -platform "$(Platform)" -vcxproj "$(ProjectPath)" -filters "$(ProjectPath).filters" -output "$(OutputPath)\" -executable "$(TargetPath)" -external "$(ExternalRoot)\"</Command>
+      <Command>"$(ToolsBin)cmdow.exe" /RUN "$(ToolsBin)cgb_post_build_helper.exe" -configuration "$(Configuration)" -framework "$(FrameworkRoot)\"  -platform "$(Platform)" -vcxproj "$(ProjectPath)" -filters "$(ProjectPath).filters" -output "$(OutputPath)\" -executable "$(TargetPath)" -external "$(ExternalRoot)\" -external "$(SolutionDir)..\external\\"</Command>
       <Outputs>some-non-existant-file-to-always-run-the-custom-build-step.txt;%(Outputs)</Outputs>
     </CustomBuildStep>
   </ItemDefinitionGroup>
@@ -312,15 +330,18 @@
       <ForcedIncludeFiles>cg_stdafx.hpp</ForcedIncludeFiles>
       <TreatSpecificWarningsAsErrors>4715</TreatSpecificWarningsAsErrors>
       <PrecompiledHeaderFile>cg_stdafx.hpp</PrecompiledHeaderFile>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\external\universal\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>$(SolutionDir)..\external\$(LibraryConfigurationType)\lib\$(Platform)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>PhysX_64.lib;PhysXCommon_64.lib;PhysXExtensions_static_64.lib;PhysXFoundation_64.lib;PhysXCooking_64.lib;PhysXPvdSDK_static_64.lib;PhysXCharacterKinematic_static_64.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <CustomBuildStep>
-      <Command>"$(ToolsBin)cmdow.exe" /RUN "$(ToolsBin)cgb_post_build_helper.exe" -configuration "$(Configuration)" -framework "$(FrameworkRoot)\"  -platform "$(Platform)" -vcxproj "$(ProjectPath)" -filters "$(ProjectPath).filters" -output "$(OutputPath)\" -executable "$(TargetPath)" -external "$(ExternalRoot)\"</Command>
+      <Command>"$(ToolsBin)cmdow.exe" /RUN "$(ToolsBin)cgb_post_build_helper.exe" -configuration "$(Configuration)" -framework "$(FrameworkRoot)\"  -platform "$(Platform)" -vcxproj "$(ProjectPath)" -filters "$(ProjectPath).filters" -output "$(OutputPath)\" -executable "$(TargetPath)" -external "$(ExternalRoot)\" -external "$(SolutionDir)..\external\\"</Command>
       <Outputs>some-non-existant-file-to-always-run-the-custom-build-step.txt;%(Outputs)</Outputs>
     </CustomBuildStep>
   </ItemDefinitionGroup>
@@ -338,15 +359,18 @@
       <ForcedIncludeFiles>cg_stdafx.hpp</ForcedIncludeFiles>
       <TreatSpecificWarningsAsErrors>4715</TreatSpecificWarningsAsErrors>
       <PrecompiledHeaderFile>cg_stdafx.hpp</PrecompiledHeaderFile>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\external\universal\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>$(SolutionDir)..\external\$(LibraryConfigurationType)\lib\$(Platform)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>PhysX_64.lib;PhysXCommon_64.lib;PhysXExtensions_static_64.lib;PhysXFoundation_64.lib;PhysXCooking_64.lib;PhysXPvdSDK_static_64.lib;PhysXCharacterKinematic_static_64.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <CustomBuildStep>
-      <Command>"$(ToolsBin)cmdow.exe" /RUN "$(ToolsBin)cgb_post_build_helper.exe" -configuration "$(Configuration)" -framework "$(FrameworkRoot)\"  -platform "$(Platform)" -vcxproj "$(ProjectPath)" -filters "$(ProjectPath).filters" -output "$(OutputPath)\" -executable "$(TargetPath)" -external "$(ExternalRoot)\"</Command>
+      <Command>"$(ToolsBin)cmdow.exe" /RUN "$(ToolsBin)cgb_post_build_helper.exe" -configuration "$(Configuration)" -framework "$(FrameworkRoot)\"  -platform "$(Platform)" -vcxproj "$(ProjectPath)" -filters "$(ProjectPath).filters" -output "$(OutputPath)\" -executable "$(TargetPath)" -external "$(ExternalRoot)\" -external "$(SolutionDir)..\external\\"</Command>
       <Outputs>some-non-existant-file-to-always-run-the-custom-build-step.txt;%(Outputs)</Outputs>
     </CustomBuildStep>
   </ItemDefinitionGroup>
@@ -362,13 +386,16 @@
       <ForcedIncludeFiles>cg_stdafx.hpp</ForcedIncludeFiles>
       <TreatSpecificWarningsAsErrors>4715</TreatSpecificWarningsAsErrors>
       <PrecompiledHeaderFile>cg_stdafx.hpp</PrecompiledHeaderFile>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\external\universal\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>$(SolutionDir)..\external\$(LibraryConfigurationType)\lib\$(Platform)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>PhysX_64.lib;PhysXCommon_64.lib;PhysXExtensions_static_64.lib;PhysXFoundation_64.lib;PhysXCooking_64.lib;PhysXPvdSDK_static_64.lib;PhysXCharacterKinematic_static_64.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <CustomBuildStep>
-      <Command>"$(ToolsBin)cmdow.exe" /RUN "$(ToolsBin)cgb_post_build_helper.exe" -configuration "$(Configuration)" -framework "$(FrameworkRoot)\"  -platform "$(Platform)" -vcxproj "$(ProjectPath)" -filters "$(ProjectPath).filters" -output "$(OutputPath)\" -executable "$(TargetPath)" -external "$(ExternalRoot)\"</Command>
+      <Command>"$(ToolsBin)cmdow.exe" /RUN "$(ToolsBin)cgb_post_build_helper.exe" -configuration "$(Configuration)" -framework "$(FrameworkRoot)\"  -platform "$(Platform)" -vcxproj "$(ProjectPath)" -filters "$(ProjectPath).filters" -output "$(OutputPath)\" -executable "$(TargetPath)" -external "$(ExternalRoot)\" -external "$(SolutionDir)..\external\\"</Command>
       <Outputs>some-non-existant-file-to-always-run-the-custom-build-step.txt;%(Outputs)</Outputs>
     </CustomBuildStep>
   </ItemDefinitionGroup>
@@ -384,13 +411,16 @@
       <ForcedIncludeFiles>cg_stdafx.hpp</ForcedIncludeFiles>
       <TreatSpecificWarningsAsErrors>4715</TreatSpecificWarningsAsErrors>
       <PrecompiledHeaderFile>cg_stdafx.hpp</PrecompiledHeaderFile>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\external\universal\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>$(SolutionDir)..\external\$(LibraryConfigurationType)\lib\$(Platform)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>PhysX_64.lib;PhysXCommon_64.lib;PhysXExtensions_static_64.lib;PhysXFoundation_64.lib;PhysXCooking_64.lib;PhysXPvdSDK_static_64.lib;PhysXCharacterKinematic_static_64.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <CustomBuildStep>
-      <Command>"$(ToolsBin)cmdow.exe" /RUN "$(ToolsBin)cgb_post_build_helper.exe" -configuration "$(Configuration)" -framework "$(FrameworkRoot)\"  -platform "$(Platform)" -vcxproj "$(ProjectPath)" -filters "$(ProjectPath).filters" -output "$(OutputPath)\" -executable "$(TargetPath)" -external "$(ExternalRoot)\"</Command>
+      <Command>"$(ToolsBin)cmdow.exe" /RUN "$(ToolsBin)cgb_post_build_helper.exe" -configuration "$(Configuration)" -framework "$(FrameworkRoot)\"  -platform "$(Platform)" -vcxproj "$(ProjectPath)" -filters "$(ProjectPath).filters" -output "$(OutputPath)\" -executable "$(TargetPath)" -external "$(ExternalRoot)\" -external "$(SolutionDir)..\external\\"</Command>
       <Outputs>some-non-existant-file-to-always-run-the-custom-build-step.txt;%(Outputs)</Outputs>
     </CustomBuildStep>
   </ItemDefinitionGroup>

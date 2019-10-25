@@ -13,21 +13,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\shaders\rt_09_first.rchit">
-      <Filter>shaders</Filter>
-    </None>
-    <None Include="..\shaders\rt_09_first.rgen">
-      <Filter>shaders</Filter>
-    </None>
-    <None Include="..\shaders\rt_09_first.rmiss">
-      <Filter>shaders</Filter>
-    </None>
-    <None Include="..\shaders\rt_09_secondary.rchit">
-      <Filter>shaders</Filter>
-    </None>
-    <None Include="..\shaders\rt_09_secondary.rmiss">
-      <Filter>shaders</Filter>
-    </None>
     <None Include="..\assets\level01c.dae">
       <Filter>assets</Filter>
     </None>
@@ -61,6 +46,30 @@
     <None Include="..\assets\lighttest.dae">
       <Filter>assets</Filter>
     </None>
+    <None Include="..\shaders\default.rchit">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="..\shaders\default.rgen">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="..\shaders\default.rmiss">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="..\shaders\shadowray.rchit">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="..\shaders\shadowray.rmiss">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="..\shaders\default.rahit">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="..\shaders\shadowray.rahit">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="..\assets\level01campos.dae">
+      <Filter>assets</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="cg_stdafx.cpp">
@@ -69,6 +78,10 @@
     <ClCompile Include="..\source_code\focus_rt.cpp" />
     <ClCompile Include="..\source_code\fscene.cpp" />
     <ClCompile Include="..\source_code\frenderer.cpp" />
+    <ClCompile Include="..\source_code\fphysicscontroller.cpp" />
+    <ClCompile Include="..\source_code\utility.cpp" />
+    <ClCompile Include="..\source_code\fplayercontrol.cpp" />
+    <ClCompile Include="..\source_code\flevel1logic.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="cg_stdafx.hpp">
@@ -80,6 +93,11 @@
     <ClInclude Include="..\source_code\fscene.h" />
     <ClInclude Include="..\source_code\includes.h" />
     <ClInclude Include="..\source_code\frenderer.h" />
+    <ClInclude Include="..\source_code\fphysicscontroller.h" />
+    <ClInclude Include="..\source_code\utility.h" />
+    <ClInclude Include="..\source_code\fplayercontrol.h" />
+    <ClInclude Include="..\source_code\flevel1logic.h" />
+    <ClInclude Include="..\source_code\flevellogic.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\assets\Lava4.png">

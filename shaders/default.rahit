@@ -1,0 +1,118 @@
+#version 460
+#extension GL_NV_ray_tracing : require
+#extension GL_EXT_nonuniform_qualifier : require
+
+struct RayTracingHit {
+	vec4 color;
+	vec4 transparentColor[2];
+	float transparentDist[4];	//0 = goal, 1 = character
+	uvec4 various;		//x = goal, y = recursions, z = renderCharacter
+};
+
+struct MaterialGpuData
+{
+	vec4 mDiffuseReflectivity;
+	vec4 mAmbientReflectivity;
+	vec4 mSpecularReflectivity;
+	vec4 mEmissiveColor;
+	vec4 mTransparentColor;
+	vec4 mReflectiveColor;
+	vec4 mAlbedo;
+
+	float mOpacity;
+	float mBumpScaling;
+	float mShininess;
+	float mShininessStrength;
+	
+	float mRefractionIndex;
+	float mReflectivity;
+	float mMetallic;
+	float mSmoothness;
+	
+	float mSheen;
+	float mThickness;
+	float mRoughness;
+	float mAnisotropy;
+	
+	vec4 mAnisotropyRotation;
+	vec4 mCustomData;
+	
+	int mDiffuseTexIndex;
+	int mSpecularTexIndex;
+	int mAmbientTexIndex;
+	int mEmissiveTexIndex;
+	int mHeightTexIndex;
+	int mNormalsTexIndex;
+	int mShininessTexIndex;
+	int mOpacityTexIndex;
+	int mDisplacementTexIndex;
+	int mReflectionTexIndex;
+	int mLightmapTexIndex;
+	int mExtraTexIndex;
+	
+	vec4 mDiffuseTexOffsetTiling;
+	vec4 mSpecularTexOffsetTiling;
+	vec4 mAmbientTexOffsetTiling;
+	vec4 mEmissiveTexOffsetTiling;
+	vec4 mHeightTexOffsetTiling;
+	vec4 mNormalsTexOffsetTiling;
+	vec4 mShininessTexOffsetTiling;
+	vec4 mOpacityTexOffsetTiling;
+	vec4 mDisplacementTexOffsetTiling;
+	vec4 mReflectionTexOffsetTiling;
+	vec4 mLightmapTexOffsetTiling;
+	vec4 mExtraTexOffsetTiling;
+};
+
+struct ModelInstanceGpuData {
+	uint mMaterialIndex;
+	mat4 mNormalMat;
+	uint mFlags;
+};
+
+layout(set = 0, binding = 0) buffer InstanceBuffer {
+	ModelInstanceGpuData instances[];
+} instanceSsbo;
+layout(set = 0, binding = 1) buffer Material 
+{
+	MaterialGpuData materials[];
+} matSsbo;
+
+layout(set = 0, binding = 3) uniform sampler2D textures[];
+layout(set = 0, binding = 4) uniform usamplerBuffer indexBuffers[];
+layout(set = 0, binding = 6) uniform samplerBuffer normalBuffers[];
+
+rayPayloadInNV RayTracingHit hitValue;
+
+hitAttributeNV vec3 attribs;
+
+void main()
+{
+    const vec3 barycentrics = vec3(1.0 - attribs.x - attribs.y, attribs.x, attribs.y);
+	const int instanceIndex = nonuniformEXT(gl_InstanceCustomIndexNV);
+	uint materialIndex = instanceSsbo.instances[instanceIndex].mMaterialIndex;
+	
+	mat3 normalMat = mat3(instanceSsbo.instances[instanceIndex].mNormalMat);
+	const ivec3 indices = ivec3(texelFetch(indexBuffers[instanceIndex], gl_PrimitiveID).rgb);
+	const vec3 normal0 = texelFetch(normalBuffers[instanceIndex], indices.x).rgb;
+	const vec3 normal1 = texelFetch(normalBuffers[instanceIndex], indices.y).rgb;
+	const vec3 normal2 = texelFetch(normalBuffers[instanceIndex], indices.z).rgb;
+	const vec3 normal = normalize(normalMat*(barycentrics.x * normal0 + barycentrics.y * normal1 + barycentrics.z * normal2));
+
+	vec3 position = gl_WorldRayOriginNV + gl_WorldRayDirectionNV * gl_HitTNV;
+	vec3 eye = normalize(gl_WorldRayOriginNV - position);
+	
+	uint goalsphere = 1;//modelInstances[instanceIndex].flags & 1; //TODO
+	float nl = max(dot(normal, eye),0);//we're only looking at the front faces
+	uint accept = uint((goalsphere != 0 || hitValue.various.z==1) && nl > 0.01);	//Only accept goalsphere = 0 if renderCharacter is set
+
+	if (goalsphere == 1) {
+		hitValue.transparentColor[goalsphere].rgb = accept*2*nl*matSsbo.materials[materialIndex].mDiffuseReflectivity.rgb + (1-accept)*hitValue.transparentColor[goalsphere].rgb;
+	} else {
+		hitValue.transparentColor[goalsphere].rgb = accept*1.5*exp(-6*pow(nl-1,2))*matSsbo.materials[materialIndex].mDiffuseReflectivity.rgb + (1-accept)*hitValue.transparentColor[goalsphere].rgb;
+	}
+	hitValue.transparentDist[goalsphere] = accept*min(hitValue.transparentDist[goalsphere], gl_HitTNV) + (1-accept)*hitValue.transparentDist[goalsphere];
+	hitValue.various.x |= goalsphere;
+	
+	ignoreIntersectionNV();
+}

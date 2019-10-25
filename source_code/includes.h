@@ -1,5 +1,12 @@
 #pragma once
 #include <cg_base.hpp>
 #include <memory>
+#include <PxPhysicsAPI.h>
+#include <PxFoundation.h>
+#include "utility.h"
 #include "fscene.h"
 #include "frenderer.h"
+#include "fphysicscontroller.h"
+#include "fplayercontrol.h"
+#include "flevellogic.h"
+#include "flevel1logic.h"

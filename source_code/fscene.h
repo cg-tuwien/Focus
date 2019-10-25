@@ -10,26 +10,30 @@ struct fmodel {
 	std::vector<uint32_t> mIndices;
 	glm::mat4 mTransformation;
 	size_t mMaterialIndex;
+	uint32_t mFlags = 0; //1 = goal, 2 = selected-mirror
+	std::string mName;
 };
 
 struct fmodel_gpudata {
 	alignas(4) uint32_t mMaterialIndex;
 	alignas(16) glm::mat4 mNormalMatrix;
-	//alignas(16) uint32_t mFlags;
+	alignas(16) uint32_t mFlags = 0;
 
 	fmodel_gpudata(const fmodel& model) {
 		mMaterialIndex = static_cast<uint32_t>(model.mMaterialIndex);
 		mNormalMatrix = glm::transpose(glm::inverse(model.mTransformation));
+		mFlags = model.mFlags;
 	}
 };
 
-struct fscene {
+struct fscene : public cgb::cg_element {
 
 private:
 	//CPU-Data
 	cgb::model mLoadedScene;
 	std::vector<cgb::material_config> mMaterials;
 	std::vector<fmodel> mModels;
+	cgb::camera mCamera;
 
 	//For GPU
 	std::vector<fmodel_gpudata> mModelData;
@@ -48,6 +52,8 @@ private:
 	cgb::storage_buffer mMaterialBuffer;
 	cgb::storage_buffer mModelBuffer;
 	cgb::storage_buffer mLightBuffer;
+	cgb::uniform_buffer mPerlinBackgroundBuffer;
+	cgb::storage_buffer mPerlinGradientBuffer;
 	//Acceleration Structures
 	std::vector<cgb::bottom_level_acceleration_structure> mBLASs;
 	std::vector<cgb::top_level_acceleration_structure> mTLASs;
@@ -72,6 +78,14 @@ public:
 		return mLightBuffer;
 	}
 
+	const cgb::uniform_buffer& get_background_buffer() const {
+		return mPerlinBackgroundBuffer;
+	}
+
+	const cgb::storage_buffer& get_gradient_buffer() const {
+		return mPerlinGradientBuffer;
+	}
+
 	const std::vector<cgb::buffer_view>& get_index_buffer_views() const {
 		return mIndexBufferViews;
 	}
@@ -91,4 +105,12 @@ public:
 	const std::vector<cgb::top_level_acceleration_structure>& get_tlas() const {
 		return mTLASs;
 	}
+
+	cgb::camera& get_camera() {
+		return mCamera;
+	}
+
+	std::optional<fmodel*> get_model_by_name(const std::string& name);
+
+	void update() override;
 };

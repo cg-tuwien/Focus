@@ -7,6 +7,9 @@ std::unique_ptr<fscene> fscene::load_scene(const std::string& filename)
 
 	std::unique_ptr<fscene> s = std::make_unique<fscene>();
 	s->mLoadedScene = cgb::model_t::load_from_file(filename, aiProcess_Triangulate | aiProcess_CalcTangentSpace);
+
+	s->mCamera = s->mLoadedScene->get_cameras()[0];
+
 	auto distinctMaterials = s->mLoadedScene->distinct_material_configs();
 	s->mMaterials.reserve(distinctMaterials.size());
 	s->mModels.reserve(distinctMaterials.size());
@@ -25,6 +28,8 @@ std::unique_ptr<fscene> fscene::load_scene(const std::string& filename)
 			auto& newElement = s->mModels.emplace_back();
 			newElement.mModelIndex = s->mModels.size() - 1;
 			newElement.mMaterialIndex = matIndex;
+
+			std::string name = s->mLoadedScene->name_of_mesh(meshindex);
 
 			//Get CPU-Data
 			cgb::append_indices_and_vertex_data(
@@ -88,6 +93,7 @@ std::unique_ptr<fscene> fscene::load_scene(const std::string& filename)
 			auto blas = cgb::bottom_level_acceleration_structure_t::create(positionsBuffer, indexBuffer);
 			blas.enable_shared_ownership();
 			auto instance = cgb::geometry_instance::create(blas).set_transform(newElement.mTransformation).set_custom_index(s->mBLASs.size());
+			instance.mFlags = (name == "Sphere") ? vk::GeometryInstanceFlagBitsNV::eForceNoOpaque : vk::GeometryInstanceFlagBitsNV::eForceOpaque;
 			s->mGeometryInstances.push_back(instance);
 			blas->build([&](cgb::semaphore _Semaphore) {
 				// Store them and pass them as a dependency to the TLAS-build
@@ -95,13 +101,15 @@ std::unique_ptr<fscene> fscene::load_scene(const std::string& filename)
 			});
 			s->mBLASs.push_back(std::move(blas));
 
+			newElement.mName = s->mLoadedScene->name_of_mesh(meshindex);
+
 			s->mModelData.emplace_back(newElement);
 		}
 	}
 
 	s->mModelBuffer = cgb::create_and_fill(
 		cgb::storage_buffer_meta::create_from_data(s->mModelData),
-		cgb::memory_usage::device,
+		cgb::memory_usage::host_coherent,
 		s->mModelData.data()
 	);
 
@@ -134,6 +142,36 @@ std::unique_ptr<fscene> fscene::load_scene(const std::string& filename)
 	);
 	delete data;
 
+	//Background Color Buffer
+	glm::vec4 initialColor = glm::vec4(0.3, 0.3, 0.3, 0);
+	s->mPerlinBackgroundBuffer = cgb::create_and_fill(
+		cgb::uniform_buffer_meta::create_from_data(initialColor),
+		cgb::memory_usage::host_coherent,
+		&initialColor
+	);
+
+	//Perlin Gradient Buffer
+	uint32_t lonsegs = 100;
+	uint32_t latsegs = 50;
+	float* gdata = new float[lonsegs * latsegs * 2];
+	srand(s->mModels.size());
+	for (uint32_t i = 0; i < lonsegs; ++i) {
+		for (uint32_t j = 0; j < latsegs; ++j) {
+			float x = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
+			float y = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
+			glm::vec2 vec = glm::vec2(x, y);
+			vec = glm::normalize(vec);
+			gdata[latsegs * i + 2 * j + 0] = vec.x;
+			gdata[latsegs * i + 2 * j + 1] = vec.y;
+		}
+	}
+	s->mPerlinGradientBuffer = cgb::create_and_fill(
+		cgb::storage_buffer_meta::create_from_size(sizeof(float) * lonsegs * latsegs * 2),
+		cgb::memory_usage::host_coherent,
+		gdata
+	);
+	delete gdata;
+
 	//---- CREATE TLAS -----
 	auto fif = cgb::context().main_window()->number_of_in_flight_frames();
 	s->mTLASs.reserve(fif);
@@ -164,4 +202,31 @@ std::unique_ptr<fscene> fscene::load_scene(const std::string& filename)
 	cgb::context().main_window()->set_extra_semaphore_dependency(std::move(waitSemaphores[0]));
 
 	return std::move(s);
+}
+
+std::optional<fmodel*> fscene::get_model_by_name(const std::string& name)
+{
+	for (fmodel& model : mModels) {
+		if (model.mName == name) {
+			return &model;
+		}
+	}
+	return {};
+}
+
+void fscene::update()
+{
+	int i = 0;
+	for (fmodel& model : mModels) {
+		mGeometryInstances[i].set_transform(model.mTransformation);
+		mGeometryInstances[i].mFlags = (model.mName == "Sphere") ? vk::GeometryInstanceFlagBitsNV::eForceNoOpaque : vk::GeometryInstanceFlagBitsNV::eForceOpaque;
+		mModelData[i] = model;
+		++i;
+	}
+	cgb::fill(mModelBuffer, mModelData.data());
+
+	auto inFlightIndex = cgb::context().main_window()->in_flight_index_for_frame();
+	mTLASs[inFlightIndex]->update(mGeometryInstances, [](cgb::semaphore _Semaphore) {
+		cgb::context().main_window()->set_extra_semaphore_dependency(std::move(_Semaphore));
+	});
 }
