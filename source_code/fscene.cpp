@@ -8,7 +8,9 @@ std::unique_ptr<fscene> fscene::load_scene(const std::string& filename)
 	std::unique_ptr<fscene> s = std::make_unique<fscene>();
 	s->mLoadedScene = cgb::model_t::load_from_file(filename, aiProcess_Triangulate | aiProcess_CalcTangentSpace);
 
-	s->mCamera = s->mLoadedScene->get_cameras()[0];
+	auto cameras = s->mLoadedScene->cameras();
+	assert(cameras.size() > 0);
+	s->mCamera = cameras[0];
 
 	auto distinctMaterials = s->mLoadedScene->distinct_material_configs();
 	s->mMaterials.reserve(distinctMaterials.size());
