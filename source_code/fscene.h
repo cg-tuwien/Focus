@@ -12,6 +12,7 @@ struct fmodel {
 	size_t mMaterialIndex;
 	uint32_t mFlags = 0; //1 = goal, 2 = selected-mirror
 	std::string mName;
+	bool mTransparent = false;
 };
 
 struct fmodel_gpudata {
@@ -34,6 +35,10 @@ private:
 	std::vector<cgb::material_config> mMaterials;
 	std::vector<fmodel> mModels;
 	cgb::camera mCamera;
+	glm::vec4 mBackgroundColor;
+	//Character
+	cgb::model mCgbCharacter;
+	size_t mCharacterIndex;
 
 	//For GPU
 	std::vector<fmodel_gpudata> mModelData;
@@ -58,9 +63,11 @@ private:
 	std::vector<cgb::bottom_level_acceleration_structure> mBLASs;
 	std::vector<cgb::top_level_acceleration_structure> mTLASs;
 
+	void create_buffers_for_model(fmodel& model, std::vector<cgb::semaphore>& blasWaitSemaphores);
+
 public:
 
-	static std::unique_ptr<fscene> load_scene(const std::string& filename);
+	static std::unique_ptr<fscene> load_scene(const std::string& filename, const std::string& characterfilename);
 
 	const std::vector<cgb::image_sampler>& get_image_samplers() const {
 		return mImageSamplers;
@@ -110,7 +117,17 @@ public:
 		return mCamera;
 	}
 
+	void set_background_color(const glm::vec4& backgroundColor) {
+		mBackgroundColor = backgroundColor;
+	}
+
 	std::optional<fmodel*> get_model_by_name(const std::string& name);
 
+	void set_character_position(const glm::vec3& position);
+
 	void update() override;
+
+	int32_t priority() const override {
+		return 3;
+	}
 };

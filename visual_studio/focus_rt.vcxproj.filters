@@ -70,6 +70,9 @@
     <None Include="..\assets\level01campos.dae">
       <Filter>assets</Filter>
     </None>
+    <None Include="..\assets\anothersimplechar2.dae">
+      <Filter>assets</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="cg_stdafx.cpp">

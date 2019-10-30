@@ -84,6 +84,7 @@ levelstatus flevel1logic::update(float deltaT, double focusHitCount)
 		score = 100.0f;
 		return WON;
 	}*/
+
 	if (player->fell_down()) {
 		return levelstatus::LOST;
 	}

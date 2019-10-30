@@ -28,7 +28,7 @@ public:
 		}
 	};
 
-	levelstatus get_level_status() {
+	levelstatus level_status() {
 		return status;
 	}
 
@@ -39,6 +39,11 @@ public:
 
 	void set_paused(bool paused) {
 		this->levelpaused = paused;
+	}
+
+
+	int32_t priority() const override {
+		return 4;
 	}
 
 protected:

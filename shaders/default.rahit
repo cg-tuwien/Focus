@@ -102,7 +102,7 @@ void main()
 	vec3 position = gl_WorldRayOriginNV + gl_WorldRayDirectionNV * gl_HitTNV;
 	vec3 eye = normalize(gl_WorldRayOriginNV - position);
 	
-	uint goalsphere = 1;//modelInstances[instanceIndex].flags & 1; //TODO
+	uint goalsphere = instanceSsbo.instances[instanceIndex].mFlags & 1;
 	float nl = max(dot(normal, eye),0);//we're only looking at the front faces
 	uint accept = uint((goalsphere != 0 || hitValue.various.z==1) && nl > 0.01);	//Only accept goalsphere = 0 if renderCharacter is set
 

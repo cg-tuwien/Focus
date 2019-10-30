@@ -11,7 +11,6 @@ fplayercontrol::fplayercontrol(fphysicscontroller* physics, fscene* scene, bool 
 	this->fly = fly;
 	this->eyeheight = eyeheight;
 	this->additionalCallback = callback;
-	//this->characterInstance = &scene->mModels[scene->characterInstance];
 	look_into_direction(-camera->z_axis());
 
 	//----- CREATING CHARACTER CONTROLLER -----
@@ -152,11 +151,7 @@ void fplayercontrol::post_px_update(float deltaT) {
 	glm::vec3 lookDir = glm::vec3(sin(horizontalAngle) * cos(verticalAngle), sin(verticalAngle), cos(horizontalAngle) * cos(verticalAngle));
 	camera->set_rotation(glm::quatLookAt(lookDir, glm::vec3(0,1,0)));
 
-	//characterInstance->transform[0] = glm::vec3(cos(horizontalAngle), 0, -sin(horizontalAngle));
-	//characterInstance->transform[1] = glm::vec3(-sin(horizontalAngle), 0, -cos(horizontalAngle));
-	//characterInstance->transform[3] = glm::vec3(camPos.x, camPos.y, camPos.z);
-	//characterInstance->lastInstanceUpdate = updateTime;
-	//scene->instancesUpdated = updateTime;
+	scene->set_character_position(glm::vec3(camPos.x, camPos.y, camPos.z));
 }
 
 void fplayercontrol::look_into_direction(const glm::vec3& direction)

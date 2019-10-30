@@ -1,12 +1,79 @@
 #include "includes.h"
 
-std::unique_ptr<fscene> fscene::load_scene(const std::string& filename)
+void fscene::create_buffers_for_model(fmodel& newElement, std::vector<cgb::semaphore>& blasWaitSemaphores)
+{
+
+	//Create Buffers
+	auto positionsBuffer = cgb::create_and_fill(
+		cgb::vertex_buffer_meta::create_from_data(newElement.mPositions).describe_only_member(newElement.mPositions[0], 0, cgb::content_description::position),
+		cgb::memory_usage::device,
+		newElement.mPositions.data(),
+		[](auto _Semaphore) {
+		cgb::context().main_window()->set_extra_semaphore_dependency(std::move(_Semaphore));
+	}
+	);
+	positionsBuffer.enable_shared_ownership();
+
+	auto indexBuffer = cgb::create_and_fill(
+		cgb::index_buffer_meta::create_from_data(newElement.mIndices),
+		cgb::memory_usage::device,
+		newElement.mIndices.data(),
+		[](auto _Semaphore) {
+		cgb::context().main_window()->set_extra_semaphore_dependency(std::move(_Semaphore));
+	}
+	);
+	indexBuffer.enable_shared_ownership();
+
+	auto texCoordsBuffer = cgb::create_and_fill(
+		cgb::uniform_texel_buffer_meta::create_from_data(newElement.mTexCoords).describe_only_member(newElement.mTexCoords[0]),
+		cgb::memory_usage::device,
+		newElement.mTexCoords.data()
+	);
+	mTexCoordBufferViews.push_back(cgb::buffer_view_t::create(std::move(texCoordsBuffer)));
+
+	auto normalsBuffer = cgb::create_and_fill(
+		cgb::uniform_texel_buffer_meta::create_from_data(newElement.mNormals).describe_only_member(newElement.mNormals[0]),
+		cgb::memory_usage::device,
+		newElement.mNormals.data()
+	);
+	mNormalBufferViews.push_back(cgb::buffer_view_t::create(std::move(normalsBuffer)));
+
+	auto tangentsBuffer = cgb::create_and_fill(
+		cgb::uniform_texel_buffer_meta::create_from_data(newElement.mTangents).describe_only_member(newElement.mTangents[0]),
+		cgb::memory_usage::device,
+		newElement.mTangents.data()
+	);
+	mTangentBufferViews.push_back(cgb::buffer_view_t::create(std::move(tangentsBuffer)));
+
+	auto indexTexelBuffer = cgb::create_and_fill(
+		cgb::uniform_texel_buffer_meta::create_from_data(newElement.mIndices).set_format<glm::vec3>(),
+		cgb::memory_usage::device,
+		newElement.mIndices.data()
+	);
+	mIndexBufferViews.push_back(cgb::buffer_view_t::create(std::move(indexTexelBuffer)));
+
+	auto blas = cgb::bottom_level_acceleration_structure_t::create(positionsBuffer, indexBuffer);
+	blas.enable_shared_ownership();
+	auto instance = cgb::geometry_instance::create(blas).set_transform(newElement.mTransformation).set_custom_index(mBLASs.size());
+	instance.mFlags = (newElement.mTransparent) ? vk::GeometryInstanceFlagBitsNV::eForceNoOpaque : vk::GeometryInstanceFlagBitsNV::eForceOpaque;
+	mGeometryInstances.push_back(instance);
+	blas->build([&](cgb::semaphore _Semaphore) {
+		// Store them and pass them as a dependency to the TLAS-build
+		blasWaitSemaphores.push_back(std::move(_Semaphore));
+	});
+	mBLASs.push_back(std::move(blas));
+
+	mModelData.emplace_back(newElement);
+}
+
+std::unique_ptr<fscene> fscene::load_scene(const std::string& filename, const std::string& characterfilename)
 {
 	std::vector<cgb::semaphore> blasWaitSemaphores;
 	blasWaitSemaphores.reserve(100);
 
 	std::unique_ptr<fscene> s = std::make_unique<fscene>();
 	s->mLoadedScene = cgb::model_t::load_from_file(filename, aiProcess_Triangulate | aiProcess_CalcTangentSpace);
+	s->mCgbCharacter = cgb::model_t::load_from_file(characterfilename, aiProcess_Triangulate | aiProcess_CalcTangentSpace);
 
 	auto cameras = s->mLoadedScene->cameras();
 	assert(cameras.size() > 0);
@@ -31,7 +98,10 @@ std::unique_ptr<fscene> fscene::load_scene(const std::string& filename)
 			newElement.mModelIndex = s->mModels.size() - 1;
 			newElement.mMaterialIndex = matIndex;
 
-			std::string name = s->mLoadedScene->name_of_mesh(meshindex);
+			newElement.mName = s->mLoadedScene->name_of_mesh(meshindex);
+			newElement.mTransparent = (newElement.mName == "Sphere");
+			newElement.mFlags = (newElement.mTransparent) ? 1 : 0;
+			newElement.mTransformation = s->mLoadedScene->transformation_matrix_for_mesh(meshindex);
 
 			//Get CPU-Data
 			cgb::append_indices_and_vertex_data(
@@ -41,73 +111,31 @@ std::unique_ptr<fscene> fscene::load_scene(const std::string& filename)
 				cgb::additional_vertex_data(newElement.mNormals, [&]() { return s->mLoadedScene->normals_for_mesh(meshindex);								}),
 				cgb::additional_vertex_data(newElement.mTangents, [&]() { return s->mLoadedScene->tangents_for_mesh(meshindex);								})
 			);
-			newElement.mTransformation = s->mLoadedScene->transformation_matrix_for_mesh(meshindex);
+			
+			s->create_buffers_for_model(newElement, blasWaitSemaphores);
 
-			//Create Buffers
-			auto positionsBuffer = cgb::create_and_fill(
-				cgb::vertex_buffer_meta::create_from_data(newElement.mPositions).describe_only_member(newElement.mPositions[0], 0, cgb::content_description::position),
-				cgb::memory_usage::device,
-				newElement.mPositions.data(),
-				[](auto _Semaphore) {
-					cgb::context().main_window()->set_extra_semaphore_dependency(std::move(_Semaphore));
-				}
-			);
-			positionsBuffer.enable_shared_ownership();
-
-			auto indexBuffer = cgb::create_and_fill(
-				cgb::index_buffer_meta::create_from_data(newElement.mIndices),
-				cgb::memory_usage::device,
-				newElement.mIndices.data(),
-				[](auto _Semaphore) {
-					cgb::context().main_window()->set_extra_semaphore_dependency(std::move(_Semaphore));
-				}
-			);
-			indexBuffer.enable_shared_ownership();
-
-			auto texCoordsBuffer = cgb::create_and_fill(
-				cgb::uniform_texel_buffer_meta::create_from_data(newElement.mTexCoords).describe_only_member(newElement.mTexCoords[0]),
-				cgb::memory_usage::device,
-				newElement.mTexCoords.data()
-			);
-			s->mTexCoordBufferViews.push_back(cgb::buffer_view_t::create(std::move(texCoordsBuffer)));
-
-			auto normalsBuffer = cgb::create_and_fill(
-				cgb::uniform_texel_buffer_meta::create_from_data(newElement.mNormals).describe_only_member(newElement.mNormals[0]),
-				cgb::memory_usage::device,
-				newElement.mNormals.data()
-			);
-			s->mNormalBufferViews.push_back(cgb::buffer_view_t::create(std::move(normalsBuffer)));
-
-			auto tangentsBuffer = cgb::create_and_fill(
-				cgb::uniform_texel_buffer_meta::create_from_data(newElement.mTangents).describe_only_member(newElement.mTangents[0]),
-				cgb::memory_usage::device,
-				newElement.mTangents.data()
-			);
-			s->mTangentBufferViews.push_back(cgb::buffer_view_t::create(std::move(tangentsBuffer)));
-
-			auto indexTexelBuffer = cgb::create_and_fill(
-				cgb::uniform_texel_buffer_meta::create_from_data(newElement.mIndices).set_format<glm::vec3>(),
-				cgb::memory_usage::device,
-				newElement.mIndices.data()
-			);
-			s->mIndexBufferViews.push_back(cgb::buffer_view_t::create(std::move(indexTexelBuffer)));
-
-			auto blas = cgb::bottom_level_acceleration_structure_t::create(positionsBuffer, indexBuffer);
-			blas.enable_shared_ownership();
-			auto instance = cgb::geometry_instance::create(blas).set_transform(newElement.mTransformation).set_custom_index(s->mBLASs.size());
-			instance.mFlags = (name == "Sphere") ? vk::GeometryInstanceFlagBitsNV::eForceNoOpaque : vk::GeometryInstanceFlagBitsNV::eForceOpaque;
-			s->mGeometryInstances.push_back(instance);
-			blas->build([&](cgb::semaphore _Semaphore) {
-				// Store them and pass them as a dependency to the TLAS-build
-				blasWaitSemaphores.push_back(std::move(_Semaphore));
-			});
-			s->mBLASs.push_back(std::move(blas));
-
-			newElement.mName = s->mLoadedScene->name_of_mesh(meshindex);
-
-			s->mModelData.emplace_back(newElement);
 		}
 	}
+
+	//Character
+	s->mCharacterIndex = s->mModelData.size();
+	fmodel character;
+	character.mModelIndex = s->mCharacterIndex;
+	character.mPositions = s->mCgbCharacter->positions_for_mesh(0);
+	character.mTexCoords = s->mCgbCharacter->texture_coordinates_for_mesh<glm::vec2>(0);
+	character.mNormals = s->mCgbCharacter->normals_for_mesh(0);
+	character.mTangents = s->mCgbCharacter->tangents_for_mesh(0);
+	character.mIndices = s->mCgbCharacter->indices_for_mesh<uint32_t>(0);
+	character.mTransformation = s->mCgbCharacter->transformation_matrix_for_mesh(0);
+	character.mMaterialIndex = s->mMaterials.size();
+	character.mTransparent = true;
+	character.mName = "Character";
+	s->mModels.push_back(character);
+	//Create Character Material
+	auto charMat = cgb::material_config();
+	charMat.mDiffuseReflectivity = glm::vec4(0.5);
+	s->mMaterials.push_back(charMat);
+	s->create_buffers_for_model(character, blasWaitSemaphores);
 
 	s->mModelBuffer = cgb::create_and_fill(
 		cgb::storage_buffer_meta::create_from_data(s->mModelData),
@@ -145,11 +173,11 @@ std::unique_ptr<fscene> fscene::load_scene(const std::string& filename)
 	delete data;
 
 	//Background Color Buffer
-	glm::vec4 initialColor = glm::vec4(0.3, 0.3, 0.3, 0);
+	s->mBackgroundColor = glm::vec4(0.3, 0.3, 0.3, 0);
 	s->mPerlinBackgroundBuffer = cgb::create_and_fill(
-		cgb::uniform_buffer_meta::create_from_data(initialColor),
+		cgb::uniform_buffer_meta::create_from_data(s->mBackgroundColor),
 		cgb::memory_usage::host_coherent,
-		&initialColor
+		&s->mBackgroundColor
 	);
 
 	//Perlin Gradient Buffer
@@ -216,16 +244,23 @@ std::optional<fmodel*> fscene::get_model_by_name(const std::string& name)
 	return {};
 }
 
+void fscene::set_character_position(const glm::vec3& position)
+{
+	mModels[mCharacterIndex].mTransformation[3] = glm::vec4(position, 1.0f);
+}
+
 void fscene::update()
 {
 	int i = 0;
 	for (fmodel& model : mModels) {
 		mGeometryInstances[i].set_transform(model.mTransformation);
-		mGeometryInstances[i].mFlags = (model.mName == "Sphere") ? vk::GeometryInstanceFlagBitsNV::eForceNoOpaque : vk::GeometryInstanceFlagBitsNV::eForceOpaque;
+		mGeometryInstances[i].mFlags = (model.mTransparent) ? vk::GeometryInstanceFlagBitsNV::eForceNoOpaque : vk::GeometryInstanceFlagBitsNV::eForceOpaque;
 		mModelData[i] = model;
 		++i;
 	}
 	cgb::fill(mModelBuffer, mModelData.data());
+
+	cgb::fill(mPerlinBackgroundBuffer, &mBackgroundColor);
 
 	auto inFlightIndex = cgb::context().main_window()->in_flight_index_for_frame();
 	mTLASs[inFlightIndex]->update(mGeometryInstances, [](cgb::semaphore _Semaphore) {

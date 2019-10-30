@@ -61,6 +61,7 @@
     <ClInclude Include="..\source_code\fscene.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\assets\anothersimplechar2.dae" />
     <None Include="..\assets\cgbtest1.dae" />
     <None Include="..\assets\cgbtest1.fbx" />
     <None Include="..\assets\cgbtest1.mtl" />

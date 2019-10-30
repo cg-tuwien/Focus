@@ -18,6 +18,12 @@ public:
 
 	void render() override;
 
+
+	int32_t priority(
+	) const override {
+		return 2;
+	}
+
 private:
 	void record_command_buffers();
 };

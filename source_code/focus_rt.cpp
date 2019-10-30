@@ -12,14 +12,19 @@ public: // v== cgb::cg_element overrides which will be invoked by the framework 
 	{
 		mInitTime = std::chrono::high_resolution_clock::now();
 
-		mScene = fscene::load_scene("assets/level01c.dae");
+		mScene = fscene::load_scene("assets/level01c.dae", "assets/anothersimplechar2.dae");
 		mRenderer = std::make_unique<frenderer>(mScene.get());
 		mLevelLogic = std::make_unique<flevel1logic>(mScene.get());
 		
+		//priorities: focus_rt, levellogic, scene, renderer
 		cgb::current_composition().add_element(*mScene.get());
 		cgb::current_composition().add_element(*mLevelLogic.get());
 		cgb::current_composition().add_element(*mRenderer.get());
 		cgb::input().set_cursor_disabled(true);
+	}
+
+	int32_t priority() const override {
+		return 5;
 	}
 
 	void update() override
@@ -42,6 +47,11 @@ public: // v== cgb::cg_element overrides which will be invoked by the framework 
 			bool newstate = cgb::input().is_cursor_disabled();
 			mLevelLogic->set_paused(newstate);
 			cgb::input().set_cursor_disabled(!newstate);
+		}
+
+		if (mLevelLogic->level_status() == levelstatus::LOST) {
+			mLevelLogic->reset();
+			//mLevelLogic->update(0);	//TODO: might be necessary
 		}
 	}
 
