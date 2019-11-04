@@ -19,11 +19,14 @@ public:
 	void render() override;
 
 
-	int32_t priority(
-	) const override {
+	int32_t priority() const override {
 		return 2;
 	}
 
+	void set_scene(fscene* scene);
+
 private:
+	void create_descriptor_sets_for_scene();
+
 	void record_command_buffers();
 };

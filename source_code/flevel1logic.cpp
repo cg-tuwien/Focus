@@ -85,6 +85,11 @@ levelstatus flevel1logic::update(float deltaT, double focusHitCount)
 		return WON;
 	}*/
 
+	//TODO: Remove this
+	if (cgb::input().key_released(cgb::key_code::f10)) {
+		return levelstatus::WON;
+	}
+
 	if (player->fell_down()) {
 		return levelstatus::LOST;
 	}

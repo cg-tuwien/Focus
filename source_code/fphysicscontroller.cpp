@@ -125,6 +125,7 @@ void fphysicscontroller::cleanup() {
 }
 
 void fphysicserrorcallback::reportError(physx::PxErrorCode::Enum code, const char* message, const char* file, int line) {
-	std::cout << "PhysX Error (" << code << "): \"" << message << "\" in file \"" << file << "\"::" << line;
-	std::cout << std::endl;
+	std::stringstream ss;
+	ss << "PhysX Error (" << code << "): \"" << message << "\" in file \"" << file << "\"::" << line << std::endl;
+	LOG_ERROR(ss.str());
 }

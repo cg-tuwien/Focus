@@ -1,10 +1,10 @@
 #pragma once
 #include "includes.h"
 
-class flevel1logic : public flevellogic, public PxUserControllerHitReport {
+class flevel2logic : public flevellogic {
 public:
 
-	flevel1logic(fscene* scene);
+	flevel2logic(fscene* scene);
 
 	levelstatus update(float deltaT, double focusHitCount) override;
 	void fixed_update(float stepSize) override;
@@ -18,10 +18,6 @@ public:
 		physics->cleanup();
 	}
 
-	void onShapeHit(const PxControllerShapeHit& hit) override;
-	void onControllerHit(const PxControllersHit& hit) override {};
-	void onObstacleHit(const PxControllerObstacleHit& hit) override {};
-
 private:
 	/*HsvInterpolator interpolator;*/
 	float accTime = 0;
@@ -32,8 +28,10 @@ private:
 	//ModelInstance* sphereInstance;
 	PxRigidStatic* mirrorBorderActor;
 	PxRigidStatic* mirrorPlaneActor;
-	PxRigidStatic* movingFloors[3];
+	PxRigidStatic* finalFloorActor;
+	PxRigidStatic* movingWallActor;
 	PxRigidStatic* finalRegionActor;
+	float wallMovingRightStart = -1.0f;
+	float wallMovingLeftStart = -1.0f;
 	/*double score = 0;*/
-	bool onPlatform[4] = { false, false, false, false };
 };

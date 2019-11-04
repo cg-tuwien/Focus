@@ -56,25 +56,7 @@ void frenderer::initialize()
 		cgb::binding(3, 1, mScene->get_gradient_buffer()),
 		cgb::binding(4, 0, mFocusHitBuffer)
 	);
-	mDescriptorSet.reserve(n);
-	for (int i = 0; i < n; ++i) {
-		mDescriptorSet.emplace_back(std::make_shared<cgb::descriptor_set>());
-		*mDescriptorSet.back() = cgb::descriptor_set::create({
-			cgb::binding(0, 0, mScene->get_model_buffer()),
-			cgb::binding(0, 1, mScene->get_material_buffer()),
-			cgb::binding(0, 2, mScene->get_light_buffer()),
-			cgb::binding(0, 3, mScene->get_image_samplers()),
-			cgb::binding(0, 4, mScene->get_index_buffer_views()),
-			cgb::binding(0, 5, mScene->get_texcoord_buffer_views()),
-			cgb::binding(0, 6, mScene->get_normal_buffer_views()),
-			cgb::binding(0, 7, mScene->get_tangent_buffer_views()),
-			cgb::binding(1, 0, mOffscreenImageViews[i]),
-			cgb::binding(2, 0, mScene->get_tlas()[i]),
-			cgb::binding(3, 0, mScene->get_background_buffer()),
-			cgb::binding(3, 1, mScene->get_gradient_buffer()),
-			cgb::binding(4, 0, mFocusHitBuffer)
-		});
-	}
+	create_descriptor_sets_for_scene();
 	//record_command_buffers();
 }
 
@@ -130,6 +112,37 @@ void frenderer::render() {
 	submit_command_buffer_ownership(std::move(cmdbfr));
 	present_image(mOffscreenImageViews[inFlightIndex]->get_image());
 
+}
+
+void frenderer::set_scene(fscene* scene)
+{
+	mScene = scene;
+	create_descriptor_sets_for_scene();
+	//record_command_buffers();
+}
+
+void frenderer::create_descriptor_sets_for_scene()
+{
+	size_t n = cgb::context().main_window()->number_of_in_flight_frames();
+	mDescriptorSet.reserve(n);
+	for (int i = 0; i < n; ++i) {
+		mDescriptorSet.emplace_back(std::make_shared<cgb::descriptor_set>());
+		*mDescriptorSet.back() = cgb::descriptor_set::create({
+			cgb::binding(0, 0, mScene->get_model_buffer()),
+			cgb::binding(0, 1, mScene->get_material_buffer()),
+			cgb::binding(0, 2, mScene->get_light_buffer()),
+			cgb::binding(0, 3, mScene->get_image_samplers()),
+			cgb::binding(0, 4, mScene->get_index_buffer_views()),
+			cgb::binding(0, 5, mScene->get_texcoord_buffer_views()),
+			cgb::binding(0, 6, mScene->get_normal_buffer_views()),
+			cgb::binding(0, 7, mScene->get_tangent_buffer_views()),
+			cgb::binding(1, 0, mOffscreenImageViews[i]),
+			cgb::binding(2, 0, mScene->get_tlas()[i]),
+			cgb::binding(3, 0, mScene->get_background_buffer()),
+			cgb::binding(3, 1, mScene->get_gradient_buffer()),
+			cgb::binding(4, 0, mFocusHitBuffer)
+			});
+	}
 }
 
 void frenderer::record_command_buffers()

@@ -69,6 +69,10 @@ public:
 
 	static std::unique_ptr<fscene> load_scene(const std::string& filename, const std::string& characterfilename);
 
+	~fscene() {
+		LOG_DEBUG("fscene destroyed");
+	}
+
 	const std::vector<cgb::image_sampler>& get_image_samplers() const {
 		return mImageSamplers;
 	}

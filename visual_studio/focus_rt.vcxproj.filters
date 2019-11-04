@@ -73,6 +73,9 @@
     <None Include="..\assets\anothersimplechar2.dae">
       <Filter>assets</Filter>
     </None>
+    <None Include="..\assets\level02a.dae">
+      <Filter>assets</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="cg_stdafx.cpp">
@@ -85,6 +88,7 @@
     <ClCompile Include="..\source_code\utility.cpp" />
     <ClCompile Include="..\source_code\fplayercontrol.cpp" />
     <ClCompile Include="..\source_code\flevel1logic.cpp" />
+    <ClCompile Include="..\source_code\flevel2logic.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="cg_stdafx.hpp">
@@ -101,6 +105,7 @@
     <ClInclude Include="..\source_code\fplayercontrol.h" />
     <ClInclude Include="..\source_code\flevel1logic.h" />
     <ClInclude Include="..\source_code\flevellogic.h" />
+    <ClInclude Include="..\source_code\flevel2logic.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\assets\Lava4.png">

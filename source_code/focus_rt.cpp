@@ -12,6 +12,7 @@ public: // v== cgb::cg_element overrides which will be invoked by the framework 
 	{
 		mInitTime = std::chrono::high_resolution_clock::now();
 
+		level = 1;
 		mScene = fscene::load_scene("assets/level01c.dae", "assets/anothersimplechar2.dae");
 		mRenderer = std::make_unique<frenderer>(mScene.get());
 		mLevelLogic = std::make_unique<flevel1logic>(mScene.get());
@@ -53,6 +54,25 @@ public: // v== cgb::cg_element overrides which will be invoked by the framework 
 			mLevelLogic->reset();
 			//mLevelLogic->update(0);	//TODO: might be necessary
 		}
+		else if (mLevelLogic->level_status() == levelstatus::WON) {
+			switch (level) {
+				case 1: {
+					mLevelLogic->cleanup();
+					cgb::current_composition().remove_element_immediately(*mScene.get());
+					cgb::current_composition().remove_element_immediately(*mLevelLogic.get());
+					mScene = fscene::load_scene("assets/level02a.dae", "assets/anothersimplechar2.dae");
+					mRenderer->set_scene(mScene.get());
+					mLevelLogic = std::make_unique<flevel2logic>(mScene.get());
+					cgb::current_composition().add_element(*mScene.get());
+					cgb::current_composition().add_element(*mLevelLogic.get());
+					break;
+				}
+				default: {
+					cgb::current_composition().stop();
+				}
+			}
+			++level;
+		}
 	}
 
 	void finalize() override
@@ -66,6 +86,7 @@ private: // v== Member variables ==v
 	std::unique_ptr<fscene> mScene;
 	std::unique_ptr<frenderer> mRenderer;
 	std::unique_ptr<flevellogic> mLevelLogic;
+	int level = 0;
 
 }; // focus_rt_app
 

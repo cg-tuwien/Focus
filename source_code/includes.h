@@ -10,3 +10,4 @@
 #include "fplayercontrol.h"
 #include "flevellogic.h"
 #include "flevel1logic.h"
+#include "flevel2logic.h"
