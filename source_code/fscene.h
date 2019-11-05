@@ -65,6 +65,8 @@ private:
 
 	void create_buffers_for_model(fmodel& model, std::vector<cgb::semaphore>& blasWaitSemaphores);
 
+	std::tuple<std::vector<cgb::material_gpu_data>, std::vector<cgb::image_sampler>> convert_for_gpu_usage(std::vector<cgb::material_config> _MaterialConfigs, std::function<void(cgb::owning_resource<cgb::semaphore_t>)> _SemaphoreHandler);
+
 public:
 
 	static std::unique_ptr<fscene> load_scene(const std::string& filename, const std::string& characterfilename);
