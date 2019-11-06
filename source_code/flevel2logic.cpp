@@ -2,6 +2,10 @@
 #include "flevel2logic.h"
 
 flevel2logic::flevel2logic(fscene* scene) : flevellogic(scene) {
+	
+}
+
+void flevel2logic::initialize() {
 	initialCameraPos = scene->get_camera().translation();
 	initialCameraRot = scene->get_camera().rotation();
 	physics = std::make_unique<fphysicscontroller>(scene);
@@ -48,7 +52,7 @@ flevel2logic::flevel2logic(fscene* scene) : flevellogic(scene) {
 	mirrorBorderActor = physics->create_rigid_static_for_scaled_unit_box(mirrorBorderInstance.value(), true);
 	mirrorPlaneActor = physics->create_rigid_static_for_scaled_plane(mirrorPlaneInstance.value(), true);
 	player->add_mirror({ mirrorBorderActor, mirrorPlaneActor });
-	
+
 	//interpolator.addSample(0, glm::vec3(47, 0, 0.3));
 	//interpolator.addSample(1, glm::vec3(60, 1, 1));
 }

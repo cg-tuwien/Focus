@@ -6,12 +6,14 @@ public:
 
 	flevel1logic(fscene* scene);
 
+	void initialize() override;
+
 	levelstatus update(float deltaT, double focusHitCount) override;
 	void fixed_update(float stepSize) override;
 
 	void reset();
 
-	void cleanup() override {
+	void finalize() override {
 		player->cleanup();
 		mirrorBorderActor->release();
 		mirrorPlaneActor->release();

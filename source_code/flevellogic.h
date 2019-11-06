@@ -15,6 +15,8 @@ public:
 		this->scene = scene;
 	}
 
+	//make sure to override initialize and finalize.
+
 	//Returns true iff the player won the level
 	virtual void update() override { 
 		if (!levelpaused) {
@@ -34,8 +36,6 @@ public:
 
 	//Resets to initial state
 	virtual void reset() {};
-
-	virtual void cleanup() {};
 
 	void set_paused(bool paused) {
 		this->levelpaused = paused;

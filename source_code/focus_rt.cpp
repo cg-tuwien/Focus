@@ -57,7 +57,6 @@ public: // v== cgb::cg_element overrides which will be invoked by the framework 
 		else if (mLevelLogic->level_status() == levelstatus::WON) {
 			switch (level) {
 				case 1: {
-					mLevelLogic->cleanup();
 					cgb::current_composition().remove_element_immediately(*mScene.get());
 					cgb::current_composition().remove_element_immediately(*mLevelLogic.get());
 					mScene = fscene::load_scene("assets/level02a.dae", "assets/anothersimplechar2.dae");

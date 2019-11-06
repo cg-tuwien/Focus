@@ -2,6 +2,10 @@
 #include "flevel1logic.h"
 
 flevel1logic::flevel1logic(fscene* scene) : flevellogic(scene) {
+	
+}
+
+void flevel1logic::initialize() {
 	initialCameraPos = scene->get_camera().translation();
 	initialCameraRot = scene->get_camera().rotation();
 	physics = std::make_unique<fphysicscontroller>(scene);
