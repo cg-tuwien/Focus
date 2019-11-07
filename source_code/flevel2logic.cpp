@@ -86,7 +86,6 @@ levelstatus flevel2logic::update(float deltaT, double focusHitCount)
 
 void flevel2logic::fixed_update(float stepSize)
 {
-	//LOG_DEBUG("L2 fixed Update");
 	accTime += stepSize;
 	PxVec3 finFloorMin = finalFloorActor->getWorldBounds().minimum;
 	PxVec3 finFloorMax = finalFloorActor->getWorldBounds().maximum;

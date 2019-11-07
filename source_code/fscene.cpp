@@ -231,8 +231,6 @@ std::unique_ptr<fscene> fscene::load_scene(const std::string& filename, const st
 	assert(waitSemaphores.size() == 1);
 	cgb::context().main_window()->set_extra_semaphore_dependency(std::move(waitSemaphores[0]));
 
-	LOG_DEBUG("Fscene created");
-
 	return std::move(s);
 }
 

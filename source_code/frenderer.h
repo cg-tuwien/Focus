@@ -3,15 +3,15 @@
 
 class frenderer : public cgb::cg_element {
 private:
-	fscene* mScene;
+	fscene* mScene = nullptr;
 
 	std::vector<cgb::image_view> mOffscreenImageViews;
 	cgb::ray_tracing_pipeline mPipeline;
 	std::vector<std::shared_ptr<cgb::descriptor_set>> mDescriptorSet;
-	std::vector<cgb::command_buffer> mCommandBuffers;
 	cgb::storage_buffer mFocusHitBuffer;
 
 public:
+	frenderer() {}
 	frenderer(fscene* scene) : mScene(scene) {}
 
 	void initialize();
@@ -27,6 +27,4 @@ public:
 
 private:
 	void create_descriptor_sets_for_scene();
-
-	void record_command_buffers();
 };

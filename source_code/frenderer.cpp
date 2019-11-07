@@ -116,7 +116,10 @@ void frenderer::render() {
 void frenderer::set_scene(fscene* scene)
 {
 	mScene = scene;
-	create_descriptor_sets_for_scene();
+	if (mOffscreenImageViews.size() > 0) {
+		//only if already initalized
+		create_descriptor_sets_for_scene();
+	}
 }
 
 void frenderer::create_descriptor_sets_for_scene()

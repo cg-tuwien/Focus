@@ -14,13 +14,13 @@ public: // v== cgb::cg_element overrides which will be invoked by the framework 
 
 		level = 1;
 		mScene = fscene::load_scene("assets/level01c.dae", "assets/anothersimplechar2.dae");
-		mRenderer = std::make_unique<frenderer>(mScene.get());
+		mRenderer.set_scene(mScene.get());
 		mLevelLogic = std::make_unique<flevel1logic>(mScene.get());
 		
 		//priorities: focus_rt, levellogic, scene, renderer
 		cgb::current_composition().add_element(*mScene.get());
 		cgb::current_composition().add_element(*mLevelLogic.get());
-		cgb::current_composition().add_element(*mRenderer.get());
+		cgb::current_composition().add_element(mRenderer);
 		cgb::input().set_cursor_disabled(true);
 	}
 
@@ -30,6 +30,8 @@ public: // v== cgb::cg_element overrides which will be invoked by the framework 
 
 	void update() override
 	{
+		mOldScene.reset();
+		mOldLevelLogic.reset();
 		static int counter = 0;
 		if (++counter == 4) {
 			auto current = std::chrono::high_resolution_clock::now();
@@ -57,10 +59,13 @@ public: // v== cgb::cg_element overrides which will be invoked by the framework 
 		else if (mLevelLogic->level_status() == levelstatus::WON) {
 			switch (level) {
 				case 1: {
-					cgb::current_composition().remove_element_immediately(*mScene.get());
-					cgb::current_composition().remove_element_immediately(*mLevelLogic.get());
+					cgb::current_composition().remove_element(*mScene.get());
+					cgb::current_composition().remove_element(*mLevelLogic.get());
+					mOldScene = std::move(mScene);
+					mOldLevelLogic = std::move(mLevelLogic);
+					//mScene = fscene::load_scene("assets/level01c.dae", "assets/anothersimplechar2.dae");
 					mScene = fscene::load_scene("assets/level02a.dae", "assets/anothersimplechar2.dae");
-					mRenderer->set_scene(mScene.get());
+					mRenderer.set_scene(mScene.get());
 					mLevelLogic = std::make_unique<flevel2logic>(mScene.get());
 					cgb::current_composition().add_element(*mScene.get());
 					cgb::current_composition().add_element(*mLevelLogic.get());
@@ -82,10 +87,13 @@ public: // v== cgb::cg_element overrides which will be invoked by the framework 
 private: // v== Member variables ==v
 	std::chrono::high_resolution_clock::time_point mInitTime;
 
+	frenderer mRenderer;
 	std::unique_ptr<fscene> mScene;
-	std::unique_ptr<frenderer> mRenderer;
 	std::unique_ptr<flevellogic> mLevelLogic;
 	int level = 0;
+
+	std::unique_ptr<fscene> mOldScene;
+	std::unique_ptr<flevellogic> mOldLevelLogic;
 
 }; // focus_rt_app
 
