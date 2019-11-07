@@ -9,7 +9,7 @@ void flevel2logic::initialize() {
 	initialCameraPos = scene->get_camera().translation();
 	initialCameraRot = scene->get_camera().rotation();
 	physics = std::make_unique<fphysicscontroller>(scene);
-	player = std::make_unique<fplayercontrol>(physics.get(), scene, false, 1.5, (PxUserControllerHitReport*)this);
+	player = std::make_unique<fplayercontrol>(physics.get(), scene, false, 1.5);
 
 	/*scene->materials[0].diffuseColor *= 2;
 	scene->materials[2].ambientColor = glm::vec3(0.4f);

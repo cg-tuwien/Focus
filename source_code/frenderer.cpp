@@ -31,31 +31,6 @@ void frenderer::initialize()
 		assert((mOffscreenImageViews.back()->config().subresourceRange.aspectMask & vk::ImageAspectFlagBits::eColor) == vk::ImageAspectFlagBits::eColor);
 	}
 
-	mPipeline = cgb::ray_tracing_pipeline_for(
-		cgb::define_shader_table(
-			cgb::ray_generation_shader("shaders/default.rgen.spv"),
-			cgb::triangles_hit_group::create_with_rahit_and_rchit("shaders/default.rahit.spv", "shaders/default.rchit.spv"),
-			cgb::triangles_hit_group::create_with_rahit_and_rchit("shaders/shadowray.rahit.spv", "shaders/shadowray.rchit.spv"),
-			cgb::miss_shader("shaders/default.rmiss.spv"),
-			cgb::miss_shader("shaders/shadowray.rmiss.spv")
-		),
-		cgb::max_recursion_depth::set_to_max(),
-		// Define push constants and descriptor bindings:
-		cgb::push_constant_binding_data{ cgb::shader_type::ray_generation, 0, sizeof(glm::mat4) },
-		cgb::binding(0, 0, mScene->get_model_buffer()),
-		cgb::binding(0, 1, mScene->get_material_buffer()),
-		cgb::binding(0, 2, mScene->get_light_buffer()),
-		cgb::binding(0, 3, mScene->get_image_samplers()),
-		cgb::binding(0, 4, mScene->get_index_buffer_views()),
-		cgb::binding(0, 5, mScene->get_texcoord_buffer_views()),
-		cgb::binding(0, 6, mScene->get_normal_buffer_views()),
-		cgb::binding(0, 7, mScene->get_tangent_buffer_views()),
-		cgb::binding(1, 0, mOffscreenImageViews[0]),	// Just take any, this is just to define the layout
-		cgb::binding(2, 0, mScene->get_tlas()[0]),		// Just take any, this is just to define the layout
-		cgb::binding(3, 0, mScene->get_background_buffer()),
-		cgb::binding(3, 1, mScene->get_gradient_buffer()),
-		cgb::binding(4, 0, mFocusHitBuffer)
-	);
 	create_descriptor_sets_for_scene();
 }
 
@@ -125,6 +100,33 @@ void frenderer::set_scene(fscene* scene)
 void frenderer::create_descriptor_sets_for_scene()
 {
 	size_t n = cgb::context().main_window()->number_of_in_flight_frames();
+	mPipeline = cgb::ray_tracing_pipeline_for(
+		cgb::define_shader_table(
+			cgb::ray_generation_shader("shaders/default.rgen.spv"),
+			cgb::triangles_hit_group::create_with_rahit_and_rchit("shaders/default.rahit.spv", "shaders/default.rchit.spv"),
+			cgb::triangles_hit_group::create_with_rahit_and_rchit("shaders/shadowray.rahit.spv", "shaders/shadowray.rchit.spv"),
+			cgb::miss_shader("shaders/default.rmiss.spv"),
+			cgb::miss_shader("shaders/shadowray.rmiss.spv")
+		),
+		cgb::max_recursion_depth::set_to_max(),
+		// Define push constants and descriptor bindings:
+		cgb::push_constant_binding_data{ cgb::shader_type::ray_generation, 0, sizeof(glm::mat4) },
+		cgb::binding(0, 0, mScene->get_model_buffer()),
+		cgb::binding(0, 1, mScene->get_material_buffer()),
+		cgb::binding(0, 2, mScene->get_light_buffer()),
+		cgb::binding(0, 3, mScene->get_image_samplers()),
+		cgb::binding(0, 4, mScene->get_index_buffer_views()),
+		cgb::binding(0, 5, mScene->get_texcoord_buffer_views()),
+		cgb::binding(0, 6, mScene->get_normal_buffer_views()),
+		cgb::binding(0, 7, mScene->get_tangent_buffer_views()),
+		cgb::binding(1, 0, mOffscreenImageViews[0]),	// Just take any, this is just to define the layout
+		cgb::binding(2, 0, mScene->get_tlas()[0]),		// Just take any, this is just to define the layout
+		cgb::binding(3, 0, mScene->get_background_buffer()),
+		cgb::binding(3, 1, mScene->get_gradient_buffer()),
+		cgb::binding(4, 0, mFocusHitBuffer)
+	);
+
+	mDescriptorSet.clear();
 	mDescriptorSet.reserve(n);
 	for (int i = 0; i < n; ++i) {
 		mDescriptorSet.emplace_back(std::make_shared<cgb::descriptor_set>());

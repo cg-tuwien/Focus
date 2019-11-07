@@ -61,9 +61,10 @@ public: // v== cgb::cg_element overrides which will be invoked by the framework 
 				case 1: {
 					cgb::current_composition().remove_element(*mScene.get());
 					cgb::current_composition().remove_element(*mLevelLogic.get());
+					mScene->disable();
+					mLevelLogic->disable();
 					mOldScene = std::move(mScene);
 					mOldLevelLogic = std::move(mLevelLogic);
-					//mScene = fscene::load_scene("assets/level01c.dae", "assets/anothersimplechar2.dae");
 					mScene = fscene::load_scene("assets/level02a.dae", "assets/anothersimplechar2.dae");
 					mRenderer.set_scene(mScene.get());
 					mLevelLogic = std::make_unique<flevel2logic>(mScene.get());
