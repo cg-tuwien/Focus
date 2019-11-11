@@ -48,6 +48,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug_OpenGL|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="..\source_code\fscene.cpp" />
+    <ClCompile Include="..\source_code\hsvinterpolator.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\source_code\flevel2logic.h" />
@@ -61,6 +62,7 @@
     <ClInclude Include="cg_stdafx.hpp" />
     <ClInclude Include="cg_targetver.hpp" />
     <ClInclude Include="..\source_code\fscene.h" />
+    <ClInclude Include="..\source_code\hsvinterpolator.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\assets\anothersimplechar2.dae" />

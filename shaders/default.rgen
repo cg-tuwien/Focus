@@ -19,6 +19,10 @@ layout(set = 4, binding = 0) buffer FocusHit {
 	uint foundHit;
 };
 
+layout(set = 5, binding = 0) uniform FadeValue {
+	float value;
+} fade;
+
 layout(location = 0) rayPayloadNV RayTracingHit hitValue;
 
 void main() 
@@ -61,7 +65,7 @@ void main()
 		}
 	}
 
-	//hitValue.color.rgb = (1-options.winval)*hitValue.color.rgb + options.winval*vec3(1,1,0.5);
+	hitValue.color.rgb = (1-fade.value)*hitValue.color.rgb + fade.value*vec3(1,1,0.5);
 
     imageStore(image, ivec2(gl_LaunchIDNV.xy), vec4(hitValue.color.rgb, 0.0));
 }

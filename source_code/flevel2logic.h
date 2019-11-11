@@ -8,7 +8,7 @@ public:
 
 	void initialize() override;
 
-	levelstatus update(float deltaT, double focusHitCount) override;
+	levelstatus update(float deltaT, double focusHitValue) override;
 	void fixed_update(float stepSize) override;
 
 	void reset();
@@ -21,13 +21,13 @@ public:
 	}
 
 private:
-	/*HsvInterpolator interpolator;*/
+	hsvinterpolator interpolator;
 	float accTime = 0;
 	glm::vec3 initialCameraPos;
 	glm::quat initialCameraRot;
 	std::unique_ptr<fphysicscontroller> physics;
 	std::unique_ptr<fplayercontrol> player;
-	//ModelInstance* sphereInstance;
+	fmodel* sphereInstance;
 	PxRigidStatic* mirrorBorderActor;
 	PxRigidStatic* mirrorPlaneActor;
 	PxRigidStatic* finalFloorActor;
@@ -35,5 +35,5 @@ private:
 	PxRigidStatic* finalRegionActor;
 	float wallMovingRightStart = -1.0f;
 	float wallMovingLeftStart = -1.0f;
-	/*double score = 0;*/
+	double score = 0;
 };

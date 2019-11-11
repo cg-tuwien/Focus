@@ -20,7 +20,7 @@ public:
 	//Returns true iff the player won the level
 	virtual void update() override { 
 		if (!levelpaused) {
-			status = update(cgb::time().delta_time(), 0);
+			status = update(cgb::time().delta_time(), focushitvalue);
 		}
 	}
 
@@ -41,6 +41,9 @@ public:
 		this->levelpaused = paused;
 	}
 
+	void set_focus_hit_value(double val) {
+		this->focushitvalue = val;
+	}
 
 	int32_t priority() const override {
 		return 4;
@@ -62,4 +65,5 @@ protected:
 private:
 	levelstatus status = levelstatus::RUNNING;
 	bool levelpaused = false;
+	double focushitvalue = 0;
 };

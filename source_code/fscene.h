@@ -39,9 +39,11 @@ private:
 	//Character
 	cgb::model mCgbCharacter;
 	size_t mCharacterIndex;
+	int mUpdateMaterials = 0;
 
 	//For GPU
 	std::vector<fmodel_gpudata> mModelData;
+	std::vector<cgb::material_gpu_data> mGpuMaterials;
 
 	//GPU-Data (Buffers and ACs)
 	//Vertex Data Buffers
@@ -127,6 +129,10 @@ public:
 		mBackgroundColor = backgroundColor;
 	}
 
+	void set_background_color(const glm::vec3& backgroundColor) {
+		mBackgroundColor = glm::vec4(backgroundColor, 1.0f);
+	}
+
 	std::optional<fmodel*> get_model_by_name(const std::string& name);
 
 	void set_character_position(const glm::vec3& position);
@@ -136,4 +142,6 @@ public:
 	int32_t priority() const override {
 		return 3;
 	}
+
+	cgb::material_gpu_data& get_material_data(size_t materialIndex);
 };

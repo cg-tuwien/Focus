@@ -89,6 +89,7 @@
     <ClCompile Include="..\source_code\fplayercontrol.cpp" />
     <ClCompile Include="..\source_code\flevel1logic.cpp" />
     <ClCompile Include="..\source_code\flevel2logic.cpp" />
+    <ClCompile Include="..\source_code\hsvinterpolator.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="cg_stdafx.hpp">
@@ -106,6 +107,7 @@
     <ClInclude Include="..\source_code\flevel1logic.h" />
     <ClInclude Include="..\source_code\flevellogic.h" />
     <ClInclude Include="..\source_code\flevel2logic.h" />
+    <ClInclude Include="..\source_code\hsvinterpolator.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\assets\Lava4.png">

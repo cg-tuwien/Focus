@@ -8,7 +8,7 @@ public:
 
 	void initialize() override;
 
-	levelstatus update(float deltaT, double focusHitCount) override;
+	levelstatus update(float deltaT, double focusHitValue) override;
 	void fixed_update(float stepSize) override;
 
 	void reset();
@@ -25,17 +25,17 @@ public:
 	void onObstacleHit(const PxControllerObstacleHit& hit) override {};
 
 private:
-	/*HsvInterpolator interpolator;*/
+	hsvinterpolator interpolator;
 	float accTime = 0;
 	glm::vec3 initialCameraPos;
 	glm::quat initialCameraRot;
 	std::unique_ptr<fphysicscontroller> physics;
 	std::unique_ptr<fplayercontrol> player;
-	//ModelInstance* sphereInstance;
+	fmodel* sphereInstance;
 	PxRigidStatic* mirrorBorderActor;
 	PxRigidStatic* mirrorPlaneActor;
 	PxRigidStatic* movingFloors[3];
 	PxRigidStatic* finalRegionActor;
-	/*double score = 0;*/
+	double score = 0;
 	bool onPlatform[4] = { false, false, false, false };
 };

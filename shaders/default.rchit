@@ -197,6 +197,7 @@ void main()
 		reflectionHit.various = uvec4(0, hitValue.various.y - 1, 1, 0);
 		traceNV(topLevelAS, 0, 0xff, 0, 0, 0, position, 0.001, rDirection, 100.0, 1);
 		reflColor = reflectionHit.color.rgb;
+		hitValue.various.x |= reflectionHit.various.x;
 	}
 
 	int texid = matSsbo.materials[materialIndex].mDiffuseTexIndex;

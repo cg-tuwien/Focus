@@ -16,6 +16,7 @@ public: // v== cgb::cg_element overrides which will be invoked by the framework 
 		mScene = fscene::load_scene("assets/level01c.dae", "assets/anothersimplechar2.dae");
 		mRenderer.set_scene(mScene.get());
 		mLevelLogic = std::make_unique<flevel1logic>(mScene.get());
+		mRenderer.set_level_logic(mLevelLogic.get());
 		
 		//priorities: focus_rt, levellogic, scene, renderer
 		cgb::current_composition().add_element(*mScene.get());
@@ -52,31 +53,38 @@ public: // v== cgb::cg_element overrides which will be invoked by the framework 
 			cgb::input().set_cursor_disabled(!newstate);
 		}
 
+		if (fadeIn >= 0) {
+			mRenderer.set_fade_value(fadeIn);
+			fadeIn -= cgb::time().delta_time() * 1.0;
+			if (fadeIn <= 0.0f) {
+				fadeIn = -1.0f;
+				mRenderer.set_fade_value(0.0f);
+			}
+		}
+		if (firstFrame) {
+			fadeIn = 1.0f;
+			firstFrame = false;
+			mRenderer.set_fade_value(fadeIn);
+		}
+
 		if (mLevelLogic->level_status() == levelstatus::LOST) {
 			mLevelLogic->reset();
 			//mLevelLogic->update(0);	//TODO: might be necessary
 		}
 		else if (mLevelLogic->level_status() == levelstatus::WON) {
-			switch (level) {
-				case 1: {
-					cgb::current_composition().remove_element(*mScene.get());
-					cgb::current_composition().remove_element(*mLevelLogic.get());
-					mScene->disable();
-					mLevelLogic->disable();
-					mOldScene = std::move(mScene);
-					mOldLevelLogic = std::move(mLevelLogic);
-					mScene = fscene::load_scene("assets/level02a.dae", "assets/anothersimplechar2.dae");
-					mRenderer.set_scene(mScene.get());
-					mLevelLogic = std::make_unique<flevel2logic>(mScene.get());
-					cgb::current_composition().add_element(*mScene.get());
-					cgb::current_composition().add_element(*mLevelLogic.get());
-					break;
-				}
-				default: {
-					cgb::current_composition().stop();
+			if (fadeOut < 0.0f) {
+				fadeOut = 1.0f;
+			}
+			else {
+				fadeOut -= cgb::time().delta_time() * 0.5;
+				mRenderer.set_fade_value(1 - fadeOut);
+				if (fadeOut <= 0) {
+					next_level();
+					fadeOut = -1.0f;
+					mRenderer.set_fade_value(1.0f);
+					firstFrame = true;
 				}
 			}
-			++level;
 		}
 	}
 
@@ -92,10 +100,37 @@ private: // v== Member variables ==v
 	std::unique_ptr<fscene> mScene;
 	std::unique_ptr<flevellogic> mLevelLogic;
 	int level = 0;
+	float fadeOut = -1.0f;
+	float fadeIn = -1.0f;
+	bool firstFrame = false;	//if this is the first frame of a new level
 
 	std::unique_ptr<fscene> mOldScene;
 	std::unique_ptr<flevellogic> mOldLevelLogic;
 
+	void next_level() {
+		switch (level) {
+			case 1: {
+				cgb::current_composition().remove_element(*mScene.get());
+				cgb::current_composition().remove_element(*mLevelLogic.get());
+				mScene->disable();
+				mLevelLogic->disable();
+				mOldScene = std::move(mScene);
+				mOldLevelLogic = std::move(mLevelLogic);
+				mScene = fscene::load_scene("assets/level02a.dae", "assets/anothersimplechar2.dae");
+				mRenderer.set_scene(mScene.get());
+				mLevelLogic = std::make_unique<flevel2logic>(mScene.get());
+				mRenderer.set_level_logic(mLevelLogic.get());
+				cgb::current_composition().add_element(*mScene.get());
+				cgb::current_composition().add_element(*mLevelLogic.get());
+				break;
+			}
+			default: {
+				cgb::current_composition().stop();
+			}
+		}
+
+		++level;
+	}
 }; // focus_rt_app
 
 int main() // <== Starting point ==

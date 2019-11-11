@@ -42,10 +42,11 @@ void flevel2logic::initialize() {
 	if (!wall.has_value()) throw new std::runtime_error("Did not found Cube.031(WallX2)");
 	movingWallActor = physics->create_rigid_static_for_scaled_unit_box(wall.value(), true);
 
-	//sphereInstance = &scene->findInstanceByName("Sphere_0", found);
-	//if (!found) throw new std::runtime_error("Did not find Sphere!");
-	auto mirrorBorderInstance = scene->get_model_by_name("Cube.002");//MirrorBorder1
-	if (!mirrorBorderInstance.has_value()) throw new std::runtime_error("Did not find MirrorBorder1(Cube.002)");
+	auto sphereQuery = scene->get_model_by_name("Sphere");
+	if (!sphereQuery.has_value()) throw new std::runtime_error("Did not find Sphere!");
+	sphereInstance = sphereQuery.value();
+	auto mirrorBorderInstance = scene->get_model_by_name("Cube");//MirrorBorder1
+	if (!mirrorBorderInstance.has_value()) throw new std::runtime_error("Did not find MirrorBorder1(Cube)");
 	auto mirrorPlaneInstance = scene->get_model_by_name("Plane");//MirrorPlane1
 	if (!mirrorPlaneInstance.has_value()) throw new std::runtime_error("Did not find MirrorPlane1(Plane)");
 
@@ -53,14 +54,14 @@ void flevel2logic::initialize() {
 	mirrorPlaneActor = physics->create_rigid_static_for_scaled_plane(mirrorPlaneInstance.value(), true);
 	player->add_mirror({ mirrorBorderActor, mirrorPlaneActor });
 
-	//interpolator.addSample(0, glm::vec3(47, 0, 0.3));
-	//interpolator.addSample(1, glm::vec3(60, 1, 1));
+	interpolator.add_sample(0, glm::vec3(47, 0, 0.3));
+	interpolator.add_sample(1, glm::vec3(60, 1, 1));
 }
 
-levelstatus flevel2logic::update(float deltaT, double focusHitCount)
+levelstatus flevel2logic::update(float deltaT, double focusHitValue)
 {
-	/*if (score > 2.0f) {
-		return WON;
+	if (score > 2.0f) {
+		return levelstatus::WON;
 	}
 	if (std::fabs(focusHitValue) < 0.0001) {
 		score = glm::max(score - 0.08 * deltaT, 0.0);
@@ -69,14 +70,13 @@ levelstatus flevel2logic::update(float deltaT, double focusHitCount)
 		score = glm::min(score + deltaT * 0.1, 1.0);
 	}
 
-	scene->backgroundColor = interpolator.interpolate(score);
-	if ((score >= 0.99 && player->onFinalRegion()) || glfwGetKey(app->window, GLFW_KEY_F10) == GLFW_PRESS) {
-		scene->materials[sphereInstance->materialIndex].diffuseColor = glm::vec3(1.0f);
-		scene->materialUpdated = glfwGetTime();
-		scene->backgroundColor = glm::vec3(1, 1, 0.5);
+	scene->set_background_color(interpolator.interpolate(score));
+	if (score >= 0.99 && player->on_final_region()) {
+		scene->get_material_data(sphereInstance->mMaterialIndex).mDiffuseReflectivity = glm::vec4(1.0f);
+		scene->set_background_color(glm::vec4(1, 1, 0.5, 1));
 		score = 100.0f;
-		return WON;
-	}*/
+		return levelstatus::WON;
+	}
 
 	if (player->fell_down()) {
 		return levelstatus::LOST;
@@ -128,6 +128,6 @@ void flevel2logic::reset()
 	scene->get_camera().set_translation(initialCameraPos);
 	player->update_position();
 	player->reset_mirrors();
-	//score = 0;
+	score = 0;
 }
 
