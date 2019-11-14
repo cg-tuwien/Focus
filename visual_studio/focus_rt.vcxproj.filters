@@ -76,6 +76,12 @@
     <None Include="..\assets\level02a.dae">
       <Filter>assets</Filter>
     </None>
+    <None Include="..\assets\level03f.dae">
+      <Filter>assets</Filter>
+    </None>
+    <None Include="..\assets\level04a.dae">
+      <Filter>assets</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="cg_stdafx.cpp">
@@ -90,6 +96,8 @@
     <ClCompile Include="..\source_code\flevel1logic.cpp" />
     <ClCompile Include="..\source_code\flevel2logic.cpp" />
     <ClCompile Include="..\source_code\hsvinterpolator.cpp" />
+    <ClCompile Include="..\source_code\flevel3logic.cpp" />
+    <ClCompile Include="..\source_code\flevel4logic.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="cg_stdafx.hpp">
@@ -108,6 +116,8 @@
     <ClInclude Include="..\source_code\flevellogic.h" />
     <ClInclude Include="..\source_code\flevel2logic.h" />
     <ClInclude Include="..\source_code\hsvinterpolator.h" />
+    <ClInclude Include="..\source_code\flevel3logic.h" />
+    <ClInclude Include="..\source_code\flevel4logic.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\assets\Lava4.png">

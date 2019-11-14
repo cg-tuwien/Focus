@@ -11,4 +11,6 @@
 #include "flevellogic.h"
 #include "flevel1logic.h"
 #include "flevel2logic.h"
+#include "flevel3logic.h"
+#include "flevel4logic.h"
 #include "frenderer.h"

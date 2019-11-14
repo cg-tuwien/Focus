@@ -15,8 +15,6 @@ public:
 
 	void finalize() override {
 		player->cleanup();
-		mirrorBorderActor->release();
-		mirrorPlaneActor->release();
 		physics->cleanup();
 	}
 

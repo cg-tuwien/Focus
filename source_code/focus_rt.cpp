@@ -67,11 +67,7 @@ public: // v== cgb::cg_element overrides which will be invoked by the framework 
 			mRenderer.set_fade_value(fadeIn);
 		}
 
-		if (mLevelLogic->level_status() == levelstatus::LOST) {
-			mLevelLogic->reset();
-			//mLevelLogic->update(0);	//TODO: might be necessary
-		}
-		else if (mLevelLogic->level_status() == levelstatus::WON) {
+		if (mLevelLogic->level_status() == levelstatus::WON) {
 			if (fadeOut < 0.0f) {
 				fadeOut = 1.0f;
 			}
@@ -85,6 +81,8 @@ public: // v== cgb::cg_element overrides which will be invoked by the framework 
 					firstFrame = true;
 				}
 			}
+		} else if (mLevelLogic->level_status() == levelstatus::LOST) {
+			mLevelLogic->reset();
 		}
 	}
 
@@ -107,29 +105,41 @@ private: // v== Member variables ==v
 	std::unique_ptr<fscene> mOldScene;
 	std::unique_ptr<flevellogic> mOldLevelLogic;
 
+	template <typename T>
+	void switch_level(const std::string& path) {
+		cgb::current_composition().remove_element(*mScene.get());
+		cgb::current_composition().remove_element(*mLevelLogic.get());
+		mScene->disable();
+		mLevelLogic->disable();
+		mOldScene = std::move(mScene);
+		mOldLevelLogic = std::move(mLevelLogic);
+		mScene = fscene::load_scene(path, "assets/anothersimplechar2.dae");
+		mRenderer.set_scene(mScene.get());
+		mLevelLogic = std::make_unique<T>(mScene.get());
+		mRenderer.set_level_logic(mLevelLogic.get());
+		cgb::current_composition().add_element(*mScene.get());
+		cgb::current_composition().add_element(*mLevelLogic.get());
+		++level;
+	}
+
 	void next_level() {
 		switch (level) {
 			case 1: {
-				cgb::current_composition().remove_element(*mScene.get());
-				cgb::current_composition().remove_element(*mLevelLogic.get());
-				mScene->disable();
-				mLevelLogic->disable();
-				mOldScene = std::move(mScene);
-				mOldLevelLogic = std::move(mLevelLogic);
-				mScene = fscene::load_scene("assets/level02a.dae", "assets/anothersimplechar2.dae");
-				mRenderer.set_scene(mScene.get());
-				mLevelLogic = std::make_unique<flevel2logic>(mScene.get());
-				mRenderer.set_level_logic(mLevelLogic.get());
-				cgb::current_composition().add_element(*mScene.get());
-				cgb::current_composition().add_element(*mLevelLogic.get());
+				switch_level<flevel2logic>("assets/level02a.dae");
+				break;
+			}
+			case 2: {
+				switch_level<flevel3logic>("assets/level03f.dae");
+				break;
+			}
+			case 3: {
+				switch_level<flevel4logic>("assets/level04a.dae");
 				break;
 			}
 			default: {
 				cgb::current_composition().stop();
 			}
 		}
-
-		++level;
 	}
 }; // focus_rt_app
 

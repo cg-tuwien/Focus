@@ -26,15 +26,11 @@ void flevel1logic::initialize() {
 	};
 	int i = 0;
 	for (const std::string& name : walls) {
-		auto searchres = scene->get_model_by_name(name);
-		if (!searchres.has_value()) throw new std::runtime_error("Did not found " + name);
-		fmodel* instance = searchres.value();
+		auto instance = scene->get_model_by_name(name);
 		physics->create_rigid_static_for_scaled_plane(instance);
 	}
 	for (const std::string& name : floors) {
-		auto searchres = scene->get_model_by_name(name);
-		if (!searchres.has_value()) throw new std::runtime_error("Did not found " + name);
-		fmodel* instance = searchres.value();
+		auto instance = scene->get_model_by_name(name);
 		auto moving = i >= 6 && i <= 8;
 		auto actor = physics->create_rigid_static_for_scaled_unit_box(instance, moving);
 		if (moving) {
@@ -44,22 +40,17 @@ void flevel1logic::initialize() {
 	}
 
 	auto finalRegionRes = scene->get_model_by_name("Cube.015");
-	if (!finalRegionRes.has_value()) throw new std::runtime_error("Did not found FinalRegion");
-	finalRegionActor = physics->create_rigid_static_for_scaled_unit_box(finalRegionRes.value(), true);
+	finalRegionActor = physics->create_rigid_static_for_scaled_unit_box(finalRegionRes, true);
 	player->set_final_region(finalRegionActor);
 	////finalRegionInstance->shaderOffset = 2;
 	////finalRegionInstance->opaque = false;
 
-	auto sphereQuery = scene->get_model_by_name("Sphere");
-	if (!sphereQuery.has_value()) throw new std::runtime_error("Did not find Sphere!");
-	sphereInstance = sphereQuery.value();
+	sphereInstance = scene->get_model_by_name("Sphere");
 	auto mirrorBorderInstance = scene->get_model_by_name("Cube");//MirrorBorder1
-	if (!mirrorBorderInstance.has_value()) throw new std::runtime_error("Did not find MirrorBorder1(Cube)");
 	auto mirrorPlaneInstance = scene->get_model_by_name("Plane");//MirrorPlane1
-	if (!mirrorPlaneInstance.has_value()) throw new std::runtime_error("Did not find MirrorPlane1(Plane)");
 
-	mirrorBorderActor = physics->create_rigid_static_for_scaled_unit_box(mirrorBorderInstance.value(), true);
-	mirrorPlaneActor = physics->create_rigid_static_for_scaled_plane(mirrorPlaneInstance.value(), true);
+	mirrorBorderActor = physics->create_rigid_static_for_scaled_unit_box(mirrorBorderInstance, true);
+	mirrorPlaneActor = physics->create_rigid_static_for_scaled_plane(mirrorPlaneInstance, true);
 	player->add_mirror({ mirrorBorderActor, mirrorPlaneActor });
 
 	interpolator.add_sample(0, glm::vec3(47, 0, 0.3));
@@ -86,7 +77,6 @@ levelstatus flevel1logic::update(float deltaT, double focusHitValue)
 		return levelstatus::WON;
 	}
 
-	//TODO: Remove this
 	if (cgb::input().key_released(cgb::key_code::f10)) {
 		score = 100.0f;
 		return levelstatus::WON;

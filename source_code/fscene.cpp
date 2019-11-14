@@ -241,14 +241,14 @@ std::unique_ptr<fscene> fscene::load_scene(const std::string& filename, const st
 	return std::move(s);
 }
 
-std::optional<fmodel*> fscene::get_model_by_name(const std::string& name)
+fmodel* fscene::get_model_by_name(const std::string& name)
 {
 	for (fmodel& model : mModels) {
 		if (model.mName == name) {
 			return &model;
 		}
 	}
-	return {};
+	throw new std::runtime_error("Did not find model " + name);
 }
 
 void fscene::set_character_position(const glm::vec3& position)
@@ -261,6 +261,10 @@ void fscene::update()
 	int i = 0;
 	for (fmodel& model : mModels) {
 		mGeometryInstances[i].set_transform(model.mTransformation);
+		if (model.mLeave) {
+			model.mTransparent = true;
+			mGeometryInstances[i].set_instance_offset(4);
+		}
 		mGeometryInstances[i].mFlags = (model.mTransparent) ? vk::GeometryInstanceFlagBitsNV::eForceNoOpaque : vk::GeometryInstanceFlagBitsNV::eForceOpaque;
 		mModelData[i] = model;
 		++i;

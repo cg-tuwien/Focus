@@ -13,6 +13,7 @@ struct fmodel {
 	uint32_t mFlags = 0; //1 = goal, 2 = selected-mirror
 	std::string mName;
 	bool mTransparent = false;
+	bool mLeave = false;
 };
 
 struct fmodel_gpudata {
@@ -133,7 +134,7 @@ public:
 		mBackgroundColor = glm::vec4(backgroundColor, 1.0f);
 	}
 
-	std::optional<fmodel*> get_model_by_name(const std::string& name);
+	fmodel* get_model_by_name(const std::string& name);
 
 	void set_character_position(const glm::vec3& position);
 

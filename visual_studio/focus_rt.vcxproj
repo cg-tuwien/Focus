@@ -34,6 +34,8 @@
   <ItemGroup>
     <ClCompile Include="..\source_code\flevel1logic.cpp" />
     <ClCompile Include="..\source_code\flevel2logic.cpp" />
+    <ClCompile Include="..\source_code\flevel3logic.cpp" />
+    <ClCompile Include="..\source_code\flevel4logic.cpp" />
     <ClCompile Include="..\source_code\focus_rt.cpp" />
     <ClCompile Include="..\source_code\fphysicscontroller.cpp" />
     <ClCompile Include="..\source_code\fplayercontrol.cpp" />
@@ -52,12 +54,14 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\source_code\flevel2logic.h" />
+    <ClInclude Include="..\source_code\flevel3logic.h" />
     <ClInclude Include="..\source_code\flevellogic.h" />
     <ClInclude Include="..\source_code\flevel1logic.h" />
     <ClInclude Include="..\source_code\fphysicscontroller.h" />
     <ClInclude Include="..\source_code\fplayercontrol.h" />
     <ClInclude Include="..\source_code\frenderer.h" />
     <ClInclude Include="..\source_code\includes.h" />
+    <ClInclude Include="..\source_code\flevel4logic.h" />
     <ClInclude Include="..\source_code\utility.h" />
     <ClInclude Include="cg_stdafx.hpp" />
     <ClInclude Include="cg_targetver.hpp" />
@@ -76,6 +80,8 @@
     <None Include="..\assets\level01c.dae" />
     <None Include="..\assets\level01campos.dae" />
     <None Include="..\assets\level02a.dae" />
+    <None Include="..\assets\level03f.dae" />
+    <None Include="..\assets\level04a.dae" />
     <None Include="..\assets\lighttest.dae" />
     <None Include="..\shaders\default.rahit" />
     <None Include="..\shaders\default.rchit" />

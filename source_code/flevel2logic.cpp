@@ -23,35 +23,26 @@ void flevel2logic::initialize() {
 	};
 
 	for (const std::string& name : solids) {
-		auto searchres = scene->get_model_by_name(name);
-		if (!searchres.has_value()) throw new std::runtime_error("Did not found " + name);
-		fmodel* instance = searchres.value();
+		auto instance = scene->get_model_by_name(name);
 		auto actor = physics->create_rigid_static_for_scaled_unit_box(instance);
 	}
 
 	auto floor7 = scene->get_model_by_name("Cube.012");
-	if (!floor7.has_value()) throw new std::runtime_error("Did not found Cube.012(Floor7)");
-	finalFloorActor = physics->create_rigid_static_for_scaled_unit_box(floor7.value());
+	finalFloorActor = physics->create_rigid_static_for_scaled_unit_box(floor7);
 
 	auto finalRegion = scene->get_model_by_name("Cube.015");
-	if (!finalRegion.has_value()) throw new std::runtime_error("Did not found Cube.015(FinalRegion)");
-	finalRegionActor = physics->create_rigid_static_for_scaled_unit_box(finalRegion.value());
+	finalRegionActor = physics->create_rigid_static_for_scaled_unit_box(finalRegion);
 	player->set_final_region(finalRegionActor);
 
 	auto wall = scene->get_model_by_name("Cube.031");
-	if (!wall.has_value()) throw new std::runtime_error("Did not found Cube.031(WallX2)");
-	movingWallActor = physics->create_rigid_static_for_scaled_unit_box(wall.value(), true);
+	movingWallActor = physics->create_rigid_static_for_scaled_unit_box(wall, true);
 
-	auto sphereQuery = scene->get_model_by_name("Sphere");
-	if (!sphereQuery.has_value()) throw new std::runtime_error("Did not find Sphere!");
-	sphereInstance = sphereQuery.value();
+	sphereInstance = scene->get_model_by_name("Sphere");
 	auto mirrorBorderInstance = scene->get_model_by_name("Cube");//MirrorBorder1
-	if (!mirrorBorderInstance.has_value()) throw new std::runtime_error("Did not find MirrorBorder1(Cube)");
 	auto mirrorPlaneInstance = scene->get_model_by_name("Plane");//MirrorPlane1
-	if (!mirrorPlaneInstance.has_value()) throw new std::runtime_error("Did not find MirrorPlane1(Plane)");
 
-	mirrorBorderActor = physics->create_rigid_static_for_scaled_unit_box(mirrorBorderInstance.value(), true);
-	mirrorPlaneActor = physics->create_rigid_static_for_scaled_plane(mirrorPlaneInstance.value(), true);
+	mirrorBorderActor = physics->create_rigid_static_for_scaled_unit_box(mirrorBorderInstance, true);
+	mirrorPlaneActor = physics->create_rigid_static_for_scaled_plane(mirrorPlaneInstance, true);
 	player->add_mirror({ mirrorBorderActor, mirrorPlaneActor });
 
 	interpolator.add_sample(0, glm::vec3(47, 0, 0.3));
@@ -78,6 +69,11 @@ levelstatus flevel2logic::update(float deltaT, double focusHitValue)
 		return levelstatus::WON;
 	}
 
+	if (cgb::input().key_released(cgb::key_code::f10)) {
+		score = 100.0f;
+		return levelstatus::WON;
+	}
+
 	if (player->fell_down()) {
 		return levelstatus::LOST;
 	}
@@ -95,7 +91,7 @@ void flevel2logic::fixed_update(float stepSize)
 		if (wallMovingRightStart < 0) {
 			wallMovingRightStart = accTime;
 		}
-		float z = glm::min(-36.0f + 8.0f * ((accTime - wallMovingRightStart) / 2.0f), -28.0f);
+		float z = glm::min(-36.0f + 8.0f * ((accTime - wallMovingRightStart) / 4.0f), -28.0f);
 		PxTransform oldpose = movingWallActor->getGlobalPose();
 		PxTransform newpose = PxTransform(PxVec3(oldpose.p.x, oldpose.p.y, z), oldpose.q);
 		movingWallActor->setGlobalPose(newpose);
@@ -106,11 +102,11 @@ void flevel2logic::fixed_update(float stepSize)
 			wallMovingLeftStart = accTime;
 		}
 		if (wallMovingLeftStart > 0) {
-			float z = glm::max(-28.0f - 8.0f * ((accTime - wallMovingLeftStart) / 2.0f), -36.0f);
+			float z = glm::max(-28.0f - 8.0f * ((accTime - wallMovingLeftStart) / 4.0f), -36.0f);
 			PxTransform oldpose = movingWallActor->getGlobalPose();
 			PxTransform newpose = PxTransform(PxVec3(oldpose.p.x, oldpose.p.y, z), oldpose.q);
 			movingWallActor->setGlobalPose(newpose);
-			if (accTime - wallMovingLeftStart > 2.5f) {
+			if (accTime - wallMovingLeftStart > 4.0f) {
 				wallMovingLeftStart = -1.0f;
 			}
 		}
