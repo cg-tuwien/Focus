@@ -122,7 +122,9 @@ void frenderer::create_descriptor_sets_for_scene()
 			cgb::triangles_hit_group::create_with_rahit_and_rchit("shaders/default.rahit.spv", "shaders/default.rchit.spv"),
 			cgb::triangles_hit_group::create_with_rahit_and_rchit("shaders/shadowray.rahit.spv", "shaders/shadowray.rchit.spv"),
 			cgb::miss_shader("shaders/default.rmiss.spv"),
-			cgb::miss_shader("shaders/shadowray.rmiss.spv")
+			cgb::miss_shader("shaders/shadowray.rmiss.spv"),
+			cgb::triangles_hit_group::create_with_rahit_and_rchit("shaders/leaves.rahit.spv", "shaders/leaves.rchit.spv"),
+			cgb::triangles_hit_group::create_with_rahit_and_rchit("shaders/leaves.rahit.spv", "shaders/shadowray.rchit.spv")
 		),
 		cgb::max_recursion_depth::set_to_max(),
 		// Define push constants and descriptor bindings:

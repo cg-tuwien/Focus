@@ -36,7 +36,7 @@ void flevel4logic::initialize() {
 	auto mirrorPlane2Instance = scene->get_model_by_name("Plane.004");
 	auto groundFloorInstance = scene->get_model_by_name("Plane");
 	auto leavesInstance = scene->get_model_by_name("g2");
-	//TODO: leavesInstance->mLeave = true;
+	leavesInstance->mLeave = true;
 
 	physics->create_rigid_static_for_scaled_plane(groundFloorInstance, false);
 
@@ -106,15 +106,17 @@ void flevel4logic::fixed_update(float stepSize)
 		platformActors[i]->setGlobalPose(newpose[i]);
 	}
 	//Final Region
+	glm::vec3 camPos = scene->get_camera().translation();
 	oldpose[4] = finalRegionActor->getGlobalPose();
-	if (onPlatform[4]) {
+	auto frMin = finalRegionActor->getWorldBounds().minimum;
+	auto frMax = finalRegionActor->getWorldBounds().maximum;
+	if (camPos.x >= frMin.x && camPos.x <= frMax.x && camPos.z >= frMin.z && camPos.z <= frMax.z) {
 		float newy = 0.9f;
 		if (oldpose[4].p.y > 1.0f) {
 			newy = glm::max(oldpose[4].p.y - stepSize * 2.0f, 0.9f);
 		}
 		newpose[4] = PxTransform(PxVec3(oldpose[4].p.x, newy, oldpose[4].p.z), oldpose[4].q);
 		finalRegionActor->setGlobalPose(newpose[4]);
-		onPlatform[4] = false;
 	}
 	else {
 		if (oldpose[4].p.y < 7.02) {
@@ -168,8 +170,5 @@ void flevel4logic::onShapeHit(const PxControllerShapeHit& hit) {
 			onPlatform[i] = true;
 			break;
 		}
-	}
-	if (hit.actor == finalRegionActor) {
-		onPlatform[4] = true;
 	}
 }

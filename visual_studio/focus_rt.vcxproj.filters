@@ -82,6 +82,12 @@
     <None Include="..\assets\level04a.dae">
       <Filter>assets</Filter>
     </None>
+    <None Include="..\shaders\leaves.rahit">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="..\shaders\leaves.rchit">
+      <Filter>shaders</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="cg_stdafx.cpp">

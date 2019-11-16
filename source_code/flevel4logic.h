@@ -39,7 +39,7 @@ private:
 	PxTransform mirrorPlane2OriginalTransform;
 	PxRigidStatic* platformActors[4];
 	PxRigidStatic* finalRegionActor;
-	bool onPlatform[5] = { false, false, false, false, false };
+	bool onPlatform[4] = { false, false, false, false };
 	double score = 0;
 	float accTime = 0;
 };

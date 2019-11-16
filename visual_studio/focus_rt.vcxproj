@@ -87,9 +87,11 @@
     <None Include="..\shaders\default.rchit" />
     <None Include="..\shaders\default.rgen" />
     <None Include="..\shaders\default.rmiss" />
+    <None Include="..\shaders\leaves.rchit" />
     <None Include="..\shaders\shadowray.rahit" />
     <None Include="..\shaders\shadowray.rchit" />
     <None Include="..\shaders\shadowray.rmiss" />
+    <None Include="..\shaders\leaves.rahit" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\assets\bark_0004.jpg" />

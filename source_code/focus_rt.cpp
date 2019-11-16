@@ -123,6 +123,7 @@ private: // v== Member variables ==v
 	}
 
 	void next_level() {
+		level = 3; //ToDo: Remove This
 		switch (level) {
 			case 1: {
 				switch_level<flevel2logic>("assets/level02a.dae");
