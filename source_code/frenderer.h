@@ -9,9 +9,9 @@ private:
 	std::vector<cgb::image_view> mOffscreenImageViews;
 	cgb::ray_tracing_pipeline mPipeline;
 	std::vector<std::shared_ptr<cgb::descriptor_set>> mDescriptorSet;
-	cgb::storage_buffer mFocusHitBuffer;
+	std::vector<cgb::storage_buffer> mFocusHitBuffers;
+	std::vector<cgb::uniform_buffer> mFadeBuffers;
 	float fadeValue = 0.0f;
-	cgb::uniform_buffer mFadeBuffer;
 
 public:
 	frenderer() {}

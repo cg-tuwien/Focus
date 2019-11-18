@@ -57,11 +57,11 @@ private:
 	//Textures
 	std::vector<cgb::image_sampler> mImageSamplers;
 	//Uniform and Storage Buffers
-	cgb::storage_buffer mMaterialBuffer;
-	cgb::storage_buffer mModelBuffer;
-	cgb::storage_buffer mLightBuffer;
-	cgb::uniform_buffer mPerlinBackgroundBuffer;
-	cgb::storage_buffer mPerlinGradientBuffer;
+	std::vector<cgb::storage_buffer> mMaterialBuffers;
+	std::vector<cgb::storage_buffer> mModelBuffers;
+	cgb::storage_buffer mLightBuffer;							//constant
+	std::vector<cgb::uniform_buffer> mPerlinBackgroundBuffers;
+	cgb::storage_buffer mPerlinGradientBuffer;					//constant
 	//Acceleration Structures
 	std::vector<cgb::bottom_level_acceleration_structure> mBLASs;
 	std::vector<cgb::top_level_acceleration_structure> mTLASs;
@@ -82,20 +82,20 @@ public:
 		return mImageSamplers;
 	}
 
-	const cgb::storage_buffer& get_model_buffer() const {
-		return mModelBuffer;
+	const cgb::storage_buffer& get_model_buffer(size_t index) const {
+		return mModelBuffers[index];
 	}
 
-	const cgb::storage_buffer& get_material_buffer() const {
-		return mMaterialBuffer;
+	const cgb::storage_buffer& get_material_buffer(size_t index) const {
+		return mMaterialBuffers[index];
 	}
 
 	const cgb::storage_buffer& get_light_buffer() const {
 		return mLightBuffer;
 	}
 
-	const cgb::uniform_buffer& get_background_buffer() const {
-		return mPerlinBackgroundBuffer;
+	const cgb::uniform_buffer& get_background_buffer(size_t index) const {
+		return mPerlinBackgroundBuffers[index];
 	}
 
 	const cgb::storage_buffer& get_gradient_buffer() const {

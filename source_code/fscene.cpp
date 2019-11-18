@@ -68,12 +68,14 @@ void fscene::create_buffers_for_model(fmodel& newElement, std::vector<cgb::semap
 
 cgb::material_gpu_data& fscene::get_material_data(size_t materialIndex)
 {
-	mUpdateMaterials = 1;// cgb::context().main_window()->number_of_in_flight_frames();
+	mUpdateMaterials = cgb::context().main_window()->number_of_in_flight_frames();
 	return mGpuMaterials[materialIndex];
 }
 
 std::unique_ptr<fscene> fscene::load_scene(const std::string& filename, const std::string& characterfilename)
 {
+	auto fif = cgb::context().main_window()->number_of_in_flight_frames();
+
 	std::vector<cgb::semaphore> blasWaitSemaphores;
 	blasWaitSemaphores.reserve(100);
 
@@ -143,11 +145,14 @@ std::unique_ptr<fscene> fscene::load_scene(const std::string& filename, const st
 	s->mMaterials.push_back(charMat);
 	s->create_buffers_for_model(character, blasWaitSemaphores);
 
-	s->mModelBuffer = cgb::create_and_fill(
-		cgb::storage_buffer_meta::create_from_data(s->mModelData),
-		cgb::memory_usage::host_coherent,
-		s->mModelData.data()
-	);
+	s->mModelBuffers.resize(fif);
+	for (size_t i = 0; i < fif; ++i) {
+		s->mModelBuffers[i] = cgb::create_and_fill(
+			cgb::storage_buffer_meta::create_from_data(s->mModelData),
+			cgb::memory_usage::host_coherent,
+			s->mModelData.data()
+		);
+	}
 
 	//----CREATE GPU BUFFERS-----
 	//Materials + Textures
@@ -155,11 +160,14 @@ std::unique_ptr<fscene> fscene::load_scene(const std::string& filename, const st
 		[](auto _Semaphore) {
 			cgb::context().main_window()->set_extra_semaphore_dependency(std::move(_Semaphore));
 		});
-	s->mMaterialBuffer = cgb::create_and_fill(
-		cgb::storage_buffer_meta::create_from_data(gpuMaterials),
-		cgb::memory_usage::host_coherent,
-		gpuMaterials.data()
-	);
+	s->mMaterialBuffers.resize(fif);
+	for (size_t i = 0; i < fif; ++i) {
+		s->mMaterialBuffers[i] = cgb::create_and_fill(
+			cgb::storage_buffer_meta::create_from_data(gpuMaterials),
+			cgb::memory_usage::host_coherent,
+			gpuMaterials.data()
+		);
+	}
 	s->mGpuMaterials = gpuMaterials;
 	s->mImageSamplers = std::move(imageSamplers);
 
@@ -181,11 +189,14 @@ std::unique_ptr<fscene> fscene::load_scene(const std::string& filename, const st
 
 	//Background Color Buffer
 	s->mBackgroundColor = glm::vec4(0.3, 0.3, 0.3, 0);
-	s->mPerlinBackgroundBuffer = cgb::create_and_fill(
-		cgb::uniform_buffer_meta::create_from_data(s->mBackgroundColor),
-		cgb::memory_usage::host_coherent,
-		&s->mBackgroundColor
-	);
+	s->mPerlinBackgroundBuffers.resize(fif);
+	for (size_t i = 0; i < fif; ++i) {
+		s->mPerlinBackgroundBuffers[i] = cgb::create_and_fill(
+			cgb::uniform_buffer_meta::create_from_data(s->mBackgroundColor),
+			cgb::memory_usage::host_coherent,
+			&s->mBackgroundColor
+		);
+	}
 
 	//Perlin Gradient Buffer
 	uint32_t lonsegs = 100;
@@ -210,7 +221,6 @@ std::unique_ptr<fscene> fscene::load_scene(const std::string& filename, const st
 	delete gdata;
 
 	//---- CREATE TLAS -----
-	auto fif = cgb::context().main_window()->number_of_in_flight_frames();
 	s->mTLASs.reserve(fif);
 	std::vector<cgb::semaphore> waitSemaphores = std::move(blasWaitSemaphores);
 	for (decltype(fif) i = 0; i < fif; ++i) {
@@ -269,16 +279,16 @@ void fscene::update()
 		mModelData[i] = model;
 		++i;
 	}
-	cgb::fill(mModelBuffer, mModelData.data());
+	auto fidx = cgb::context().main_window()->in_flight_index_for_frame();
+	cgb::fill(mModelBuffers[fidx], mModelData.data());
 	if (mUpdateMaterials > 0) {
 		--mUpdateMaterials;
-		cgb::fill(mMaterialBuffer, mGpuMaterials.data());
+		cgb::fill(mMaterialBuffers[fidx], mGpuMaterials.data());
 	}
 
-	cgb::fill(mPerlinBackgroundBuffer, &mBackgroundColor);
+	cgb::fill(mPerlinBackgroundBuffers[fidx], &mBackgroundColor);
 
-	auto inFlightIndex = cgb::context().main_window()->in_flight_index_for_frame();
-	mTLASs[inFlightIndex]->update(mGeometryInstances, [](cgb::semaphore _Semaphore) {
+	mTLASs[fidx]->update(mGeometryInstances, [](cgb::semaphore _Semaphore) {
 		cgb::context().main_window()->set_extra_semaphore_dependency(std::move(_Semaphore));
 	});
 }

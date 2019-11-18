@@ -32,8 +32,6 @@ void flevel1logic::initialize() {
 	auto mirrorBorderInstance = scene->get_model_by_name("MirrorBorder");
 	auto mirrorPlaneInstance = scene->get_model_by_name("MirrorPlane");
 
-	//scene->get_material_data(sphereInstance->mMaterialIndex).mDiffuseReflectivity *= 2;
-
 	mirrorBorderActor = physics->create_rigid_static_for_scaled_unit_box(mirrorBorderInstance, true);
 	mirrorPlaneActor = physics->create_rigid_static_for_scaled_plane(mirrorPlaneInstance, true);
 	player->add_mirror({ mirrorBorderActor, mirrorPlaneActor });

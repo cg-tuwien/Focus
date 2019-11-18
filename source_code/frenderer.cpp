@@ -4,20 +4,24 @@ void frenderer::initialize()
 {
 	//Create Focus Hit Buffer
 	uint32_t initialfocushit = 0;
-	mFocusHitBuffer = cgb::create_and_fill(
-		cgb::storage_buffer_meta::create_from_size(sizeof(uint32_t)),
-		cgb::memory_usage::host_coherent,
-		&initialfocushit
-	);
+	size_t n = cgb::context().main_window()->number_of_in_flight_frames();
+	mFocusHitBuffers.resize(n);
+	mFadeBuffers.resize(n);
+	for (int i = 0; i < n; ++i) {
+		mFocusHitBuffers[i] = cgb::create_and_fill(
+			cgb::storage_buffer_meta::create_from_size(sizeof(uint32_t)),
+			cgb::memory_usage::host_coherent,
+			&initialfocushit
+		);
 
-	mFadeBuffer = cgb::create_and_fill(
-		cgb::uniform_buffer_meta::create_from_size(sizeof(float)),
-		cgb::memory_usage::host_coherent,
-		&fadeValue
-	);
+		mFadeBuffers[i] = cgb::create_and_fill(
+			cgb::uniform_buffer_meta::create_from_size(sizeof(float)),
+			cgb::memory_usage::host_coherent,
+			&fadeValue
+		);
+	}
 
 	//Create Image Views
-	size_t n = cgb::context().main_window()->number_of_in_flight_frames();
 	mOffscreenImageViews.reserve(n);
 	for (size_t i = 0; i < n; ++i) {
 		mOffscreenImageViews.emplace_back(
@@ -42,7 +46,15 @@ void frenderer::initialize()
 
 void frenderer::update()
 {
-	cgb::fill(mFadeBuffer, &fadeValue);
+	auto index = cgb::context().main_window()->in_flight_index_for_frame();
+
+	cgb::fill(mFadeBuffers[index], &fadeValue);
+
+	auto focushitcount = cgb::read<uint32_t>(mFocusHitBuffers[index]);
+	mLevelLogic->set_focus_hit_value(double(focushitcount) / double(cgb::context().main_window()->swap_chain_extent().width * cgb::context().main_window()->swap_chain_extent().height));
+	LOG_DEBUG(focushitcount);
+	focushitcount = 0;
+	cgb::fill(mFocusHitBuffers[index], &focushitcount);
 }
 
 void frenderer::render() {
@@ -97,11 +109,6 @@ void frenderer::render() {
 	submit_command_buffer_ownership(std::move(cmdbfr));
 	present_image(mOffscreenImageViews[inFlightIndex]->get_image());
 
-	auto focushitcount = cgb::read<uint32_t>(mFocusHitBuffer);
-	mLevelLogic->set_focus_hit_value(double(focushitcount) / double (cgb::context().main_window()->swap_chain_extent().width * cgb::context().main_window()->swap_chain_extent().height));
-	focushitcount = 0;
-	cgb::fill(mFocusHitBuffer, &focushitcount);
-
 }
 
 void frenderer::set_scene(fscene* scene)
@@ -115,6 +122,7 @@ void frenderer::set_scene(fscene* scene)
 
 void frenderer::create_descriptor_sets_for_scene()
 {
+	auto i = cgb::context().main_window()->in_flight_index_for_frame();
 	size_t n = cgb::context().main_window()->number_of_in_flight_frames();
 	mPipeline = cgb::ray_tracing_pipeline_for(
 		cgb::define_shader_table(
@@ -129,8 +137,8 @@ void frenderer::create_descriptor_sets_for_scene()
 		cgb::max_recursion_depth::set_to_max(),
 		// Define push constants and descriptor bindings:
 		cgb::push_constant_binding_data{ cgb::shader_type::ray_generation, 0, sizeof(glm::mat4) },
-		cgb::binding(0, 0, mScene->get_model_buffer()),
-		cgb::binding(0, 1, mScene->get_material_buffer()),
+		cgb::binding(0, 0, mScene->get_model_buffer(i)),
+		cgb::binding(0, 1, mScene->get_material_buffer(i)),
 		cgb::binding(0, 2, mScene->get_light_buffer()),
 		cgb::binding(0, 3, mScene->get_image_samplers()),
 		cgb::binding(0, 4, mScene->get_index_buffer_views()),
@@ -139,10 +147,10 @@ void frenderer::create_descriptor_sets_for_scene()
 		cgb::binding(0, 7, mScene->get_tangent_buffer_views()),
 		cgb::binding(1, 0, mOffscreenImageViews[0]),	// Just take any, this is just to define the layout
 		cgb::binding(2, 0, mScene->get_tlas()[0]),		// Just take any, this is just to define the layout
-		cgb::binding(3, 0, mScene->get_background_buffer()),
+		cgb::binding(3, 0, mScene->get_background_buffer(i)),
 		cgb::binding(3, 1, mScene->get_gradient_buffer()),
-		cgb::binding(4, 0, mFocusHitBuffer),
-		cgb::binding(5, 0, mFadeBuffer)
+		cgb::binding(4, 0, mFocusHitBuffers[i]),
+		cgb::binding(5, 0, mFadeBuffers[i])
 	);
 
 	mDescriptorSet.clear();
@@ -150,8 +158,8 @@ void frenderer::create_descriptor_sets_for_scene()
 	for (int i = 0; i < n; ++i) {
 		mDescriptorSet.emplace_back(std::make_shared<cgb::descriptor_set>());
 		*mDescriptorSet.back() = cgb::descriptor_set::create({
-			cgb::binding(0, 0, mScene->get_model_buffer()),
-			cgb::binding(0, 1, mScene->get_material_buffer()),
+			cgb::binding(0, 0, mScene->get_model_buffer(i)),
+			cgb::binding(0, 1, mScene->get_material_buffer(i)),
 			cgb::binding(0, 2, mScene->get_light_buffer()),
 			cgb::binding(0, 3, mScene->get_image_samplers()),
 			cgb::binding(0, 4, mScene->get_index_buffer_views()),
@@ -160,10 +168,10 @@ void frenderer::create_descriptor_sets_for_scene()
 			cgb::binding(0, 7, mScene->get_tangent_buffer_views()),
 			cgb::binding(1, 0, mOffscreenImageViews[i]),
 			cgb::binding(2, 0, mScene->get_tlas()[i]),
-			cgb::binding(3, 0, mScene->get_background_buffer()),
+			cgb::binding(3, 0, mScene->get_background_buffer(i)),
 			cgb::binding(3, 1, mScene->get_gradient_buffer()),
-			cgb::binding(4, 0, mFocusHitBuffer),
-			cgb::binding(5, 0, mFadeBuffer)
+			cgb::binding(4, 0, mFocusHitBuffers[i]),
+			cgb::binding(5, 0, mFadeBuffers[i])
 		});
 	}
 }
