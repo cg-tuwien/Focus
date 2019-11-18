@@ -5,6 +5,9 @@
 void RGB_to_HSV(float& fR, float& fG, float fB, float& fH, float& fS, float& fV);
 void HSV_to_RGB(float& fR, float& fG, float& fB, float& fH, float& fS, float& fV);
 
+//Useful tool for interpolating between HSV-values in HSV space
+//You can insert HSV-values associated with a t-value
+//and this calculates the values at in-between t-values
 class hsvinterpolator {
 
 	std::vector<float> ts;

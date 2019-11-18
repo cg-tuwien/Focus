@@ -1,6 +1,7 @@
 #pragma once
 #include "includes.h"
 
+//Represents an object in the scene
 struct fmodel {
 	size_t mModelIndex;
 	std::vector<glm::vec3> mPositions;
@@ -16,6 +17,7 @@ struct fmodel {
 	bool mLeave = false;
 };
 
+//GPU-Representation of fmodel
 struct fmodel_gpudata {
 	alignas(4) uint32_t mMaterialIndex;
 	alignas(16) glm::mat4 mNormalMatrix;
@@ -28,6 +30,8 @@ struct fmodel_gpudata {
 	}
 };
 
+//Represents a whole scene with all contained objects, lights, materials etc.
+//Also contains the GPU-buffers
 struct fscene : public cgb::cg_element {
 
 private:
@@ -68,15 +72,12 @@ private:
 
 	void create_buffers_for_model(fmodel& model, std::vector<cgb::semaphore>& blasWaitSemaphores);
 
-	std::tuple<std::vector<cgb::material_gpu_data>, std::vector<cgb::image_sampler>> convert_for_gpu_usage(std::vector<cgb::material_config> _MaterialConfigs, std::function<void(cgb::owning_resource<cgb::semaphore_t>)> _SemaphoreHandler);
-
 public:
 
+	//Loads the scene
+	//filename: Path to the scene collada file
+	//charachterfilename: Path to the character collada file
 	static std::unique_ptr<fscene> load_scene(const std::string& filename, const std::string& characterfilename);
-
-	~fscene() {
-		LOG_DEBUG("fscene destroyed");
-	}
 
 	const std::vector<cgb::image_sampler>& get_image_samplers() const {
 		return mImageSamplers;

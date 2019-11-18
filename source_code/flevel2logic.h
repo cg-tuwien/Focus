@@ -4,6 +4,10 @@
 class flevel2logic : public flevellogic {
 public:
 
+	static std::string level_path() {
+		return "assets/level2.dae";
+	}
+
 	flevel2logic(fscene* scene);
 
 	void initialize() override;

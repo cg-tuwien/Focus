@@ -33,7 +33,7 @@ fplayercontrol::fplayercontrol(fphysicscontroller* physics, fscene* scene, bool 
 void fplayercontrol::pre_px_update(float deltaT)
 {
 	//----- CHECK MIRROR INTERACTION -----
-	bool leftClicked = cgb::input().mouse_button_down(0); //TODO
+	bool leftClicked = cgb::input().mouse_button_down(0);
 	//Click active -> interact with mirror
 	if (leftClicked) {
 		//No mirror hit yet -> Check for hit via raycasting

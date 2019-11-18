@@ -9,6 +9,9 @@ public:
 
 };
 
+/*
+Management of PhysX-classes. Has functions for creation of rigidbodies for boxes und planes
+*/
 class fphysicscontroller {
 public:
 	PxFoundation* mFoundation;
@@ -27,7 +30,6 @@ public:
 
 	void update(const float& stepSize);
 
-	//PxShape* createConvexHull(const Mesh* mesh, const PxMaterial& material, const glm::mat4x3& transform, const bool& exclusive);
 	PxRigidStatic* create_rigid_static_for_scaled_unit_box(fmodel* model, bool dynamic = false);
 	PxRigidStatic* create_rigid_static_for_scaled_plane(fmodel* model, bool dynamic = false);
 

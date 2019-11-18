@@ -4,6 +4,9 @@
 #define MOUSE_SENTIVITY 0.001f
 #define WALK_SPEED 0.075f
 
+/*
+Control for Player. Responsible for player and mirror movements
+*/
 class fplayercontrol : private PxUserControllerHitReport {
 private:
 	fscene* scene;
@@ -15,7 +18,6 @@ private:
 	std::vector<std::vector<PxTransform>> mirrorOriginalTransformations;
 	std::vector<float> mirrorMaxDistances;
 	PxRigidStatic* finalRegion = nullptr;
-	//fmodel* characterInstance;
 
 	double lastCursorX = NAN, lastCursorY = NAN;
 	float horizontalAngle = 0;

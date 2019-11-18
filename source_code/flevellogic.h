@@ -7,15 +7,21 @@ enum class levelstatus {
 };
 
 /*
-Animates a scene
+Level Logic of a scene. Responsible for animations and player controls
 */
 class flevellogic : public cgb::cg_element {
 public:
+
+	//Please write a new level_path-function in your subclass
+	static std::string level_path() {
+		throw new std::runtime_error("No level path given!");
+	}
+
 	flevellogic(fscene* scene) {
 		this->scene = scene;
 	}
 
-	//make sure to override initialize and finalize.
+	//make sure to override initialize and finalize!
 
 	//Returns true iff the player won the level
 	virtual void update() override { 

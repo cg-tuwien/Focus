@@ -27,7 +27,10 @@ void flevel4logic::initialize() {
 	auto mirrorPlane2Instance = scene->get_model_by_name("MirrorPlane2");
 	auto groundFloorInstance = scene->get_model_by_name("GroundFloor");
 	auto leavesInstance = scene->get_model_by_name("g2");
+	//activate leave shader
 	leavesInstance->mLeave = true;
+	//brighten up leaves a bit
+	scene->get_material_data(leavesInstance->mMaterialIndex).mDiffuseReflectivity *= 3;
 
 	physics->create_rigid_static_for_scaled_plane(groundFloorInstance, false);
 

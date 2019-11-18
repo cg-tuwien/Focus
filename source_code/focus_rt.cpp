@@ -1,28 +1,29 @@
 #include "includes.h"
+#define CHAR_PATH "assets/anothersimplechar2.dae"
 
 class focus_rt_app : public cgb::cg_element
 {
-	struct transformation_matrices {
-		glm::mat4 mViewMatrix;
-	};
 
-public: // v== cgb::cg_element overrides which will be invoked by the framework ==v
+public:
 
+	//Initializes the game
 	void initialize() override
 	{
 		mInitTime = std::chrono::high_resolution_clock::now();
 
+		//Create Scene, LevelLogic and Renderer.
 		level = 1;
-		mScene = fscene::load_scene("assets/level1.dae", "assets/anothersimplechar2.dae");
-		mRenderer.set_scene(mScene.get());
+		mScene = fscene::load_scene(flevel1logic::level_path(), CHAR_PATH);
 		mLevelLogic = std::make_unique<flevel1logic>(mScene.get());
+		mRenderer.set_scene(mScene.get());
 		mRenderer.set_level_logic(mLevelLogic.get());
-		
-		//priorities: focus_rt, levellogic, scene, renderer
+
 		cgb::current_composition().add_element(*mScene.get());
 		cgb::current_composition().add_element(*mLevelLogic.get());
 		cgb::current_composition().add_element(mRenderer);
 		cgb::input().set_cursor_disabled(true);
+
+		//execution order: focus_rt, levellogic, scene, renderer
 	}
 
 	int32_t execution_order() const override {
@@ -42,17 +43,18 @@ public: // v== cgb::cg_element overrides which will be invoked by the framework 
 			auto fp_ms = std::chrono::duration<double, std::milli>(time_span).count();
 			printf("Time from init to fourth frame: %d min, %lld sec %lf ms\n", int_min, int_sec - static_cast<decltype(int_sec)>(int_min) * 60, fp_ms - 1000.0 * int_sec);
 		}
-
+		//Esc -> Stop Game
 		if (cgb::input().key_pressed(cgb::key_code::escape)) {
-			// Stop the current composition:
 			cgb::current_composition().stop();
 		}
+		//Tab -> Pause game
 		if (cgb::input().key_pressed(cgb::key_code::tab)) {
 			bool newstate = cgb::input().is_cursor_disabled();
 			mLevelLogic->set_paused(newstate);
 			cgb::input().set_cursor_disabled(!newstate);
 		}
 
+		//Fade-In
 		if (fadeIn >= 0) {
 			mRenderer.set_fade_value(fadeIn);
 			fadeIn -= cgb::time().delta_time() * 1.0;
@@ -67,6 +69,7 @@ public: // v== cgb::cg_element overrides which will be invoked by the framework 
 			mRenderer.set_fade_value(fadeIn);
 		}
 
+		//If Won -> Fade Out and Load Next Level
 		if (mLevelLogic->level_status() == levelstatus::WON) {
 			if (fadeOut < 0.0f) {
 				fadeOut = 1.0f;
@@ -81,7 +84,9 @@ public: // v== cgb::cg_element overrides which will be invoked by the framework 
 					firstFrame = true;
 				}
 			}
-		} else if (mLevelLogic->level_status() == levelstatus::LOST) {
+		} 
+		//If Lost -> Restart Level
+		else if (mLevelLogic->level_status() == levelstatus::LOST) {
 			mLevelLogic->reset();
 		}
 	}
@@ -98,22 +103,25 @@ private: // v== Member variables ==v
 	std::unique_ptr<fscene> mScene;
 	std::unique_ptr<flevellogic> mLevelLogic;
 	int level = 0;
+	//For In- and Out-Fading
 	float fadeOut = -1.0f;
 	float fadeIn = -1.0f;
-	bool firstFrame = false;	//if this is the first frame of a new level
+	bool firstFrame = false;	//if this is the first frame of a new level (except l1)
 
+	//Old scenes to be deleted after initialization of the new one
 	std::unique_ptr<fscene> mOldScene;
 	std::unique_ptr<flevellogic> mOldLevelLogic;
 
+	//Switches the level to a new one. T is the flevellogic object
 	template <typename T>
-	void switch_level(const std::string& path) {
+	void switch_level() {
 		cgb::current_composition().remove_element(*mScene.get());
 		cgb::current_composition().remove_element(*mLevelLogic.get());
 		mScene->disable();
 		mLevelLogic->disable();
 		mOldScene = std::move(mScene);
 		mOldLevelLogic = std::move(mLevelLogic);
-		mScene = fscene::load_scene(path, "assets/anothersimplechar2.dae");
+		mScene = fscene::load_scene(T::level_path(), CHAR_PATH);
 		mRenderer.set_scene(mScene.get());
 		mLevelLogic = std::make_unique<T>(mScene.get());
 		mRenderer.set_level_logic(mLevelLogic.get());
@@ -122,18 +130,19 @@ private: // v== Member variables ==v
 		++level;
 	}
 
+	//Stops the current level and loads the next one, or stops the game if over
 	void next_level() {
 		switch (level) {
 			case 1: {
-				switch_level<flevel2logic>("assets/level2.dae");
+				switch_level<flevel2logic>();
 				break;
 			}
 			case 2: {
-				switch_level<flevel3logic>("assets/level3.dae");
+				switch_level<flevel3logic>();
 				break;
 			}
 			case 3: {
-				switch_level<flevel4logic>("assets/level4.dae");
+				switch_level<flevel4logic>();
 				break;
 			}
 			default: {

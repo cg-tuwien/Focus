@@ -1,6 +1,10 @@
 #pragma once
 #include "includes.h"
 
+/*
+Renderer class. Responsible for rendering the image and everything related to that (creating descriptor sets, command buffers etc.).
+Also manages the focus hit count buffer and the fade buffer.
+*/
 class frenderer : public cgb::cg_element {
 private:
 	fscene* mScene = nullptr;

@@ -4,6 +4,10 @@
 class flevel1logic : public flevellogic, public PxUserControllerHitReport {
 public:
 
+	static std::string level_path() {
+		return "assets/level1.dae";
+	}
+
 	flevel1logic(fscene* scene);
 
 	void initialize() override;

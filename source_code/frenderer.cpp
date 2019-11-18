@@ -52,7 +52,6 @@ void frenderer::update()
 
 	auto focushitcount = cgb::read<uint32_t>(mFocusHitBuffers[index]);
 	mLevelLogic->set_focus_hit_value(double(focushitcount) / double(cgb::context().main_window()->swap_chain_extent().width * cgb::context().main_window()->swap_chain_extent().height));
-	LOG_DEBUG(focushitcount);
 	focushitcount = 0;
 	cgb::fill(mFocusHitBuffers[index], &focushitcount);
 }
