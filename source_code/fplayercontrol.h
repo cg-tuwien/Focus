@@ -22,7 +22,7 @@ private:
 	float verticalAngle = 0;
 	float jumpystart = -2;
 	float jump = -1;
-	bool jumpallowed = false;
+	PxRigidActor* jumpbase = nullptr;
 	bool fly = false;
 	float eyeheight;
 	int movingMirror = -1;

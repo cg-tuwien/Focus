@@ -125,10 +125,17 @@ void fplayercontrol::post_px_update(float deltaT) {
 	if (fly && cgb::input().key_down(cgb::key_code::q)) {
 		moveDir -= camera->y_axis();
 	}
-	if (jumpallowed && cgb::input().key_down(cgb::key_code::space) && jump == -1) {
-		jump = deltaT;
-		jumpystart = cameraController->getFootPosition().y;
-		jumpallowed = false;
+	if (jumpbase != nullptr && cgb::input().key_down(cgb::key_code::space) && jump == -1) {
+		PxBounds3 basebounds = jumpbase->getWorldBounds();
+		PxExtendedVec3 camPos = cameraController->getPosition();
+		//Make sure the player still stands on the last contact point
+		if (camPos.x >= basebounds.minimum.x && camPos.x <= basebounds.maximum.x
+			&& camPos.z >= basebounds.minimum.z && camPos.z <= basebounds.maximum.z
+			&& basebounds.maximum.y - camPos.y < 0.1) {
+			jump = deltaT;
+			jumpystart = cameraController->getFootPosition().y;
+			jumpbase = nullptr;
+		}
 	}
 	moveDir = ((length(moveDir) <= 0.01f) ? glm::vec3(0) : WALK_SPEED * normalize(moveDir));
 	if (!fly) {
@@ -220,7 +227,7 @@ void fplayercontrol::cleanup()
 void fplayercontrol::onShapeHit(const PxControllerShapeHit& hit)
 {
 	if (!fly && hit.actor->getWorldBounds().maximum.y - cameraController->getPosition().y < 0.1) {
-		jumpallowed = true;
+		jumpbase = hit.actor;
 	}
 	if (additionalCallback != nullptr) {
 		additionalCallback->onShapeHit(hit);
