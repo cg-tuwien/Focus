@@ -156,6 +156,7 @@ std::unique_ptr<fscene> fscene::load_scene(const std::string& filename, const st
 
 	//----CREATE GPU BUFFERS-----
 	//Materials + Textures
+	cgb::settings::gLoadImagesInSrgbFormatByDefault = true;
 	auto [gpuMaterials, imageSamplers] = cgb::convert_for_gpu_usage(s->mMaterials,
 		[](auto _Semaphore) {
 			cgb::context().main_window()->set_extra_semaphore_dependency(std::move(_Semaphore));
