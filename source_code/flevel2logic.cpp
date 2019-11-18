@@ -11,15 +11,9 @@ void flevel2logic::initialize() {
 	physics = std::make_unique<fphysicscontroller>(scene);
 	player = std::make_unique<fplayercontrol>(physics.get(), scene, false, 1.5);
 
-	/*scene->materials[0].diffuseColor *= 2;
-	scene->materials[2].ambientColor = glm::vec3(0.4f);
-	scene->materials[3].ambientColor = glm::vec3(0.4f);*/
-
 	std::vector<std::string> solids = {
-		//"WallX1", "WallX3",
-		"Cube.029", "Cube.032",
-		//"Floor1", "Floor2", "Floor3", "Floor4", "Floor5", "Floor6"
-		"Cube.001", "Cube.000", "Cube.003", "Cube.005", "Cube.006", "Cube.011"
+		"WallX1", "WallX3",
+		"Floor1", "Floor2", "Floor3", "Floor4", "Floor5", "Floor6"
 	};
 
 	for (const std::string& name : solids) {
@@ -27,19 +21,19 @@ void flevel2logic::initialize() {
 		auto actor = physics->create_rigid_static_for_scaled_unit_box(instance);
 	}
 
-	auto floor7 = scene->get_model_by_name("Cube.012");
+	auto floor7 = scene->get_model_by_name("Floor7");
 	finalFloorActor = physics->create_rigid_static_for_scaled_unit_box(floor7);
 
-	auto finalRegion = scene->get_model_by_name("Cube.015");
+	auto finalRegion = scene->get_model_by_name("FinalRegion");
 	finalRegionActor = physics->create_rigid_static_for_scaled_unit_box(finalRegion);
 	player->set_final_region(finalRegionActor);
 
-	auto wall = scene->get_model_by_name("Cube.031");
+	auto wall = scene->get_model_by_name("WallX2");
 	movingWallActor = physics->create_rigid_static_for_scaled_unit_box(wall, true);
 
 	sphereInstance = scene->get_model_by_name("Sphere");
-	auto mirrorBorderInstance = scene->get_model_by_name("Cube");//MirrorBorder1
-	auto mirrorPlaneInstance = scene->get_model_by_name("Plane");//MirrorPlane1
+	auto mirrorBorderInstance = scene->get_model_by_name("MirrorBorder");
+	auto mirrorPlaneInstance = scene->get_model_by_name("MirrorPlane");
 
 	mirrorBorderActor = physics->create_rigid_static_for_scaled_unit_box(mirrorBorderInstance, true);
 	mirrorPlaneActor = physics->create_rigid_static_for_scaled_plane(mirrorPlaneInstance, true);

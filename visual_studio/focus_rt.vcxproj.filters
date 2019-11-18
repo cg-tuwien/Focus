@@ -88,6 +88,18 @@
     <None Include="..\shaders\leaves.rchit">
       <Filter>shaders</Filter>
     </None>
+    <None Include="..\assets\level1.dae">
+      <Filter>assets</Filter>
+    </None>
+    <None Include="..\assets\level2.dae">
+      <Filter>assets</Filter>
+    </None>
+    <None Include="..\assets\level3.dae">
+      <Filter>assets</Filter>
+    </None>
+    <None Include="..\assets\level4.dae">
+      <Filter>assets</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="cg_stdafx.cpp">

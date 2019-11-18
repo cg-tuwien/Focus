@@ -13,7 +13,7 @@ public: // v== cgb::cg_element overrides which will be invoked by the framework 
 		mInitTime = std::chrono::high_resolution_clock::now();
 
 		level = 1;
-		mScene = fscene::load_scene("assets/level01c.dae", "assets/anothersimplechar2.dae");
+		mScene = fscene::load_scene("assets/level1.dae", "assets/anothersimplechar2.dae");
 		mRenderer.set_scene(mScene.get());
 		mLevelLogic = std::make_unique<flevel1logic>(mScene.get());
 		mRenderer.set_level_logic(mLevelLogic.get());
@@ -25,8 +25,8 @@ public: // v== cgb::cg_element overrides which will be invoked by the framework 
 		cgb::input().set_cursor_disabled(true);
 	}
 
-	int32_t priority() const override {
-		return 5;
+	int32_t execution_order() const override {
+		return 1;
 	}
 
 	void update() override
@@ -123,18 +123,17 @@ private: // v== Member variables ==v
 	}
 
 	void next_level() {
-		level = 3; //ToDo: Remove This
 		switch (level) {
 			case 1: {
-				switch_level<flevel2logic>("assets/level02a.dae");
+				switch_level<flevel2logic>("assets/level2.dae");
 				break;
 			}
 			case 2: {
-				switch_level<flevel3logic>("assets/level03f.dae");
+				switch_level<flevel3logic>("assets/level3.dae");
 				break;
 			}
 			case 3: {
-				switch_level<flevel4logic>("assets/level04a.dae");
+				switch_level<flevel4logic>("assets/level4.dae");
 				break;
 			}
 			default: {

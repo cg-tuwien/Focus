@@ -10,44 +10,29 @@ void flevel1logic::initialize() {
 	initialCameraRot = scene->get_camera().rotation();
 	physics = std::make_unique<fphysicscontroller>(scene);
 	player = std::make_unique<fplayercontrol>(physics.get(), scene, false, 1.5, (PxUserControllerHitReport*)this);
-
-	/*scene->materials[0].diffuseColor *= 2;
-	scene->materials[2].ambientColor = glm::vec3(0.4f);
-	scene->materials[3].ambientColor = glm::vec3(0.4f);*/
-
-	std::vector<std::string> walls = {
-		//"Wall1", "Wall2", "Wall3", "Wall4", "Wall6", "Wall7", "Wall8"
-		"Plane.010", "Plane.002", "Plane.006", "Plane.005", "Plane.008", "Plane.009", "Plane.007"
-	};
-
-	std::vector<std::string> floors = {
-		//"Floor1", "Floor2", "Floor3", "Floor4", "Floor5", "Floor6", "Floor7", "Floor8", "Floor9", "Floor10"
-		"Cube.001", "Cube.000", "Cube.003", "Cylinder.002", "Cube.005", "Cube.006", "Cube.011", "Cube.012", "Cube.013", "Cube.002"
-	};
-	int i = 0;
-	for (const std::string& name : walls) {
-		auto instance = scene->get_model_by_name(name);
+	
+	for (int i = 1; i <= 7; ++i) {
+		auto instance = scene->get_model_by_name("Wall" + std::to_string(i));
 		physics->create_rigid_static_for_scaled_plane(instance);
 	}
-	for (const std::string& name : floors) {
-		auto instance = scene->get_model_by_name(name);
-		auto moving = i >= 6 && i <= 8;
+	for (int i = 1; i <= 10; ++i) {
+		auto instance = scene->get_model_by_name("Floor" + std::to_string(i));
+		auto moving = i >= 7 && i <= 9;
 		auto actor = physics->create_rigid_static_for_scaled_unit_box(instance, moving);
 		if (moving) {
-			movingFloors[i - 6] = actor;
+			movingFloors[i - 7] = actor;
 		}
-		++i;
 	}
 
-	auto finalRegionRes = scene->get_model_by_name("Cube.015");
+	auto finalRegionRes = scene->get_model_by_name("FinalFloor");
 	finalRegionActor = physics->create_rigid_static_for_scaled_unit_box(finalRegionRes, true);
 	player->set_final_region(finalRegionActor);
-	////finalRegionInstance->shaderOffset = 2;
-	////finalRegionInstance->opaque = false;
 
 	sphereInstance = scene->get_model_by_name("Sphere");
-	auto mirrorBorderInstance = scene->get_model_by_name("Cube");//MirrorBorder1
-	auto mirrorPlaneInstance = scene->get_model_by_name("Plane");//MirrorPlane1
+	auto mirrorBorderInstance = scene->get_model_by_name("MirrorBorder");
+	auto mirrorPlaneInstance = scene->get_model_by_name("MirrorPlane");
+
+	//scene->get_material_data(sphereInstance->mMaterialIndex).mDiffuseReflectivity *= 2;
 
 	mirrorBorderActor = physics->create_rigid_static_for_scaled_unit_box(mirrorBorderInstance, true);
 	mirrorPlaneActor = physics->create_rigid_static_for_scaled_plane(mirrorPlaneInstance, true);

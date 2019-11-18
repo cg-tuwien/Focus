@@ -26,8 +26,8 @@ public:
 	void set_fade_value(float val) { fadeValue = val; }
 
 
-	int32_t priority() const override {
-		return 2;
+	int32_t execution_order() const override {
+		return 4;
 	}
 
 	void set_scene(fscene* scene);

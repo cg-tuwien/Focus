@@ -140,7 +140,7 @@ public:
 
 	void update() override;
 
-	int32_t priority() const override {
+	int32_t execution_order() const override {
 		return 3;
 	}
 

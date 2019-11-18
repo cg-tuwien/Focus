@@ -45,8 +45,8 @@ public:
 		this->focushitvalue = val;
 	}
 
-	int32_t priority() const override {
-		return 4;
+	int32_t execution_order() const override {
+		return 2;
 	}
 
 protected:

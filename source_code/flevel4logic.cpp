@@ -11,30 +11,21 @@ void flevel4logic::initialize() {
 	physics = std::make_unique<fphysicscontroller>(scene);
 	player = std::make_unique<fplayercontrol>(physics.get(), scene, false, 1.5, (PxUserControllerHitReport*)this);
 
-	scene->get_material_data(0).mDiffuseReflectivity *= 2;
-	scene->get_material_data(2).mAmbientReflectivity = glm::vec4(0.4f);
-	scene->get_material_data(3).mAmbientReflectivity = glm::vec4(0.4f);
-
-	std::vector<std::string> solids = {
-		"Cube.001", "Cube.002", "Cube.003", "Cube.004"
-	};
-	int i = 0;
-	for (const std::string& name : solids) {
-		auto instance = scene->get_model_by_name(name);
-		platformActors[i] = physics->create_rigid_static_for_scaled_unit_box(instance, true);
-		++i;
+	for (int i = 1; i <= 4; ++i) {
+		auto instance = scene->get_model_by_name("Platform" + std::to_string(i));
+		platformActors[i - 1] = physics->create_rigid_static_for_scaled_unit_box(instance, true);
 	}
 
-	auto finalRegionInstance = scene->get_model_by_name("Cube.000");
+	auto finalRegionInstance = scene->get_model_by_name("FinalRegion");
 	finalRegionActor = physics->create_rigid_static_for_scaled_unit_box(finalRegionInstance, true);
 	player->set_final_region(finalRegionActor);
 
 	sphereInstance = scene->get_model_by_name("Sphere");
-	auto mirrorBorder1Instance = scene->get_model_by_name("Cube.005");
-	auto mirrorPlane1Instance = scene->get_model_by_name("Plane.001");
-	auto mirrorBorder2Instance = scene->get_model_by_name("Cube.006");
-	auto mirrorPlane2Instance = scene->get_model_by_name("Plane.004");
-	auto groundFloorInstance = scene->get_model_by_name("Plane");
+	auto mirrorBorder1Instance = scene->get_model_by_name("MirrorBorder1");
+	auto mirrorPlane1Instance = scene->get_model_by_name("MirrorPlane1");
+	auto mirrorBorder2Instance = scene->get_model_by_name("MirrorBorder2");
+	auto mirrorPlane2Instance = scene->get_model_by_name("MirrorPlane2");
+	auto groundFloorInstance = scene->get_model_by_name("GroundFloor");
 	auto leavesInstance = scene->get_model_by_name("g2");
 	leavesInstance->mLeave = true;
 

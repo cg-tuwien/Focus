@@ -15,7 +15,7 @@ void flevel3logic::initialize() {
 
 	//---- CREATE RIGID BODIES ----
 	std::vector<std::string> floornames = {
-		"Cube.005", "Cube.001", "Cube.000"
+		"Floor1", "Floor2", "FinalFloor"
 	};
 
 	//Floors
@@ -24,18 +24,17 @@ void flevel3logic::initialize() {
 		auto actor = physics->create_rigid_static_for_scaled_unit_box(instance, (i == 2));
 		if (i == 2) {
 			movingFloorActor = actor;
-			//movingFloorInstance = floorInstance;
 			player->set_final_region(movingFloorActor);
 		}
 	}
 
 	//Wall
-	auto wallX = scene->get_model_by_name("Cube.002");
+	auto wallX = scene->get_model_by_name("WallX");
 	physics->create_rigid_static_for_scaled_unit_box(wallX);
 
 	//DoorWalls
 	std::vector<std::string> doorwalls = {
-		"Plane.005", "Plane.003"
+		"DoorP1", "DoorP2"
 	};
 	for (const std::string& name : doorwalls) {
 		auto instance = scene->get_model_by_name(name);
@@ -64,8 +63,8 @@ void flevel3logic::initialize() {
 
 
 	//Mirror
-	auto mirrorBorderInstance = scene->get_model_by_name("Cube");//MirrorBorder1
-	auto mirrorPlaneInstance = scene->get_model_by_name("Plane");//MirrorPlane1
+	auto mirrorBorderInstance = scene->get_model_by_name("MirrorBorder1");
+	auto mirrorPlaneInstance = scene->get_model_by_name("MirrorPlane1");
 	mirrorBorderActor = physics->create_rigid_static_for_scaled_unit_box(mirrorBorderInstance, true);
 	mirrorPlaneActor = physics->create_rigid_static_for_scaled_plane(mirrorPlaneInstance, true);
 	player->add_mirror({ mirrorBorderActor, mirrorPlaneActor }, 14.75f);
@@ -74,10 +73,8 @@ void flevel3logic::initialize() {
 	mirrorBorderOriginalTransform = mirrorBorderActor->getGlobalPose();
 
 	//Rotating Wall
-	auto movingWallInstance = scene->get_model_by_name("Cube.009");
+	auto movingWallInstance = scene->get_model_by_name("RotWall");
 
-	//rotWallOriginalTransformation = rotWallInstance->transform;
-	//rotWallPosition = rotWallInstance->transform * glm::vec4(0, 0, 0, 1);
 	movingWallActor = physics->create_rigid_static_for_scaled_unit_box(movingWallInstance, true);
 	movingWallPxOriginalTransformation = movingWallActor->getGlobalPose();
 
