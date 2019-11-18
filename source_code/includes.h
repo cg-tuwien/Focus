@@ -14,3 +14,4 @@
 #include "flevel3logic.h"
 #include "flevel4logic.h"
 #include "frenderer.h"
+#include "fgamecontrol.h"

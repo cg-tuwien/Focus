@@ -67,6 +67,7 @@
     <ClInclude Include="cg_targetver.hpp" />
     <ClInclude Include="..\source_code\fscene.h" />
     <ClInclude Include="..\source_code\hsvinterpolator.h" />
+    <ClInclude Include="..\source_code\fgamecontrol.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\assets\anothersimplechar2.dae" />
