@@ -1,3 +1,4 @@
+//Author: Simon Fraiss
 #pragma once
 #include "includes.h"
 
@@ -10,7 +11,8 @@ public:
 };
 
 /*
-Management of PhysX-classes. Has functions for creation of rigidbodies for boxes und planes
+Management of PhysX-classes. Has functions for creation of rigidbodies.
+Can be used by level logic classes to use physics.
 */
 class fphysicscontroller {
 public:
@@ -26,11 +28,18 @@ public:
 	PxDefaultAllocator gDefaultAllocatorCallback;
 	PxMaterial* mDefaultMaterial;
 
+	//Initializes PhysX
 	fphysicscontroller(fscene* scene);
 
+	//Should be called every fixed time step
 	void update(const float& stepSize);
 
+	//Creates an actor for a box with corner vertices +-1/+-1/+-1, and a linear transformation
+	//set dynamic to true if changes of the transform of the actor should be applied to the model
 	PxRigidStatic* create_rigid_static_for_scaled_unit_box(fmodel* model, bool dynamic = false);
+
+	//Creates an actor for a plane with corner vertices +-1/+-1/0, and a linear transformation
+	//set dynamic to true if changes of the transform of the actor should be applied to the model
 	PxRigidStatic* create_rigid_static_for_scaled_plane(fmodel* model, bool dynamic = false);
 
 	void cleanup();

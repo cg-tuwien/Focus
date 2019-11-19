@@ -116,6 +116,7 @@
     <ClCompile Include="..\source_code\flevel3logic.cpp" />
     <ClCompile Include="..\source_code\flevel4logic.cpp" />
     <ClCompile Include="..\source_code\focus_rt.cpp" />
+    <ClCompile Include="..\source_code\fgamecontrol.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="cg_stdafx.hpp">

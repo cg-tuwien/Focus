@@ -1,6 +1,8 @@
+//Author: Simon Fraiss
 #pragma once
 #include "includes.h"
 
+//Level Logic for Focus! Level 1
 class flevel1logic : public flevellogic, public PxUserControllerHitReport {
 public:
 
@@ -22,22 +24,23 @@ public:
 		physics->cleanup();
 	}
 
+	//PxUserControllerHitReport-Callbacks
 	void onShapeHit(const PxControllerShapeHit& hit) override;
 	void onControllerHit(const PxControllersHit& hit) override {};
 	void onObstacleHit(const PxControllerObstacleHit& hit) override {};
 
 private:
-	hsvinterpolator interpolator;
-	float accTime = 0;
-	glm::vec3 initialCameraPos;
-	glm::quat initialCameraRot;
-	std::unique_ptr<fphysicscontroller> physics;
-	std::unique_ptr<fplayercontrol> player;
-	fmodel* sphereInstance;
-	PxRigidStatic* mirrorBorderActor;
-	PxRigidStatic* mirrorPlaneActor;
-	PxRigidStatic* movingFloors[3];
-	PxRigidStatic* finalRegionActor;
-	double score = 0;
-	bool onPlatform[4] = { false, false, false, false };
+	std::unique_ptr<fphysicscontroller> physics;			//Physics controller
+	std::unique_ptr<fplayercontrol> player;					//Player controller
+	hsvinterpolator interpolator;							//Interpolator for background interpolation
+	glm::vec3 initialCameraPos;								//Initial camera position
+	glm::quat initialCameraRot;								//Initial camera rotation
+	fmodel* sphereInstance;									//Focusphere model data
+	PxRigidStatic* mirrorBorderActor;						//Actor for mirror border
+	PxRigidStatic* mirrorPlaneActor;						//Actor for mirror plane
+	PxRigidStatic* movingFloors[3];							//Actors for moving floors (except goal floor)
+	PxRigidStatic* finalRegionActor;						//Actor for goal floor
+	float accTime = 0;										//Accumulated time since start
+	double score = 0;										//Current score
+	bool onPlatform[4] = { false, false, false, false };	//Whether the player touches a platform
 };

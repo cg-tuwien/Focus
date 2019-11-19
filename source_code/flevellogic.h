@@ -1,75 +1,87 @@
+//Author: Simon Fraiss
 #pragma once
 #include "includes.h"
-
 
 enum class levelstatus {
 	RUNNING, WON, LOST
 };
 
 /*
-Level Logic of a scene. Responsible for animations and player controls
+This class resembles the logic of a specific level and is responsible for animations and player controls.
 */
 class flevellogic : public cgb::cg_element {
 public:
 
-	//Please write a new level_path-function in your subclass
+	//Please write a new level_path-function in your subclass!
+	//Returns the path to the corresponding level file.
 	static std::string level_path() {
 		throw new std::runtime_error("No level path given!");
 	}
 
 	flevellogic(fscene* scene) {
-		this->scene = scene;
+		this->mScene = scene;
 	}
 
+	//--------------------------
+	//---Overridden functions---
 	//make sure to override initialize and finalize!
+	//if you want to override update and fixed_udpate, please override the corresponding protected functions.
 
-	//Returns true iff the player won the level
-	virtual void update() override { 
-		if (!levelpaused) {
-			status = update(cgb::time().delta_time(), focushitvalue);
+	void update() override { 
+		if (!mLevelPaused) {
+			mStatus = update(cgb::time().delta_time(), mFocusHitValue);
 		}
 	}
 
-	virtual void fixed_update() override {
-		if (!levelpaused) {
+	void fixed_update() override {
+		if (!mLevelPaused) {
 			fixed_update(cgb::time().fixed_delta_time());
 		}
 	};
 
-	levelstatus level_status() {
-		return status;
-	}
-
-	//Resets to initial state
-	virtual void reset() {};
-
-	void set_paused(bool paused) {
-		this->levelpaused = paused;
-	}
-
-	void set_focus_hit_value(double val) {
-		this->focushitvalue = val;
-	}
-
+	//Execution order per frame: Game Control, Level Logic, Scene, Renderer
 	int32_t execution_order() const override {
 		return 2;
 	}
 
-protected:
-	fscene* scene;
+	//--------------------------
+	//--------------------------
 
-	double getTimestamp() {
-		return glfwGetTime();
+	//Returns the current level status (running/won/lost)
+	levelstatus level_status() {
+		return mStatus;
 	}
 
-	virtual levelstatus update(float deltaT, double focusHitCount) {
+	//Resets to initial state.
+	//May be overriden in subclass! Default implementation is empty.
+	virtual void reset() {};
+
+	//Pauses or unpauses the level.
+	void set_paused(bool paused) {
+		this->mLevelPaused = paused;
+	}
+
+	//Sets the current Focus Hit Value (sphere-visibility-score).
+	//This is managed by the renderer, which fetches this value from the gpu.
+	void set_focus_hit_value(double val) {
+		this->mFocusHitValue = val;
+	}
+
+protected:
+	fscene* mScene;
+
+	//Overrideable update-function. Called every frame. Returns the current level status.
+	//Delta Time and current Focus Hit Value are passed automatically.
+	virtual levelstatus update(float deltaT, double focusHitValue) {
 		return levelstatus::RUNNING;
 	}
 
+	//Overrideable fixed_update-function. Called in regular time steps. Used for physics updates.
+	//Step Size is passed automatically.
 	virtual void fixed_update(float stepSize) {};
 
 private:
-	levelstatus status = levelstatus::RUNNING;
-	bool levelpaused = false;
-	double focushitvalue = 0;
+	levelstatus mStatus = levelstatus::RUNNING;
+	bool mLevelPaused = false;
+	double mFocusHitValue = 0;
 };

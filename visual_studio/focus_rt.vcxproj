@@ -32,6 +32,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\source_code\fgamecontrol.cpp" />
     <ClCompile Include="..\source_code\flevel1logic.cpp" />
     <ClCompile Include="..\source_code\flevel2logic.cpp" />
     <ClCompile Include="..\source_code\flevel3logic.cpp" />

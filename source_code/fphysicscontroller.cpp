@@ -1,3 +1,4 @@
+//Author: Simon Fraiss
 #include "includes.h"
 
 fphysicscontroller::fphysicscontroller(fscene* scene) {

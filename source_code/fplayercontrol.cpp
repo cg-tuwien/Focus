@@ -1,3 +1,4 @@
+//Author: Simon Fraiss
 #include "includes.h"
 #define _USE_MATH_DEFINES
 #include <Math.h>

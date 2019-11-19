@@ -1,5 +1,10 @@
+//Author: Simon Fraiss
 #include "includes.h"
 
+/*
+Main-Function, Starting point of the application.
+Initializes the application.
+*/
 int main() // <== Starting point ==
 {
 	try {
@@ -18,29 +23,25 @@ int main() // <== Starting point ==
 		mainWnd->set_additional_back_buffer_attachments({ cgb::attachment::create_depth(cgb::image_format::default_depth_format()) });
 		mainWnd->open();
 
-		// Create an instance of vertex_buffers_app which, in this case,
-		// contains the entire functionality of our application. 
+		// Create an instance of fgamecontrol, which in turn will create the other cg_elements for our composition
 		auto control = fgamecontrol();
 
-		// Create a composition of:
-		//  - a timer
-		//  - an executor
-		//  - a behavior
-		// ...
-		auto hello = cgb::composition<cgb::varying_update_timer, cgb::sequential_executor>({
+		// Create a composition of game control, level logic, scene and renderer.
+		// These objects have their own initialize, update, fixed_update, render and finalize functions 
+		// which will be called automatically by cgbase.
+		auto hello = cgb::composition<cgb::fixed_update_timer, cgb::sequential_executor>({
 				&control,
 				control.get_level_logic(),
 				control.get_scene(),
 				control.get_renderer()
 			});
 
-		// ... and start that composition!
+		// Start the composition.
 		hello.start();
 	}
 	catch (std::runtime_error & re)
 	{
 		LOG_ERROR_EM(re.what());
-		//throw re;
 	}
 }
 

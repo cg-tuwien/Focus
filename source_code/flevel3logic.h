@@ -1,3 +1,4 @@
+//Author: Simon Fraiss
 #pragma once
 #include "includes.h"
 
@@ -22,26 +23,27 @@ public:
 		physics->cleanup();
 	}
 
+	//PxUserControllerHitReport-Callbacks
 	void onShapeHit(const PxControllerShapeHit& hit) override;
 	void onControllerHit(const PxControllersHit& hit) override {};
 	void onObstacleHit(const PxControllerObstacleHit& hit) override {};
 
 private:
-	hsvinterpolator interpolator;
-	glm::vec3 initialCameraPos;
-	glm::quat initialCameraRot;
-	std::unique_ptr<fphysicscontroller> physics;
-	std::unique_ptr<fplayercontrol> player;
-	fmodel* sphereInstance;
-	PxRigidStatic* mirrorBorderActor;
-	PxRigidStatic* mirrorPlaneActor;
-	PxRigidStatic* movingFloorActor;
-	PxRigidStatic* movingWallActor;
-	PxTransform movingWallPxOriginalTransformation;
-	PxTransform mirrorPlaneOriginalTransform;
-	PxTransform mirrorBorderOriginalTransform;
-	double score = 0;
-	bool onPlatform = false;
-	bool platformMoving = false;
-	float platformAccTime = 0;
+	std::unique_ptr<fphysicscontroller> physics;		//Physics controller
+	std::unique_ptr<fplayercontrol> player;				//Player controller
+	hsvinterpolator interpolator;						//Interpolator for background interpolation
+	glm::vec3 initialCameraPos;							//Initial camera position
+	glm::quat initialCameraRot;							//Initial camera rotation
+	fmodel* sphereInstance;								//Focusphere model data
+	PxRigidStatic* mirrorBorderActor;					//Actor for moveable mirror border
+	PxRigidStatic* mirrorPlaneActor;					//Actor for moveable mirror plane
+	PxRigidStatic* movingFloorActor;					//Actor for moving goal floor
+	PxRigidStatic* movingWallActor;						//Actor for moving wall
+	PxTransform movingWallPxOriginalTransformation;		//Initial transformation of moving wall actor
+	PxTransform mirrorPlaneOriginalTransform;			//Initial transformation of moveable mirror plane
+	PxTransform mirrorBorderOriginalTransform;			//Initial transformation of moveable mirror border
+	bool onPlatform = false;							//Whether the player touches the goal paltform
+	bool platformMoving = false;						//Whether the goal platform is in motion
+	float platformAccTime = 0;							//Time since start of platform movement
+	double score = 0;									//Current score
 };

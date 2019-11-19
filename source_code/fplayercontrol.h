@@ -1,3 +1,4 @@
+//Author: Simon Fraiss
 #pragma once
 #include "includes.h"
 
@@ -5,7 +6,8 @@
 #define WALK_SPEED 0.075f
 
 /*
-Control for Player. Responsible for player and mirror movements
+Control for Player. Implements the player and mirror movements.
+Can be used by the level logic objects.
 */
 class fplayercontrol : private PxUserControllerHitReport {
 private:
@@ -33,6 +35,15 @@ private:
 	int raycastMirror();
 
 public:
+	/*
+	Constructor.
+	Parameters:
+	physics: Physics Controller to use
+	scene: Scene Object
+	fly: If flymode should be activated or not (default: false)
+	eyehight: How high above the ground the camera should be (default: 1.0)
+	callback: Callback to call when character touches something
+	*/
 	fplayercontrol(fphysicscontroller* physics, fscene* scene, bool fly = false, float eyeheight = 1.0, PxUserControllerHitReport* callback = nullptr);
 
 	void pre_px_update(float deltaT);

@@ -1,22 +1,26 @@
+//Author: Simon Fraiss
 #include "includes.h"
-#include "flevel1logic.h"
 
 flevel1logic::flevel1logic(fscene* scene) : flevellogic(scene) {
 	
 }
 
 void flevel1logic::initialize() {
-	initialCameraPos = scene->get_camera().translation();
-	initialCameraRot = scene->get_camera().rotation();
-	physics = std::make_unique<fphysicscontroller>(scene);
-	player = std::make_unique<fplayercontrol>(physics.get(), scene, false, 1.5, (PxUserControllerHitReport*)this);
+	//---SAVE INITIAL CAMERA DATA FOR LEVEL RESET---
+	initialCameraPos = mScene->get_camera().translation();
+	initialCameraRot = mScene->get_camera().rotation();
+
+	//---CREATE PHYSICS AND PLAYER CONTROLLER---
+	physics = std::make_unique<fphysicscontroller>(mScene);
+	player = std::make_unique<fplayercontrol>(physics.get(), mScene, false, 1.5, (PxUserControllerHitReport*)this);
 	
+	//---CREATE ACTORS FOR MODELS---
 	for (int i = 1; i <= 7; ++i) {
-		auto instance = scene->get_model_by_name("Wall" + std::to_string(i));
+		auto instance = mScene->get_model_by_name("Wall" + std::to_string(i));
 		physics->create_rigid_static_for_scaled_plane(instance);
 	}
 	for (int i = 1; i <= 10; ++i) {
-		auto instance = scene->get_model_by_name("Floor" + std::to_string(i));
+		auto instance = mScene->get_model_by_name("Floor" + std::to_string(i));
 		auto moving = i >= 7 && i <= 9;
 		auto actor = physics->create_rigid_static_for_scaled_unit_box(instance, moving);
 		if (moving) {
@@ -24,24 +28,26 @@ void flevel1logic::initialize() {
 		}
 	}
 
-	auto finalRegionRes = scene->get_model_by_name("FinalFloor");
+	auto finalRegionRes = mScene->get_model_by_name("FinalFloor");
 	finalRegionActor = physics->create_rigid_static_for_scaled_unit_box(finalRegionRes, true);
 	player->set_final_region(finalRegionActor);
 
-	sphereInstance = scene->get_model_by_name("Sphere");
-	auto mirrorBorderInstance = scene->get_model_by_name("MirrorBorder");
-	auto mirrorPlaneInstance = scene->get_model_by_name("MirrorPlane");
+	sphereInstance = mScene->get_model_by_name("Sphere");
+	auto mirrorBorderInstance = mScene->get_model_by_name("MirrorBorder");
+	auto mirrorPlaneInstance = mScene->get_model_by_name("MirrorPlane");
 
 	mirrorBorderActor = physics->create_rigid_static_for_scaled_unit_box(mirrorBorderInstance, true);
 	mirrorPlaneActor = physics->create_rigid_static_for_scaled_plane(mirrorPlaneInstance, true);
 	player->add_mirror({ mirrorBorderActor, mirrorPlaneActor });
 
+	//---INITIALIZE HSV INTERPOLATOR---
 	interpolator.add_sample(0, glm::vec3(47, 0, 0.3));
 	interpolator.add_sample(1, glm::vec3(60, 1, 1));
 }
 
 levelstatus flevel1logic::update(float deltaT, double focusHitValue)
 {
+	//---UPDATE SCORE AND LEVEL STATUS---
 	if (score > 2.0f) {
 		return levelstatus::WON;
 	}
@@ -52,10 +58,10 @@ levelstatus flevel1logic::update(float deltaT, double focusHitValue)
 		score = glm::min(score + deltaT * 0.1, 1.0);
 	}
 
-	scene->set_background_color(interpolator.interpolate(score));
+	mScene->set_background_color(interpolator.interpolate(score));
 	if (score >= 0.99 && player->on_final_region()) {
-		scene->get_material_data(sphereInstance->mMaterialIndex).mDiffuseReflectivity = glm::vec4(1.0f);
-		scene->set_background_color(glm::vec4(1, 1, 0.5, 1));
+		mScene->get_material_data(sphereInstance->mMaterialIndex).mDiffuseReflectivity = glm::vec4(1.0f);
+		mScene->set_background_color(glm::vec4(1, 1, 0.5, 1));
 		score = 100.0f;
 		return levelstatus::WON;
 	}
@@ -73,6 +79,7 @@ levelstatus flevel1logic::update(float deltaT, double focusHitValue)
 
 void flevel1logic::fixed_update(float stepSize)
 {
+	//---ANIMATE PLATTFORMS---
 	accTime += stepSize;
 	float xA = -(22 + 1.5 * cos(2 * accTime));
 	float xB = -(22 - 1.5 * cos(2 * accTime));
@@ -90,10 +97,13 @@ void flevel1logic::fixed_update(float stepSize)
 	oldpose[3] = finalRegionActor->getGlobalPose();
 	newpose[3] = PxTransform(PxVec3(xB, oldpose[3].p.y, oldpose[3].p.z), oldpose[3].q);
 	finalRegionActor->setGlobalPose(newpose[3]);
+
+	//---UPDATE PHYSICS AND PLAYER---
 	player->pre_px_update(stepSize);
 	physics->update(stepSize);
 	player->post_px_update(stepSize);
 
+	//If the player stands on a platform, he has to be moved as well
 	for (int i = 0; i < 4; ++i) {
 		if (onPlatform[i]) {
 			PxVec3 diffvec = newpose[i].p - oldpose[i].p;
@@ -106,9 +116,10 @@ void flevel1logic::fixed_update(float stepSize)
 
 void flevel1logic::reset()
 {
+	//---RESET TO INITIAL DATA---
 	accTime = 0;
-	scene->get_camera().set_rotation(initialCameraRot);
-	scene->get_camera().set_translation(initialCameraPos);
+	mScene->get_camera().set_rotation(initialCameraRot);
+	mScene->get_camera().set_translation(initialCameraPos);
 	player->update_position();
 	player->reset_mirrors();
 	score = 0;

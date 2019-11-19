@@ -1,3 +1,4 @@
+//Author: Simon Fraiss
 #pragma once
 #include "includes.h"
 
@@ -22,28 +23,28 @@ public:
 		physics->cleanup();
 	}
 
+	//PxUserControllerHitReport-Callbacks
 	void onShapeHit(const PxControllerShapeHit& hit) override;
 	void onControllerHit(const PxControllersHit& hit) override {};
 	void onObstacleHit(const PxControllerObstacleHit& hit) override {};
 
 private:
-	hsvinterpolator interpolator;
-	glm::vec3 initialCameraPos;
-	glm::quat initialCameraRot;
-	std::unique_ptr<fphysicscontroller> physics;
-	std::unique_ptr<fplayercontrol> player;
-	fmodel* sphereInstance;
-	PxRigidStatic* mirrorBorder1Actor;
-	PxTransform mirrorBorder1OriginalTransform;
-	PxRigidStatic* mirrorPlane1Actor;
-	PxTransform mirrorPlane1OriginalTransform;
-	PxRigidStatic* mirrorBorder2Actor;
-	PxTransform mirrorBorder2OriginalTransform;
-	PxRigidStatic* mirrorPlane2Actor;
-	PxTransform mirrorPlane2OriginalTransform;
-	PxRigidStatic* platformActors[4];
-	PxRigidStatic* finalRegionActor;
-	bool onPlatform[4] = { false, false, false, false };
-	double score = 0;
-	float accTime = 0;
+	std::unique_ptr<fphysicscontroller> physics;			//Physics controller
+	std::unique_ptr<fplayercontrol> player;					//Player controller
+	glm::vec3 initialCameraPos;								//Initial camera position
+	glm::quat initialCameraRot;								//Initial camera rotation
+	fmodel* sphereInstance;									//Focusphere model data
+	PxRigidStatic* mirrorBorder1Actor;						//Actor for mirror 1 border
+	PxTransform mirrorBorder1OriginalTransform;				//Original transformation of mirror 1 border
+	PxRigidStatic* mirrorPlane1Actor;						//Actor for mirror 1 plane
+	PxTransform mirrorPlane1OriginalTransform;				//Original transformation of mirror 1 plane
+	PxRigidStatic* mirrorBorder2Actor;						//Actor for mirror 2 border
+	PxTransform mirrorBorder2OriginalTransform;				//Original transformation of mirror 2 border
+	PxRigidStatic* mirrorPlane2Actor;						//Actor for mirror 2 plane
+	PxTransform mirrorPlane2OriginalTransform;				//Original transformation of mirror 2 plane
+	PxRigidStatic* platformActors[4];						//Actors for moving platforms
+	PxRigidStatic* finalRegionActor;						//Actor for goal platform
+	bool onPlatform[4] = { false, false, false, false };	//Whether the player touches a platform
+	float accTime = 0;										//Accumulated time since start
+	double score = 0;										//Current score
 };

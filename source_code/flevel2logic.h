@@ -1,6 +1,8 @@
+//Author: Simon Fraiss
 #pragma once
 #include "includes.h"
 
+//Level Logic for Focus! Level 2
 class flevel2logic : public flevellogic {
 public:
 
@@ -23,19 +25,19 @@ public:
 	}
 
 private:
-	hsvinterpolator interpolator;
-	float accTime = 0;
-	glm::vec3 initialCameraPos;
-	glm::quat initialCameraRot;
-	std::unique_ptr<fphysicscontroller> physics;
-	std::unique_ptr<fplayercontrol> player;
-	fmodel* sphereInstance;
-	PxRigidStatic* mirrorBorderActor;
-	PxRigidStatic* mirrorPlaneActor;
-	PxRigidStatic* finalFloorActor;
-	PxRigidStatic* movingWallActor;
-	PxRigidStatic* finalRegionActor;
-	float wallMovingRightStart = -1.0f;
-	float wallMovingLeftStart = -1.0f;
-	double score = 0;
+	std::unique_ptr<fphysicscontroller> physics;		//Physics controller
+	std::unique_ptr<fplayercontrol> player;				//Player controller
+	hsvinterpolator interpolator;						//Interpolator for background interpolation
+	glm::vec3 initialCameraPos;							//Initial camera position
+	glm::quat initialCameraRot;							//Initial camera rotation
+	fmodel* sphereInstance;								//Focusphere model data
+	PxRigidStatic* mirrorBorderActor;					//Actor for mirror border
+	PxRigidStatic* mirrorPlaneActor;					//Actor for mirror plane
+	PxRigidStatic* movingWallActor;						//Actor for moving wall
+	PxRigidStatic* finalFloorActor;						//Actor for last floor contianing the goal floor
+	PxRigidStatic* finalRegionActor;					//Actor for goal floor
+	float wallMovingRightStart = -1.0f;					//Used for animating the wall
+	float wallMovingLeftStart = -1.0f;					//Used for animating the wall
+	float accTime = 0;									//Accumulated time since start
+	double score = 0;									//Current score
 };

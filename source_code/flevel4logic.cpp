@@ -1,36 +1,39 @@
+//Author: Simon Fraiss
 #include "includes.h"
 
 flevel4logic::flevel4logic(fscene* scene) : flevellogic(scene) {
 }
 
 void flevel4logic::initialize() {
-	initialCameraPos = scene->get_camera().translation();
-	initialCameraRot = scene->get_camera().rotation();
+	//---SAVE INITIAL CAMERA DATA FOR LEVEL RESET---
+	initialCameraPos = mScene->get_camera().translation();
+	initialCameraRot = mScene->get_camera().rotation();
 
 	//---- CREATE PHYSICS AND PLAYER OBJECTS -----
-	physics = std::make_unique<fphysicscontroller>(scene);
-	player = std::make_unique<fplayercontrol>(physics.get(), scene, false, 1.5, (PxUserControllerHitReport*)this);
+	physics = std::make_unique<fphysicscontroller>(mScene);
+	player = std::make_unique<fplayercontrol>(physics.get(), mScene, false, 1.5, (PxUserControllerHitReport*)this);
 
+	//---CREATE ACTORS FOR MODELS---
 	for (int i = 1; i <= 4; ++i) {
-		auto instance = scene->get_model_by_name("Platform" + std::to_string(i));
+		auto instance = mScene->get_model_by_name("Platform" + std::to_string(i));
 		platformActors[i - 1] = physics->create_rigid_static_for_scaled_unit_box(instance, true);
 	}
 
-	auto finalRegionInstance = scene->get_model_by_name("FinalRegion");
+	auto finalRegionInstance = mScene->get_model_by_name("FinalRegion");
 	finalRegionActor = physics->create_rigid_static_for_scaled_unit_box(finalRegionInstance, true);
 	player->set_final_region(finalRegionActor);
 
-	sphereInstance = scene->get_model_by_name("Sphere");
-	auto mirrorBorder1Instance = scene->get_model_by_name("MirrorBorder1");
-	auto mirrorPlane1Instance = scene->get_model_by_name("MirrorPlane1");
-	auto mirrorBorder2Instance = scene->get_model_by_name("MirrorBorder2");
-	auto mirrorPlane2Instance = scene->get_model_by_name("MirrorPlane2");
-	auto groundFloorInstance = scene->get_model_by_name("GroundFloor");
-	auto leavesInstance = scene->get_model_by_name("g2");
+	sphereInstance = mScene->get_model_by_name("Sphere");
+	auto mirrorBorder1Instance = mScene->get_model_by_name("MirrorBorder1");
+	auto mirrorPlane1Instance = mScene->get_model_by_name("MirrorPlane1");
+	auto mirrorBorder2Instance = mScene->get_model_by_name("MirrorBorder2");
+	auto mirrorPlane2Instance = mScene->get_model_by_name("MirrorPlane2");
+	auto groundFloorInstance = mScene->get_model_by_name("GroundFloor");
+	auto leavesInstance = mScene->get_model_by_name("g2");
 	//activate leave shader
 	leavesInstance->mLeave = true;
 	//brighten up leaves a bit
-	scene->get_material_data(leavesInstance->mMaterialIndex).mDiffuseReflectivity *= 3;
+	mScene->get_material_data(leavesInstance->mMaterialIndex).mDiffuseReflectivity *= 3;
 
 	physics->create_rigid_static_for_scaled_plane(groundFloorInstance, false);
 
@@ -49,6 +52,7 @@ void flevel4logic::initialize() {
 
 levelstatus flevel4logic::update(float deltaT, double focusHitValue)
 {
+	//---UPDATE SCORE AND LEVEL STATUS---
 	if (score > 2.0f) {
 		return levelstatus::WON;
 	}
@@ -59,10 +63,10 @@ levelstatus flevel4logic::update(float deltaT, double focusHitValue)
 		score = glm::min(score + deltaT * 0.1, 1.0);
 	}
 
-	scene->set_background_color(float(1 - score) * glm::vec3(0.5, 0.7, 0.75) + float(score) * glm::vec3(1, 1, 0));
+	mScene->set_background_color(float(1 - score) * glm::vec3(0.5, 0.7, 0.75) + float(score) * glm::vec3(1, 1, 0));
 	if ((score >= 0.99 && player->on_final_region())) {
-		scene->get_material_data(sphereInstance->mMaterialIndex).mDiffuseReflectivity = glm::vec4(1.0f);
-		scene->set_background_color(glm::vec4(1, 1, 0.5, 1));
+		mScene->get_material_data(sphereInstance->mMaterialIndex).mDiffuseReflectivity = glm::vec4(1.0f);
+		mScene->set_background_color(glm::vec4(1, 1, 0.5, 1));
 		score = 100.0f;
 		return levelstatus::WON;
 	}
@@ -80,6 +84,7 @@ levelstatus flevel4logic::update(float deltaT, double focusHitValue)
 
 void flevel4logic::fixed_update(float stepSize)
 {
+	//---ANIMATE PLATTFORMS---
 	accTime += stepSize;
 
 	float x[4];
@@ -100,7 +105,7 @@ void flevel4logic::fixed_update(float stepSize)
 		platformActors[i]->setGlobalPose(newpose[i]);
 	}
 	//Final Region
-	glm::vec3 camPos = scene->get_camera().translation();
+	glm::vec3 camPos = mScene->get_camera().translation();
 	oldpose[4] = finalRegionActor->getGlobalPose();
 	auto frMin = finalRegionActor->getWorldBounds().minimum;
 	auto frMax = finalRegionActor->getWorldBounds().maximum;
@@ -130,10 +135,12 @@ void flevel4logic::fixed_update(float stepSize)
 	mirrorPlane1Actor->setGlobalPose(newmirrorpose);
 	mirrorBorder1Actor->setGlobalPose(newmirrorpose);
 
+	//---UPDATE PHYSICS AND PLAYER---
 	player->pre_px_update(stepSize);
 	physics->update(stepSize);
 	player->post_px_update(stepSize);
 
+	//If the player stands on a platform, he has to be moved as well
 	for (int i = 0; i < 4; ++i) {
 		if (onPlatform[i]) {
 			PxVec3 diffvec = newpose[i].p - oldpose[i].p;
@@ -146,9 +153,10 @@ void flevel4logic::fixed_update(float stepSize)
 
 void flevel4logic::reset()
 {
+	//---RESET TO INITIAL DATA---
 	accTime = 0;
-	scene->get_camera().set_rotation(initialCameraRot);
-	scene->get_camera().set_translation(initialCameraPos); 
+	mScene->get_camera().set_rotation(initialCameraRot);
+	mScene->get_camera().set_translation(initialCameraPos); 
 	mirrorBorder1Actor->setGlobalPose(mirrorBorder1OriginalTransform);
 	mirrorPlane1Actor->setGlobalPose(mirrorPlane1OriginalTransform);
 	mirrorBorder2Actor->setGlobalPose(mirrorBorder2OriginalTransform);
