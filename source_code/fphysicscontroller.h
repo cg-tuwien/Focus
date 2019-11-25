@@ -31,7 +31,7 @@ public:
 	//Initializes PhysX
 	fphysicscontroller(fscene* scene);
 
-	//Should be called every fixed time step
+	//Should be called every fixed time step. Simulates physics and applies to dynamic rigid bodies
 	void update(const float& stepSize);
 
 	//Creates an actor for a box with corner vertices +-1/+-1/+-1, and a linear transformation

@@ -35,13 +35,9 @@ private:
 	glm::quat initialCameraRot;								//Initial camera rotation
 	fmodel* sphereInstance;									//Focusphere model data
 	PxRigidStatic* mirrorBorder1Actor;						//Actor for mirror 1 border
-	PxTransform mirrorBorder1OriginalTransform;				//Original transformation of mirror 1 border
 	PxRigidStatic* mirrorPlane1Actor;						//Actor for mirror 1 plane
-	PxTransform mirrorPlane1OriginalTransform;				//Original transformation of mirror 1 plane
 	PxRigidStatic* mirrorBorder2Actor;						//Actor for mirror 2 border
-	PxTransform mirrorBorder2OriginalTransform;				//Original transformation of mirror 2 border
 	PxRigidStatic* mirrorPlane2Actor;						//Actor for mirror 2 plane
-	PxTransform mirrorPlane2OriginalTransform;				//Original transformation of mirror 2 plane
 	PxRigidStatic* platformActors[4];						//Actors for moving platforms
 	PxRigidStatic* finalRegionActor;						//Actor for goal platform
 	bool onPlatform[4] = { false, false, false, false };	//Whether the player touches a platform

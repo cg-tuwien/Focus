@@ -40,8 +40,6 @@ private:
 	PxRigidStatic* movingFloorActor;					//Actor for moving goal floor
 	PxRigidStatic* movingWallActor;						//Actor for moving wall
 	PxTransform movingWallPxOriginalTransformation;		//Initial transformation of moving wall actor
-	PxTransform mirrorPlaneOriginalTransform;			//Initial transformation of moveable mirror plane
-	PxTransform mirrorBorderOriginalTransform;			//Initial transformation of moveable mirror border
 	bool onPlatform = false;							//Whether the player touches the goal paltform
 	bool platformMoving = false;						//Whether the goal platform is in motion
 	float platformAccTime = 0;							//Time since start of platform movement
