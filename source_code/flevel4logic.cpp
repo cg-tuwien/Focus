@@ -31,22 +31,18 @@ void flevel4logic::initialize() {
 	auto groundFloorInstance = mScene->get_model_by_name("GroundFloor");
 	auto leavesInstance = mScene->get_model_by_name("g2");
 	//activate leave shader
-	leavesInstance->mLeave = true;
+	leavesInstance->mLeaf = true;
 	//brighten up leaves a bit
 	mScene->get_material_data(leavesInstance->mMaterialIndex).mDiffuseReflectivity *= 3;
 
 	physics->create_rigid_static_for_scaled_plane(groundFloorInstance, false);
 
 	mirrorBorder1Actor = physics->create_rigid_static_for_scaled_unit_box(mirrorBorder1Instance, true);
-	mirrorBorder1OriginalTransform = mirrorBorder1Actor->getGlobalPose();
 	mirrorPlane1Actor = physics->create_rigid_static_for_scaled_plane(mirrorPlane1Instance, true);
-	mirrorPlane1OriginalTransform = mirrorPlane1Actor->getGlobalPose();
 	player->add_mirror({ mirrorBorder1Actor, mirrorPlane1Actor });
 
 	mirrorBorder2Actor = physics->create_rigid_static_for_scaled_unit_box(mirrorBorder2Instance, true);
-	mirrorBorder2OriginalTransform = mirrorBorder2Actor->getGlobalPose();
 	mirrorPlane2Actor = physics->create_rigid_static_for_scaled_plane(mirrorPlane2Instance, true);
-	mirrorPlane2OriginalTransform = mirrorPlane2Actor->getGlobalPose();
 	player->add_mirror({ mirrorBorder2Actor, mirrorPlane2Actor });
 }
 
@@ -157,10 +153,6 @@ void flevel4logic::reset()
 	accTime = 0;
 	mScene->get_camera().set_rotation(initialCameraRot);
 	mScene->get_camera().set_translation(initialCameraPos); 
-	mirrorBorder1Actor->setGlobalPose(mirrorBorder1OriginalTransform);
-	mirrorPlane1Actor->setGlobalPose(mirrorPlane1OriginalTransform);
-	mirrorBorder2Actor->setGlobalPose(mirrorBorder2OriginalTransform);
-	mirrorPlane2Actor->setGlobalPose(mirrorPlane2OriginalTransform);
 	player->update_position();
 	player->reset_mirrors();
 	score = 0;

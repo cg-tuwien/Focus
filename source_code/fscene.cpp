@@ -2,7 +2,6 @@
 
 void fscene::create_buffers_for_model(fmodel& newElement, std::vector<cgb::semaphore>& blasWaitSemaphores)
 {
-
 	//Create Buffers
 	auto positionsBuffer = cgb::create_and_fill(
 		cgb::vertex_buffer_meta::create_from_data(newElement.mPositions).describe_only_member(newElement.mPositions[0], 0, cgb::content_description::position),
@@ -271,7 +270,7 @@ void fscene::update()
 	int i = 0;
 	for (fmodel& model : mModels) {
 		mGeometryInstances[i].set_transform(model.mTransformation);
-		if (model.mLeave) {
+		if (model.mLeaf) {
 			model.mTransparent = true;
 			mGeometryInstances[i].set_instance_offset(4);
 		}

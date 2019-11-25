@@ -69,9 +69,6 @@ void flevel3logic::initialize() {
 	mirrorPlaneActor = physics->create_rigid_static_for_scaled_plane(mirrorPlaneInstance, true);
 	player->add_mirror({ mirrorBorderActor, mirrorPlaneActor }, 14.75f);
 
-	mirrorPlaneOriginalTransform = mirrorPlaneActor->getGlobalPose();
-	mirrorBorderOriginalTransform = mirrorBorderActor->getGlobalPose();
-
 	//Rotating Wall
 	auto movingWallInstance = mScene->get_model_by_name("RotWall");
 
@@ -173,8 +170,6 @@ void flevel3logic::reset()
 	platformMoving = false;
 	mScene->get_camera().set_rotation(initialCameraRot);
 	mScene->get_camera().set_translation(initialCameraPos);
-	mirrorBorderActor->setGlobalPose(mirrorBorderOriginalTransform);
-	mirrorPlaneActor->setGlobalPose(mirrorPlaneOriginalTransform);
 	player->update_position();
 	player->reset_mirrors();
 	score = 0;
