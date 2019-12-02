@@ -6,7 +6,7 @@ class flevel3logic : public flevellogic, private PxUserControllerHitReport {
 public:
 
 	static std::string level_path() {
-		return "assets/level3.dae";
+		return "assets/level3g.dae";
 	}
 
 	flevel3logic(fscene* scene);

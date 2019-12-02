@@ -64,6 +64,6 @@ void main()
 	float alpha = 1-clamp(tan((theta-M_PI/2)/1.2),0,1);
     vec3 backgrcolor = alpha*background.color.xyz;
 	vec3 color = exp(-pow(1.9*(theta-M_PI/2),2))*0.05*(perlin(phi, theta, 1) + perlin(phi, theta, 2) + perlin(phi, theta, 4)) + backgrcolor;
-	hitValue.color.rgb = hitValue.transparentColor[0].rgb + hitValue.transparentColor[1].rgb + color;
+	hitValue.color.rgb = clamp(pow(hitValue.transparentColor[0].rgb + hitValue.transparentColor[1].rgb + color, vec3(2.2)), vec3(0), vec3(1));
 	hitValue.various.y = hitValue.various.y | uint(hitValue.transparentDist[1] < 200);
 }

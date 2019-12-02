@@ -32,8 +32,6 @@ void flevel4logic::initialize() {
 	auto leavesInstance = mScene->get_model_by_name("g2");
 	//activate leave shader
 	leavesInstance->mLeaf = true;
-	//brighten up leaves a bit
-	mScene->get_material_data(leavesInstance->mMaterialIndex).mDiffuseReflectivity *= 3;
 
 	physics->create_rigid_static_for_scaled_plane(groundFloorInstance, false);
 

@@ -44,7 +44,7 @@ void flevel2logic::initialize() {
 	player->add_mirror({ mirrorBorderActor, mirrorPlaneActor });
 
 	//---INITIALIZE HSV INTERPOLATOR---
-	interpolator.add_sample(0, glm::vec3(47, 0, 0.3));
+	interpolator.add_sample(0, glm::vec3(47, 0, 0.5));
 	interpolator.add_sample(1, glm::vec3(60, 1, 1));
 }
 

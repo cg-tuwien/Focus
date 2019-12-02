@@ -100,6 +100,15 @@
     <None Include="..\assets\level4.dae">
       <Filter>assets</Filter>
     </None>
+    <None Include="..\assets\level1g.dae">
+      <Filter>assets</Filter>
+    </None>
+    <None Include="..\assets\level2g.dae">
+      <Filter>assets</Filter>
+    </None>
+    <None Include="..\assets\level3g.dae">
+      <Filter>assets</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="cg_stdafx.cpp">

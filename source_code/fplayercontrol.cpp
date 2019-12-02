@@ -93,7 +93,7 @@ void fplayercontrol::post_px_update(float deltaT) {
 		double deltaX = cgb::input().delta_cursor_position().x;
 		double deltaY = cgb::input().delta_cursor_position().y;
 		horizontalAngle += deltaX * MOUSE_SENTIVITY;
-		verticalAngle = glm::max(glm::min(verticalAngle + deltaY * 0.005, M_PI / 2 - 0.01), -M_PI / 2 + 0.01);
+		verticalAngle = glm::max(glm::min(verticalAngle + deltaY * 0.005, M_PI / 2 - 0.02), -M_PI / 2 + 0.02);
 	}
 
 	//Increase jump-time

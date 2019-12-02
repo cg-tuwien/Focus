@@ -85,8 +85,11 @@
     <None Include="..\assets\level03f.dae" />
     <None Include="..\assets\level04a.dae" />
     <None Include="..\assets\level1.dae" />
+    <None Include="..\assets\level1g.dae" />
     <None Include="..\assets\level2.dae" />
+    <None Include="..\assets\level2g.dae" />
     <None Include="..\assets\level3.dae" />
+    <None Include="..\assets\level3g.dae" />
     <None Include="..\assets\level4.dae" />
     <None Include="..\assets\lighttest.dae" />
     <None Include="..\shaders\default.rahit" />

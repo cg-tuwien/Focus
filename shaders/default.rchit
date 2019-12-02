@@ -206,7 +206,7 @@ void main()
 		dColor = dColor * texture(textures[texid], uv).rgb;
 	}
 
-	vec3 ownColor = matSsbo.materials[materialIndex].mAmbientReflectivity.rgb*dColor + 0.1*background.color.rgb;
+	vec3 ownColor = (0.9*matSsbo.materials[materialIndex].mAmbientReflectivity.rgb + 0.1*background.color.rgb)*dColor;
 	for (uint i = 0; i < lightSsbo.lightCount.x; ++i) {
 		if (lightSsbo.lights[i].mInfo.x == 2) {
 			ownColor += phongPoint(position, eye, normal, dColor, materialIndex, lightSsbo.lights[i].mPosition.xyz, lightSsbo.lights[i].mColorDiffuse.rgb, lightSsbo.lights[i].mAttenuation.xyz, reflCoeff <= 0.5);

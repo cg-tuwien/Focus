@@ -1,44 +1,6 @@
 //Author: Simon Fraiss
 #include "includes.h"
 
-class update_counter : public cgb::cg_element
-{
-public:
-	void initialize() override
-	{
-		mFixCount = 0;
-		mUpdCount = 0;
-		mNextStatsTime = std::floor(cgb::time().time_since_start_dp()) + 1.0;
-	}
-
-	void evaluate()
-	{
-		if (cgb::time().time_since_start_dp() > mNextStatsTime) {
-			LOG_INFO(fmt::format("Between {} and {}, {} fixed_updates and {} updates occured.", mNextStatsTime - 1.0, mNextStatsTime, mFixCount, mUpdCount));
-			mFixCount = 0;
-			mUpdCount = 0;
-			mNextStatsTime += 1.0;
-		}
-	}
-
-	void fixed_update() override
-	{
-		evaluate();
-		mFixCount++;
-	}
-
-	void update() override
-	{
-		evaluate();
-		mUpdCount++;
-	}
-
-private:
-	int mFixCount;
-	int mUpdCount;
-	double mNextStatsTime;
-};
-
 /*
 Main-Function, Starting point of the application.
 Initializes the application.
@@ -64,8 +26,6 @@ int main() // <== Starting point ==
 		// Create an instance of fgamecontrol, which in turn will create the other cg_elements for our composition
 		auto control = fgamecontrol();
 
-		auto counter = new update_counter();
-
 		// Create a composition of game control, level logic, scene and renderer.
 		// These objects have their own initialize, update, fixed_update, render and finalize functions 
 		// which will be called automatically by cgbase.
@@ -73,8 +33,7 @@ int main() // <== Starting point ==
 				&control,
 				control.get_level_logic(),
 				control.get_scene(),
-				control.get_renderer(),
-				counter
+				control.get_renderer()
 			});
 
 		// Start the composition.

@@ -169,7 +169,7 @@ void main()
 	vec3 eye = normalize(gl_WorldRayOriginNV - position);
 
 	vec3 dColor = matSsbo.materials[materialIndex].mDiffuseReflectivity.rgb * hitValue.color.rgb;
-	vec3 ownColor = matSsbo.materials[materialIndex].mAmbientReflectivity.rgb*dColor + 0.1*background.color.rgb;
+	vec3 ownColor = (0.9*matSsbo.materials[materialIndex].mAmbientReflectivity.rgb + 0.1*background.color.rgb)*dColor;
 
 	for (uint i = 0; i < lightSsbo.lightCount.x; ++i) {
 		if (lightSsbo.lights[i].mInfo.x == 2) {
