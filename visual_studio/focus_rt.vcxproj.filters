@@ -13,36 +13,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\assets\level01c.dae">
-      <Filter>assets</Filter>
-    </None>
-    <None Include="..\assets\cgbtest1.dae">
-      <Filter>assets</Filter>
-    </None>
-    <None Include="..\assets\cgbtest1.fbx">
-      <Filter>assets</Filter>
-    </None>
-    <None Include="..\assets\cgbtest1.mtl">
-      <Filter>assets</Filter>
-    </None>
-    <None Include="..\assets\cgbtest2.dae">
-      <Filter>assets</Filter>
-    </None>
-    <None Include="..\assets\cgbtest2.fbx">
-      <Filter>assets</Filter>
-    </None>
-    <None Include="..\assets\cgbtest2.mtl">
-      <Filter>assets</Filter>
-    </None>
-    <None Include="..\assets\cgbtest2sm.fbx">
-      <Filter>assets</Filter>
-    </None>
-    <None Include="..\assets\cgbtest1.obj">
-      <Filter>assets</Filter>
-    </None>
-    <None Include="..\assets\cgbtest2.obj">
-      <Filter>assets</Filter>
-    </None>
     <None Include="..\assets\lighttest.dae">
       <Filter>assets</Filter>
     </None>
@@ -149,9 +119,6 @@
     <ClInclude Include="..\source_code\fgamecontrol.h" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="..\assets\Lava4.png">
-      <Filter>assets</Filter>
-    </Image>
     <Image Include="..\assets\Marble01_col.jpg">
       <Filter>assets</Filter>
     </Image>
@@ -218,12 +185,6 @@
     <Image Include="..\assets\bark_0004.jpg">
       <Filter>assets</Filter>
     </Image>
-    <Image Include="..\assets\Bricks29_col.jpg">
-      <Filter>assets</Filter>
-    </Image>
-    <Image Include="..\assets\Bricks29_nrm.jpg">
-      <Filter>assets</Filter>
-    </Image>
     <Image Include="..\assets\Concrete07_col.jpg">
       <Filter>assets</Filter>
     </Image>
@@ -243,9 +204,6 @@
       <Filter>assets</Filter>
     </Image>
     <Image Include="..\assets\DiamondPlate02_nrm.jpg">
-      <Filter>assets</Filter>
-    </Image>
-    <Image Include="..\assets\dirt.png">
       <Filter>assets</Filter>
     </Image>
     <Image Include="..\assets\Ground03_col.jpg">

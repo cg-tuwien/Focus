@@ -72,14 +72,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="..\assets\anothersimplechar2.dae" />
-    <None Include="..\assets\cgbtest1.dae" />
-    <None Include="..\assets\cgbtest1.fbx" />
-    <None Include="..\assets\cgbtest1.mtl" />
-    <None Include="..\assets\cgbtest2.dae" />
-    <None Include="..\assets\cgbtest2.fbx" />
-    <None Include="..\assets\cgbtest2.mtl" />
-    <None Include="..\assets\cgbtest2sm.fbx" />
-    <None Include="..\assets\level01c.dae" />
     <None Include="..\assets\level01campos.dae" />
     <None Include="..\assets\level02a.dae" />
     <None Include="..\assets\level03f.dae" />
@@ -104,8 +96,6 @@
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\assets\bark_0004.jpg" />
-    <Image Include="..\assets\Bricks29_col.jpg" />
-    <Image Include="..\assets\Bricks29_nrm.jpg" />
     <Image Include="..\assets\Concrete07_col.jpg" />
     <Image Include="..\assets\Concrete07_nrm.jpg" />
     <Image Include="..\assets\DB2X2_L01.png" />
@@ -113,10 +103,8 @@
     <Image Include="..\assets\DB2X2_L02_NRM.png" />
     <Image Include="..\assets\DiamondPlate02_col.jpg" />
     <Image Include="..\assets\DiamondPlate02_nrm.jpg" />
-    <Image Include="..\assets\dirt.png" />
     <Image Include="..\assets\Ground03_col.jpg" />
     <Image Include="..\assets\Ground03_nrm.jpg" />
-    <Image Include="..\assets\Lava4.png" />
     <Image Include="..\assets\Marble01_col.jpg" />
     <Image Include="..\assets\Marble01_nrm.jpg" />
     <Image Include="..\assets\Marble05_col.jpg" />
@@ -138,14 +126,6 @@
     <Image Include="..\assets\Tiles13_nrm.jpg" />
     <Image Include="..\assets\Wood26_col.jpg" />
     <Image Include="..\assets\Wood26_nrm.jpg" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="..\assets\cgbtest1.obj">
-      <FileType>Document</FileType>
-    </None>
-    <None Include="..\assets\cgbtest2.obj">
-      <FileType>Document</FileType>
-    </None>
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
