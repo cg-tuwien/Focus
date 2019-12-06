@@ -13,9 +13,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\assets\lighttest.dae">
-      <Filter>assets</Filter>
-    </None>
     <None Include="..\shaders\default.rchit">
       <Filter>shaders</Filter>
     </None>
@@ -37,19 +34,7 @@
     <None Include="..\shaders\shadowray.rahit">
       <Filter>shaders</Filter>
     </None>
-    <None Include="..\assets\level01campos.dae">
-      <Filter>assets</Filter>
-    </None>
     <None Include="..\assets\anothersimplechar2.dae">
-      <Filter>assets</Filter>
-    </None>
-    <None Include="..\assets\level02a.dae">
-      <Filter>assets</Filter>
-    </None>
-    <None Include="..\assets\level03f.dae">
-      <Filter>assets</Filter>
-    </None>
-    <None Include="..\assets\level04a.dae">
       <Filter>assets</Filter>
     </None>
     <None Include="..\shaders\leaves.rahit">
@@ -134,16 +119,7 @@
     <Image Include="..\assets\MarbleTiles_albedo.png">
       <Filter>assets</Filter>
     </Image>
-    <Image Include="..\assets\MarbleTiles_albedo.tif">
-      <Filter>assets</Filter>
-    </Image>
     <Image Include="..\assets\MarbleTiles_normal.png">
-      <Filter>assets</Filter>
-    </Image>
-    <Image Include="..\assets\MarbleTiles_normal.tif">
-      <Filter>assets</Filter>
-    </Image>
-    <Image Include="..\assets\MarbleTiles_normal-fake.png">
       <Filter>assets</Filter>
     </Image>
     <Image Include="..\assets\Metal07_col.jpg">

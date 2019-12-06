@@ -72,10 +72,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="..\assets\anothersimplechar2.dae" />
-    <None Include="..\assets\level01campos.dae" />
-    <None Include="..\assets\level02a.dae" />
-    <None Include="..\assets\level03f.dae" />
-    <None Include="..\assets\level04a.dae" />
     <None Include="..\assets\level1.dae" />
     <None Include="..\assets\level1g.dae" />
     <None Include="..\assets\level2.dae" />
@@ -83,7 +79,6 @@
     <None Include="..\assets\level3.dae" />
     <None Include="..\assets\level3g.dae" />
     <None Include="..\assets\level4.dae" />
-    <None Include="..\assets\lighttest.dae" />
     <None Include="..\shaders\default.rahit" />
     <None Include="..\shaders\default.rchit" />
     <None Include="..\shaders\default.rgen" />
@@ -110,10 +105,7 @@
     <Image Include="..\assets\Marble05_col.jpg" />
     <Image Include="..\assets\Marble05_nrm.jpg" />
     <Image Include="..\assets\MarbleTiles_albedo.png" />
-    <Image Include="..\assets\MarbleTiles_albedo.tif" />
-    <Image Include="..\assets\MarbleTiles_normal-fake.png" />
     <Image Include="..\assets\MarbleTiles_normal.png" />
-    <Image Include="..\assets\MarbleTiles_normal.tif" />
     <Image Include="..\assets\Metal07_col.jpg" />
     <Image Include="..\assets\Metal07_nrm.jpg" />
     <Image Include="..\assets\Metal15_col.jpg" />

@@ -139,13 +139,14 @@ void fplayercontrol::post_px_update(float deltaT) {
 		}
 	}
 	moveDir = ((length(moveDir) <= 0.01f) ? glm::vec3(0) : WALK_SPEED * normalize(moveDir));
+	moveDir *= deltaT * 65;
 	if (!fly) {
 		if (jump == -1) {
-			moveDir += glm::vec3(0, -0.2f, 0);	//gravity
+			moveDir += glm::vec3(0, -0.15f, 0)*deltaT*65.0f;	//gravity
 		}
 		else {
 			float y = glm::max(2.0f - 2.0f * (2 * jump - 1) * (2 * jump - 1), 0.0f) + jumpystart;
-			moveDir.y += y - (cameraController->getFootPosition().y);
+			moveDir.y += y - (cameraController->getFootPosition().y);	//no deltat because deltat is already consideren in jump
 			if (jump >= 1) {
 				jump = -1;
 			}
