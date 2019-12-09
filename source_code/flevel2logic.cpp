@@ -50,6 +50,7 @@ void flevel2logic::initialize() {
 
 levelstatus flevel2logic::update(float deltaT, double focusHitValue)
 {
+	player->update(deltaT);
 	//---UPDATE SCORE AND LEVEL STATUS---
 	if (score > 2.0f) {
 		return levelstatus::WON;

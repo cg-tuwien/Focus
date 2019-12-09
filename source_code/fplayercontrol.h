@@ -51,6 +51,8 @@ public:
 	void pre_px_update(float deltaT);
 	//This method should be called after the physics-update
 	void post_px_update(float deltaT);
+	//This method should be called during update (only mouse motion)
+	void update(float deltaT);
 
 	//Makes the player look into a specific direction
 	void look_into_direction(const glm::vec3& direction);

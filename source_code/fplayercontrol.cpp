@@ -88,14 +88,6 @@ void fplayercontrol::pre_px_update(float deltaT)
 
 void fplayercontrol::post_px_update(float deltaT) {
 	
-	//Check Mouse Interactions (only if no mirror is focused)
-	if (movingMirror == -1) {
-		double deltaX = cgb::input().delta_cursor_position().x;
-		double deltaY = cgb::input().delta_cursor_position().y;
-		horizontalAngle += deltaX * MOUSE_SENTIVITY;
-		verticalAngle = glm::max(glm::min(verticalAngle + deltaY * 0.005, M_PI / 2 - 0.02), -M_PI / 2 + 0.02);
-	}
-
 	//Increase jump-time
 	if (jump >= 0) {
 		jump += deltaT;
@@ -157,10 +149,22 @@ void fplayercontrol::post_px_update(float deltaT) {
 	cameraController->move(PxVec3(moveDir.x, moveDir.y, moveDir.z), 0.001f, deltaT, PxControllerFilters());
 	PxExtendedVec3 camPos = cameraController->getPosition();
 	camera->set_translation(glm::vec3(camPos.x, camPos.y + eyeheight * 1.5f / 4.0f, camPos.z));
-	glm::vec3 lookDir = glm::vec3(sin(horizontalAngle) * cos(verticalAngle), sin(verticalAngle), cos(horizontalAngle) * cos(verticalAngle));
-	camera->set_rotation(glm::quatLookAt(lookDir, glm::vec3(0,1,0)));
 
 	scene->set_character_position(glm::vec3(camPos.x, camPos.y, camPos.z));
+}
+
+void fplayercontrol::update(float deltaT)
+{
+	//Check Mouse Interactions (only if no mirror is focused)
+	if (movingMirror == -1) {
+		double deltaX = cgb::input().delta_cursor_position().x;
+		double deltaY = cgb::input().delta_cursor_position().y;
+		horizontalAngle += deltaX * MOUSE_SENTIVITY;
+		verticalAngle = glm::max(glm::min(verticalAngle + deltaY * 0.005, M_PI / 2 - 0.02), -M_PI / 2 + 0.02);
+	}
+
+	glm::vec3 lookDir = glm::vec3(sin(horizontalAngle) * cos(verticalAngle), sin(verticalAngle), cos(horizontalAngle) * cos(verticalAngle));
+	camera->set_rotation(glm::quatLookAt(lookDir, glm::vec3(0, 1, 0)));
 }
 
 void fplayercontrol::look_into_direction(const glm::vec3& direction)
