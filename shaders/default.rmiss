@@ -57,6 +57,14 @@ float perlin(float phi, float theta, int level) {
 	return mix(ix0, ix1, sy);
 }
 
+float SRGBReverseGamma(float color) {
+	return pow(color, 2.2);
+	if (color <= 0.0045) {
+		return color / 12.92;
+	}
+	return pow((color + 0.055) / 1.055, 2.4);
+}
+
 void main()
 {
 	float theta = acos(gl_WorldRayDirectionNV.y);
@@ -64,6 +72,8 @@ void main()
 	float alpha = 1-clamp(tan((theta-M_PI/2)/1.2),0,1);
     vec3 backgrcolor = alpha*background.color.xyz;
 	vec3 color = exp(-pow(1.9*(theta-M_PI/2),2))*0.05*(perlin(phi, theta, 1) + perlin(phi, theta, 2) + perlin(phi, theta, 4)) + backgrcolor;
-	hitValue.color.rgb = clamp(pow(hitValue.transparentColor[0].rgb + hitValue.transparentColor[1].rgb + color, vec3(2.2)), vec3(0), vec3(1));
+	color = hitValue.transparentColor[0].rgb + hitValue.transparentColor[1].rgb + color;
+	color = vec3(SRGBReverseGamma(color.r), SRGBReverseGamma(color.g), SRGBReverseGamma(color.b));
+	hitValue.color.rgb = clamp(color, vec3(0), vec3(1));
 	hitValue.various.y = hitValue.various.y | uint(hitValue.transparentDist[1] < 200);
 }
