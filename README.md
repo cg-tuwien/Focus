@@ -16,15 +16,15 @@ Controls:
 * F10: Skip level
 
 ## Technical Overview
-This game is based on the framework [cg_base](https://github.com/cg-tuwien/cg_base) using Vulkan as the underlying graphics API. One of the main concepts of _cg\_base_ is composition, which capsules several _cg\_elements_, which define the behaviour of different components of the game. Each cg\_element has own methods for initializing, updating, rendering etc., which are called automatically by the framework. This game uses four cg\_element-derived classes, which are:
-* [fgamecontrol](source_code/fgamecontrol.h): Manages the game on a high level. Creates other cg\_element instances and is responsible for changing the levels, as well as pausing and stopping the game.
+This game is based on the framework [cg_base](https://github.com/cg-tuwien/cg_base) using Vulkan as the underlying graphics API. One of the main concepts of _cg\_base_ is composition, which capsules several `cg_element`s, which define the behaviour of different components of the game. Each `cg_element` has own methods for initializing, updating, rendering etc., which are called automatically by the framework. This game uses four `cg_element`-derived classes, which are:
+* [fgamecontrol](source_code/fgamecontrol.h): Manages the game on a high level. Creates other `cg_element` instances and is responsible for changing the levels, as well as pausing and stopping the game.
 * [flevellogic](source_code/flevellogic.h): Describes the mechanics of a level. Animates the objects, moves the player, and checks for win/loose-conditions. Each level has its own subclass. Classes such as [fplayercontrol](source_code/fplayercontrol.h) and [fphysicscontroller](source_code/fphysicscontroller.h) help simplyfing the code of these classes.
 * [fscene](source_code/fscene.h): Capsules all the scene objects of a level. Also creates and manages the GPU buffers and ray tracing acceleration structures, which are updated, when objects in the scene change.
 * [frenderer](source_code/frenderer.h): Responsible for starting the rendering process and initializing all the necessary data that is needed for that, such as descriptor sets and command buffers.
 
 ![class diagram](img/ClassDiagram.png)
 
-Note that in a classical rasterization based game, you could create an own cg\_element for each scene object with its own render-function. In a ray tracing based game however, this is not really an option, as there is only one top level acceleration structure for the entire scene, which has to be passed to the ray generation shader once as a whole.
+Note that in a classical rasterization based game, you could create an own `cg_element` for each scene object with its own render-function. In a ray tracing based game however, this is not really an option, as there is only one top level acceleration structure for the entire scene, which has to be passed to the ray generation shader once as a whole.
 
 An important aspect of Vulkan is that we have several frames in flight, where the next frame might be started to be processed, while the last one is not entirely finished. For this reason, all scene data that might change during the game has to be stored several times on the GPU, once for each frame, such that updates of the data only affect the next frames, and no frames which are already being processed.
 
