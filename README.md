@@ -5,7 +5,7 @@ _Focus_ uses Real-Time Ray Tracing (or NVIDIA RTX) not only for rendering the en
 ![screenshots](img/screenshot.png)
 
 ## About the Game
-This game uses Real-Time Ray Tracing for gameplay mechanics. A graphic card supportin Real-Time Ray Tracing, such as models from the NVIDIA RTX series, is therefore necessary to play the game. Inside each level, there is a shiny yellow sphere -- the so called _Focusphere_ -- that brightens up the sky when the player looks at it. You win the level, if you stand on the goal platform (recognizable by its beige color) and look at the sphere until the sky reaches its maximum brightness. Sometimes it's not possible to look at the sphere directly from the goal platform, so you need to use rotatable mirrors in the level to look at the sphere.
+This game uses Real-Time Ray Tracing for gameplay mechanics. A graphics card supporting Real-Time Ray Tracing, such as models from the NVIDIA RTX series, is therefore necessary to play the game. Inside each level, there is a shiny yellow sphere -- the so called _Focusphere_ -- that brightens up the sky when the player looks at it. You win the level, if you stand on the goal platform (recognizable by its beige color) and look at the sphere until the sky reaches its maximum brightness. Sometimes it's not possible to look at the sphere directly from the goal platform, so you need to use rotatable mirrors in the level to look at the sphere.
 
 Controls:
 * WASD + Mouse Movement: Move around
