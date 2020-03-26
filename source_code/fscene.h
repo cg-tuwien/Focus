@@ -77,7 +77,7 @@ private:
 	std::vector<cgb::top_level_acceleration_structure> mTLASs;		//Top Level Acceleration Structures (one per frame in flight)
 
 	//Help-function
-	void create_buffers_for_model(fmodel& model, std::vector<cgb::semaphore>& blasWaitSemaphores);
+	void create_buffers_for_model(fmodel& model);
 
 public:
 

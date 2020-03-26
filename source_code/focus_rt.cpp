@@ -19,7 +19,7 @@ int main() // <== Starting point ==
 		// Create a window and open it
 		auto mainWnd = cgb::context().create_window("Focus!");
 		mainWnd->set_resolution({ 1600, 900 });
-		//mainWnd->set_number_of_concurrent_frames(1);
+		mainWnd->set_number_of_concurrent_frames(7);
 		mainWnd->set_presentaton_mode(cgb::presentation_mode::double_buffering);
 		mainWnd->set_additional_back_buffer_attachments({ cgb::attachment::create_depth(cgb::image_format::default_depth_format()) });
 		mainWnd->open();

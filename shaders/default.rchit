@@ -93,7 +93,7 @@ layout(set = 0, binding = 2, std430) buffer Light {
 	LightGpuData[] lights;
 } lightSsbo;
 layout(set = 0, binding = 3) uniform sampler2D textures[];
-layout(set = 0, binding = 4) uniform usamplerBuffer indexBuffers[];
+layout(set = 6, binding = 0) uniform usamplerBuffer indexBuffers[];
 layout(set = 0, binding = 5) uniform samplerBuffer texCoordBuffers[];
 layout(set = 0, binding = 6) uniform samplerBuffer normalBuffers[];
 layout(set = 0, binding = 7) uniform samplerBuffer tangentBuffers[];

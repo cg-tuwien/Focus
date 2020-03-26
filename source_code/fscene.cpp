@@ -1,15 +1,13 @@
 #include "includes.h"
 
-void fscene::create_buffers_for_model(fmodel& newElement, std::vector<cgb::semaphore>& blasWaitSemaphores)
+void fscene::create_buffers_for_model(fmodel& newElement)
 {
 	//Create Buffers
 	auto positionsBuffer = cgb::create_and_fill(
 		cgb::vertex_buffer_meta::create_from_data(newElement.mPositions).describe_only_member(newElement.mPositions[0], 0, cgb::content_description::position),
 		cgb::memory_usage::device,
 		newElement.mPositions.data(),
-		[](auto _Semaphore) {
-		cgb::context().main_window()->set_extra_semaphore_dependency(std::move(_Semaphore));
-	}
+		cgb::sync::with_barriers_on_current_frame()
 	);
 	positionsBuffer.enable_shared_ownership();
 
@@ -17,9 +15,7 @@ void fscene::create_buffers_for_model(fmodel& newElement, std::vector<cgb::semap
 		cgb::index_buffer_meta::create_from_data(newElement.mIndices),
 		cgb::memory_usage::device,
 		newElement.mIndices.data(),
-		[](auto _Semaphore) {
-		cgb::context().main_window()->set_extra_semaphore_dependency(std::move(_Semaphore));
-	}
+		cgb::sync::with_barriers_on_current_frame()
 	);
 	indexBuffer.enable_shared_ownership();
 
@@ -45,7 +41,7 @@ void fscene::create_buffers_for_model(fmodel& newElement, std::vector<cgb::semap
 	mTangentBufferViews.push_back(cgb::buffer_view_t::create(std::move(tangentsBuffer)));
 
 	auto indexTexelBuffer = cgb::create_and_fill(
-		cgb::uniform_texel_buffer_meta::create_from_data(newElement.mIndices).set_format<glm::vec3>(),
+		cgb::uniform_texel_buffer_meta::create_from_data(newElement.mIndices).set_format<glm::uvec3>(),
 		cgb::memory_usage::device,
 		newElement.mIndices.data()
 	);
@@ -56,10 +52,11 @@ void fscene::create_buffers_for_model(fmodel& newElement, std::vector<cgb::semap
 	auto instance = cgb::geometry_instance::create(blas).set_transform(newElement.mTransformation).set_custom_index(mBLASs.size());
 	instance.mFlags = (newElement.mTransparent) ? vk::GeometryInstanceFlagBitsNV::eForceNoOpaque : vk::GeometryInstanceFlagBitsNV::eForceOpaque;
 	mGeometryInstances.push_back(instance);
-	blas->build([&](cgb::semaphore _Semaphore) {
-		// Store them and pass them as a dependency to the TLAS-build
-		blasWaitSemaphores.push_back(std::move(_Semaphore));
-	});
+	// Build BLAS and do not sync at all at this point (passing two empty handlers as parameters):
+	//   The idea of this is that multiple BLAS can be built
+	//   in parallel, we only have to make sure to synchronize
+	//   before we start building the TLAS.
+	blas->build(cgb::sync::with_barriers_on_current_frame({}, {}));
 	mBLASs.push_back(std::move(blas));
 
 	mModelData.emplace_back(newElement);
@@ -74,9 +71,6 @@ cgb::material_gpu_data& fscene::get_material_data(size_t materialIndex)
 std::unique_ptr<fscene> fscene::load_scene(const std::string& filename, const std::string& characterfilename)
 {
 	auto fif = cgb::context().main_window()->number_of_in_flight_frames();
-
-	std::vector<cgb::semaphore> blasWaitSemaphores;
-	blasWaitSemaphores.reserve(100);
 
 	std::unique_ptr<fscene> s = std::make_unique<fscene>();
 	s->mLoadedScene = cgb::model_t::load_from_file(filename, aiProcess_Triangulate | aiProcess_CalcTangentSpace);
@@ -119,7 +113,7 @@ std::unique_ptr<fscene> fscene::load_scene(const std::string& filename, const st
 				cgb::additional_vertex_data(newElement.mTangents, [&]() { return s->mLoadedScene->tangents_for_mesh(meshindex);								})
 			);
 			
-			s->create_buffers_for_model(newElement, blasWaitSemaphores);
+			s->create_buffers_for_model(newElement);
 
 		}
 	}
@@ -142,7 +136,7 @@ std::unique_ptr<fscene> fscene::load_scene(const std::string& filename, const st
 	auto charMat = cgb::material_config();
 	charMat.mDiffuseReflectivity = glm::vec4(0.5);
 	s->mMaterials.push_back(charMat);
-	s->create_buffers_for_model(character, blasWaitSemaphores);
+	s->create_buffers_for_model(character);
 
 	s->mModelBuffers.resize(fif);
 	for (size_t i = 0; i < fif; ++i) {
@@ -155,16 +149,20 @@ std::unique_ptr<fscene> fscene::load_scene(const std::string& filename, const st
 
 	//----CREATE GPU BUFFERS-----
 	//Materials + Textures
-	auto [gpuMaterials, imageSamplers] = cgb::convert_for_gpu_usage(s->mMaterials,
-		[](auto _Semaphore) {
-			cgb::context().main_window()->set_extra_semaphore_dependency(std::move(_Semaphore));
-		});
+	auto [gpuMaterials, imageSamplers] = cgb::convert_for_gpu_usage(
+		s->mMaterials,
+		cgb::image_usage::read_only_sampled_image,
+		cgb::filter_mode::bilinear,
+		cgb::border_handling_mode::repeat,
+		cgb::sync::with_barriers_on_current_frame()
+	);
 	s->mMaterialBuffers.resize(fif);
 	for (size_t i = 0; i < fif; ++i) {
 		s->mMaterialBuffers[i] = cgb::create_and_fill(
 			cgb::storage_buffer_meta::create_from_data(gpuMaterials),
 			cgb::memory_usage::host_coherent,
-			gpuMaterials.data()
+			gpuMaterials.data(),
+			cgb::sync::with_barriers_on_current_frame()
 		);
 	}
 	s->mGpuMaterials = gpuMaterials;
@@ -221,31 +219,30 @@ std::unique_ptr<fscene> fscene::load_scene(const std::string& filename, const st
 
 	//---- CREATE TLAS -----
 	s->mTLASs.reserve(fif);
-	std::vector<cgb::semaphore> waitSemaphores = std::move(blasWaitSemaphores);
 	for (decltype(fif) i = 0; i < fif; ++i) {
-		std::vector<cgb::semaphore> toWaitOnInNextBuild;
-
 		// Each TLAS owns every BLAS (this will only work, if the BLASs themselves stay constant, i.e. read access
 		auto tlas = cgb::top_level_acceleration_structure_t::create(s->mGeometryInstances.size());
 		// Build the TLAS, ...
-		tlas->build(s->mGeometryInstances, [&](cgb::semaphore _Semaphore) {
-			// ... the SUBSEQUENT build must wait on THIS build, ...
-			toWaitOnInNextBuild.push_back(std::move(_Semaphore));
-			},
-			// ... and THIS build must wait for all the previous builds, each one represented by one semaphore:
-				std::move(waitSemaphores)
-				);
+		tlas->build(s->mGeometryInstances, cgb::sync::with_barriers_on_current_frame(
+					// Sync before building the TLAS:
+					[](cgb::command_buffer_t& commandBuffer, cgb::pipeline_stage destinationStage, std::optional<cgb::read_memory_access> readAccess){
+						assert(cgb::pipeline_stage::acceleration_structure_build == destinationStage);
+						assert(!readAccess.has_value() || cgb::memory_access::acceleration_structure_read_access == readAccess.value().value());
+						// Wait on all the BLAS builds that happened before (and their memory):
+						commandBuffer.establish_global_memory_barrier(
+							cgb::pipeline_stage::acceleration_structure_build, destinationStage,
+							cgb::memory_access::acceleration_structure_write_access, readAccess
+						);
+					},
+					// Whatever comes after must wait for this TLAS build to finish (and its memory to be made available):
+					//   However, that's exactly what the default_handler_after_operation
+					//   does, so let's just use that (it is also the default value for
+					//   this handler)
+					cgb::sync::default_handler_after_operation
+				)
+		);
 		s->mTLASs.push_back(std::move(tlas));
-
-		// The mTLAS[0] waits on all the BLAS builds, but subsequent TLAS builds wait on previous TLAS builds.
-		// In this way, we can ensure that all the BLAS data is available for the TLAS builds [1], [2], ...
-		// Alternatively, we would require the BLAS builds to create multiple semaphores, one for each frame in flight.
-		waitSemaphores = std::move(toWaitOnInNextBuild);
 	}
-	// Set the semaphore of the last TLAS build as a render dependency for the first frame:
-	// (i.e. ensure that everything has been built before starting to render)
-	assert(waitSemaphores.size() == 1);
-	cgb::context().main_window()->set_extra_semaphore_dependency(std::move(waitSemaphores[0]));
 
 	return std::move(s);
 }
@@ -287,7 +284,15 @@ void fscene::update()
 
 	cgb::fill(mPerlinBackgroundBuffers[fidx], &mBackgroundColor);
 
-	mTLASs[fidx]->update(mGeometryInstances, [](cgb::semaphore _Semaphore) {
-		cgb::context().main_window()->set_extra_semaphore_dependency(std::move(_Semaphore));
-	});
+	mTLASs[fidx]->update(mGeometryInstances, cgb::sync::with_barriers_on_current_frame(
+			{}, // Nothing to wait for
+			[](cgb::command_buffer_t& commandBuffer, cgb::pipeline_stage srcStage, std::optional<cgb::write_memory_access> srcAccess){
+				// We want this update to be as efficient/as tight as possible
+				commandBuffer.establish_global_memory_barrier(
+					srcStage, cgb::pipeline_stage::ray_tracing_shaders, // => ray tracing shaders must wait on the building of the acceleration structure
+					srcAccess, cgb::memory_access::acceleration_structure_read_access // TLAS-update's memory must be made visible to ray tracing shader's caches (so they can read from)
+				);
+			}
+		)
+	);
 }
