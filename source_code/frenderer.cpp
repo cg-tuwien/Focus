@@ -60,15 +60,23 @@ void frenderer::render()
 
 	auto cmdbfr = cgb::context().graphics_queue().create_single_use_command_buffer();
 	cmdbfr->begin_recording();
-
-	// Bind the pipeline
-	cmdbfr->handle().bindPipeline(vk::PipelineBindPoint::eRayTracingNV, mPipeline->handle());
-
-	// Set the descriptors:
-	cmdbfr->handle().bindDescriptorSets(vk::PipelineBindPoint::eRayTracingNV, mPipeline->layout_handle(), 0,
-		mDescriptorSet[inFlightIndex]->number_of_descriptor_sets(),
-		mDescriptorSet[inFlightIndex]->descriptor_sets_addr(),
-		0, nullptr);
+	cmdbfr->bind_pipeline(mPipeline);
+	cmdbfr->bind_descriptors(mPipeline->layout(), {
+		cgb::binding(0, 0, mScene->get_model_buffer(inFlightIndex)),
+		cgb::binding(0, 1, mScene->get_material_buffer(inFlightIndex)),
+		cgb::binding(0, 2, mScene->get_light_buffer()),
+		cgb::binding(0, 3, mScene->get_image_samplers()),
+		cgb::binding(6, 0, mScene->get_index_buffer_views()),
+		cgb::binding(0, 5, mScene->get_texcoord_buffer_views()),
+		cgb::binding(0, 6, mScene->get_normal_buffer_views()),
+		cgb::binding(0, 7, mScene->get_tangent_buffer_views()),
+		cgb::binding(1, 0, mOffscreenImageViews[inFlightIndex]),
+		cgb::binding(2, 0, mScene->get_tlas()[inFlightIndex]),
+		cgb::binding(3, 0, mScene->get_background_buffer(inFlightIndex)),
+		cgb::binding(3, 1, mScene->get_gradient_buffer()),
+		cgb::binding(4, 0, mFocusHitBuffers[inFlightIndex]),
+		cgb::binding(5, 0, mFadeBuffers[inFlightIndex])
+	});
 
 	// Set the push constants:
 	const glm::mat4& viewMatrix = mScene->get_camera().view_matrix();
@@ -128,27 +136,4 @@ void frenderer::create_descriptor_sets_for_scene()
 		cgb::binding(4, 0, mFocusHitBuffers[0]),				// Just take any, this is just to define the layout
 		cgb::binding(5, 0, mFadeBuffers[0])						// Just take any, this is just to define the layout
 	);
-
-	size_t n = cgb::context().main_window()->number_of_in_flight_frames();
-	mDescriptorSet.clear();
-	mDescriptorSet.reserve(n);
-	for (int i = 0; i < n; ++i) {
-		mDescriptorSet.emplace_back(std::make_shared<cgb::descriptor_set>());
-		*mDescriptorSet.back() = cgb::descriptor_set::create({
-			cgb::binding(0, 0, mScene->get_model_buffer(i)),
-			cgb::binding(0, 1, mScene->get_material_buffer(i)),
-			cgb::binding(0, 2, mScene->get_light_buffer()),
-			cgb::binding(0, 3, mScene->get_image_samplers()),
-			cgb::binding(6, 0, mScene->get_index_buffer_views()),
-			cgb::binding(0, 5, mScene->get_texcoord_buffer_views()),
-			cgb::binding(0, 6, mScene->get_normal_buffer_views()),
-			cgb::binding(0, 7, mScene->get_tangent_buffer_views()),
-			cgb::binding(1, 0, mOffscreenImageViews[i]),
-			cgb::binding(2, 0, mScene->get_tlas()[i]),
-			cgb::binding(3, 0, mScene->get_background_buffer(i)),
-			cgb::binding(3, 1, mScene->get_gradient_buffer()),
-			cgb::binding(4, 0, mFocusHitBuffers[i]),
-			cgb::binding(5, 0, mFadeBuffers[i])
-		});
-	}
 }
