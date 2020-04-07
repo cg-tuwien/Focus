@@ -11,7 +11,7 @@ fgamecontrol::fgamecontrol() {
 
 void fgamecontrol::initialize()
 {
-	cgb::input().set_cursor_disabled(true);
+	cgb::input().set_cursor_mode(cgb::cursor::cursor_disabled_raw_input);
 }
 
 void fgamecontrol::update()
@@ -27,7 +27,7 @@ void fgamecontrol::update()
 	if (cgb::input().key_pressed(cgb::key_code::tab)) {
 		bool newstate = cgb::input().is_cursor_disabled();
 		mLevelLogic->set_paused(newstate);
-		cgb::input().set_cursor_disabled(!newstate);
+		cgb::input().set_cursor_mode(newstate ? cgb::cursor::arrow_cursor : cgb::cursor::cursor_disabled_raw_input);
 	}
 
 	//Fade-In

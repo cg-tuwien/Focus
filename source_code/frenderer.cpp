@@ -53,7 +53,8 @@ void frenderer::update()
 
 void frenderer::render()
 {
-	auto inFlightIndex = cgb::context().main_window()->in_flight_index_for_frame();
+	auto mainWnd = cgb::context().main_window();
+	auto inFlightIndex = mainWnd->in_flight_index_for_frame();
 
 	//An alternative would be to record the command buffers in advance, that would however disable the push constants, 
 	//so we would need to use a uniform buffer for the camera matrix. And recording every frame shouldn't be too much anyway.
@@ -88,13 +89,13 @@ void frenderer::render()
 		mPipeline->shader_binding_table_handle(), 3 * mPipeline->table_entry_size(), mPipeline->table_entry_size(),
 		mPipeline->shader_binding_table_handle(), 1 * mPipeline->table_entry_size(), mPipeline->table_entry_size(),
 		nullptr, 0, 0,
-		cgb::context().main_window()->swap_chain_extent().width, cgb::context().main_window()->swap_chain_extent().height, 1,
+		mainWnd->swap_chain_extent().width, mainWnd->swap_chain_extent().height, 1,
 		cgb::context().dynamic_dispatch());
 
 
 	cmdbfr->end_recording();
 	submit_command_buffer_ownership(std::move(cmdbfr));
-	present_image(mOffscreenImageViews[inFlightIndex]->get_image());
+	submit_command_buffer_ownership(mainWnd->copy_to_swapchain_image(mOffscreenImageViews[inFlightIndex]->get_image(), {}, cgb::window::wait_for_previous_commands_directly_into_present).value());
 }
 
 void frenderer::set_scene(fscene* scene)
