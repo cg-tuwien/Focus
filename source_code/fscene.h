@@ -39,42 +39,42 @@ struct fmodel_gpu_data {
 Represents a whole scene with all contained objects, lights, materials etc.
 Also manages the GPU-buffers relevant to the scene
 */
-struct fscene : public cgb::cg_element {
+struct fscene : public gvk::invokee {
 
 private:
 	//CPU-Data
-	cgb::model mLoadedScene;						//cgbase-object for reading in the scene data
-	std::vector<cgb::material_config> mMaterials;	//List of materials (using cgbase's material representation)
+	gvk::model mLoadedScene;						//cgbase-object for reading in the scene data
+	std::vector<gvk::material_config> mMaterials;	//List of materials (using cgbase's material representation)
 	std::vector<fmodel> mModels;					//List of models
-	cgb::camera mCamera;							//Camera object
+	gvk::camera mCamera;							//Camera object
 	glm::vec4 mBackgroundColor;						//Current background color of the scene
 	int mUpdateMaterials = 0;						//Whether the materials have to be updated (as a decrementing frame-counter)
 	//Character
-	cgb::model mCgbCharacter;						//Character model
+	gvk::model mCgbCharacter;						//Character model
 	size_t mCharacterIndex;							//Index of the character model in the models-array
 
 	//For GPU
 	std::vector<fmodel_gpu_data> mModelData;				//List of model-gpu-data
-	std::vector<cgb::material_gpu_data> mGpuMaterials;		//List of material-gpu-data
+	std::vector<gvk::material_gpu_data> mGpuMaterials;		//List of material-gpu-data
 
 	//GPU-Data (Buffers and ACs)
 	//Buffer Views
-	std::vector<cgb::buffer_view> mIndexBufferViews;		//Index buffer view for each model
-	std::vector<cgb::buffer_view> mTexCoordBufferViews;		//Texture coordinates buffer view for each model
-	std::vector<cgb::buffer_view> mNormalBufferViews;		//Normal buffer view for each model
-	std::vector<cgb::buffer_view> mTangentBufferViews;		//Tangent buffer view for each model
+	std::vector<avk::buffer_view> mIndexBufferViews;		//Index buffer view for each model
+	std::vector<avk::buffer_view> mTexCoordBufferViews;		//Texture coordinates buffer view for each model
+	std::vector<avk::buffer_view> mNormalBufferViews;		//Normal buffer view for each model
+	std::vector<avk::buffer_view> mTangentBufferViews;		//Tangent buffer view for each model
 	//Various
-	std::vector<cgb::geometry_instance> mGeometryInstances;	//Geometry Instances for TLAS
-	std::vector<cgb::image_sampler> mImageSamplers;			//Textures
+	std::vector<avk::geometry_instance> mGeometryInstances;	//Geometry Instances for TLAS
+	std::vector<avk::image_sampler> mImageSamplers;			//Textures
 	//Uniform and Storage Buffers
-	std::vector<cgb::storage_buffer> mMaterialBuffers;			//Material buffers, one per frame in flight
-	std::vector<cgb::storage_buffer> mModelBuffers;				//Model buffers, one per frame in flight
-	std::vector<cgb::uniform_buffer> mPerlinBackgroundBuffers;	//Background color buffer, one per frame in flight
-	cgb::storage_buffer mLightBuffer;							//Light source buffer, only one, because constant
-	cgb::storage_buffer mPerlinGradientBuffer;					//Perlin gradients buffer for background, only one, because constant
+	std::vector<avk::buffer> mMaterialBuffers;			//Material buffers, one per frame in flight
+	std::vector<avk::buffer> mModelBuffers;				//Model buffers, one per frame in flight
+	std::vector<avk::buffer> mPerlinBackgroundBuffers;	//Background color buffer, one per frame in flight
+	avk::buffer mLightBuffer;							//Light source buffer, only one, because constant
+	avk::buffer mPerlinGradientBuffer;					//Perlin gradients buffer for background, only one, because constant
 	//Acceleration Structures
-	std::vector<cgb::bottom_level_acceleration_structure> mBLASs;	//Bottom Level Acceleration Structures (only once, constant)
-	std::vector<cgb::top_level_acceleration_structure> mTLASs;		//Top Level Acceleration Structures (one per frame in flight)
+	std::vector<avk::bottom_level_acceleration_structure> mBLASs;	//Bottom Level Acceleration Structures (only once, constant)
+	std::vector<avk::top_level_acceleration_structure> mTLASs;		//Top Level Acceleration Structures (one per frame in flight)
 
 	//Help-function
 	void create_buffers_for_model(fmodel& model);
@@ -95,51 +95,51 @@ public:
 	//---Getter Functions---
 	//----------------------
 
-	const std::vector<cgb::image_sampler>& get_image_samplers() const {
+	const std::vector<avk::image_sampler>& get_image_samplers() const {
 		return mImageSamplers;
 	}
 
-	const cgb::storage_buffer& get_model_buffer(size_t index) const {
+	const avk::buffer& get_model_buffer(size_t index) const {
 		return mModelBuffers[index];
 	}
 
-	const cgb::storage_buffer& get_material_buffer(size_t index) const {
+	const avk::buffer& get_material_buffer(size_t index) const {
 		return mMaterialBuffers[index];
 	}
 
-	const cgb::storage_buffer& get_light_buffer() const {
+	const avk::buffer& get_light_buffer() const {
 		return mLightBuffer;
 	}
 
-	const cgb::uniform_buffer& get_background_buffer(size_t index) const {
+	const avk::buffer& get_background_buffer(size_t index) const {
 		return mPerlinBackgroundBuffers[index];
 	}
 
-	const cgb::storage_buffer& get_gradient_buffer() const {
+	const avk::buffer& get_gradient_buffer() const {
 		return mPerlinGradientBuffer;
 	}
 
-	const std::vector<cgb::buffer_view>& get_index_buffer_views() const {
+	const std::vector<avk::buffer_view>& get_index_buffer_views() const {
 		return mIndexBufferViews;
 	}
 
-	const std::vector<cgb::buffer_view>& get_texcoord_buffer_views() const {
+	const std::vector<avk::buffer_view>& get_texcoord_buffer_views() const {
 		return mTexCoordBufferViews;
 	}
 
-	const std::vector<cgb::buffer_view>& get_normal_buffer_views() const {
+	const std::vector<avk::buffer_view>& get_normal_buffer_views() const {
 		return mNormalBufferViews;
 	}
 
-	const std::vector<cgb::buffer_view>& get_tangent_buffer_views() const {
+	const std::vector<avk::buffer_view>& get_tangent_buffer_views() const {
 		return mTangentBufferViews;
 	}
 
-	const std::vector<cgb::top_level_acceleration_structure>& get_tlas() const {
+	const std::vector<avk::top_level_acceleration_structure>& get_tlas() const {
 		return mTLASs;
 	}
 
-	cgb::camera& get_camera() {
+	gvk::camera& get_camera() {
 		return mCamera;
 	}
 
@@ -148,7 +148,7 @@ public:
 	/*This function has a side effect. If this is called, it is assumed that the returned material will be changed
 	and the gpu buffer will be updated in the next frames
 	*/
-	cgb::material_gpu_data& get_material_data(size_t materialIndex);
+	gvk::material_gpu_data& get_material_data(size_t materialIndex);
 
 	//----------------------
 

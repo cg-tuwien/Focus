@@ -34,7 +34,7 @@ fplayercontrol::fplayercontrol(fphysicscontroller* physics, fscene* scene, bool 
 void fplayercontrol::pre_px_update(float deltaT)
 {
 	//----- CHECK MIRROR INTERACTION -----
-	bool leftClicked = cgb::input().mouse_button_down(0);
+	bool leftClicked = gvk::input().mouse_button_down(0);
 	//Click active -> interact with mirror
 	if (leftClicked) {
 		//No mirror hit yet -> Check for hit via raycasting
@@ -46,8 +46,8 @@ void fplayercontrol::pre_px_update(float deltaT)
 		}
 		//Mirror hit -> Rotate according to mouse
 		if (movingMirror != -1) {
-			double deltaX = cgb::input().delta_cursor_position().x;
-			double deltaY = cgb::input().delta_cursor_position().y;
+			double deltaX = gvk::input().delta_cursor_position().x;
+			double deltaY = gvk::input().delta_cursor_position().y;
 			float angle = -deltaX * MOUSE_SENTIVITY;
 			PxQuat rotation = PxQuat(angle, PxVec3(0, 1, 0));
 			glm::vec3 mPosition;
@@ -100,25 +100,25 @@ void fplayercontrol::post_px_update(float deltaT) {
 		straight.y = 0;
 	}
 	
-	if (cgb::input().key_down(cgb::key_code::w)) {
+	if (gvk::input().key_down(gvk::key_code::w)) {
 		moveDir += straight;
 	}
-	if (cgb::input().key_down(cgb::key_code::s)) {
+	if (gvk::input().key_down(gvk::key_code::s)) {
 		moveDir -= straight;
 	}
-	if (cgb::input().key_down(cgb::key_code::d)) {
+	if (gvk::input().key_down(gvk::key_code::d)) {
 		moveDir += camera->x_axis();
 	}
-	if (cgb::input().key_down(cgb::key_code::a)) {
+	if (gvk::input().key_down(gvk::key_code::a)) {
 		moveDir -= camera->x_axis();
 	}
-	if (fly && cgb::input().key_down(cgb::key_code::e)) {
+	if (fly && gvk::input().key_down(gvk::key_code::e)) {
 		moveDir += camera->y_axis();
 	}
-	if (fly && cgb::input().key_down(cgb::key_code::q)) {
+	if (fly && gvk::input().key_down(gvk::key_code::q)) {
 		moveDir -= camera->y_axis();
 	}
-	if (jumpbase != nullptr && cgb::input().key_down(cgb::key_code::space) && jump == -1) {
+	if (jumpbase != nullptr && gvk::input().key_down(gvk::key_code::space) && jump == -1) {
 		PxBounds3 basebounds = jumpbase->getWorldBounds();
 		PxExtendedVec3 camPos = cameraController->getPosition();
 		//Make sure the player still stands on the last contact point
@@ -157,8 +157,8 @@ void fplayercontrol::update(float deltaT)
 {
 	//Check Mouse Interactions (only if no mirror is focused)
 	if (movingMirror == -1) {
-		double deltaX = cgb::input().delta_cursor_position().x;
-		double deltaY = cgb::input().delta_cursor_position().y;
+		double deltaX = gvk::input().delta_cursor_position().x;
+		double deltaY = gvk::input().delta_cursor_position().y;
 		horizontalAngle += deltaX * MOUSE_SENTIVITY;
 		verticalAngle = glm::max(glm::min(verticalAngle + deltaY * 0.005, M_PI / 2 - 0.02), -M_PI / 2 + 0.02);
 	}

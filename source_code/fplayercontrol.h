@@ -13,7 +13,7 @@ class fplayercontrol : private PxUserControllerHitReport {
 private:
 	fscene* scene;
 	fphysicscontroller* physics;
-	cgb::camera* camera;
+	gvk::camera* camera;
 	PxController* cameraController;
 	PxUserControllerHitReport* additionalCallback;
 	std::vector<std::vector<PxRigidStatic*>> mirrorActors;

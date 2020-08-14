@@ -5,16 +5,16 @@
 Renderer class. Responsible for rendering the image and everything related to that (creating descriptor sets, command buffers etc.).
 Also manages the focus hit count buffer and the fade buffer.
 */
-class frenderer : public cgb::cg_element {
+class frenderer : public gvk::invokee {
 private:
 	fscene* mScene = nullptr;
 	flevellogic* mLevelLogic = nullptr;
 
-	cgb::ray_tracing_pipeline mPipeline;
+	avk::ray_tracing_pipeline mPipeline;
 	//We need each of the following several times, as we have several frames in flight
-	std::vector<cgb::image_view> mOffscreenImageViews;
-	std::vector<cgb::storage_buffer> mFocusHitBuffers;
-	std::vector<cgb::uniform_buffer> mFadeBuffers;
+	std::vector<avk::image_view> mOffscreenImageViews;
+	std::vector<avk::buffer> mFocusHitBuffers;
+	std::vector<avk::buffer> mFadeBuffers;
 	float fadeValue = 0.0f;
 
 public:

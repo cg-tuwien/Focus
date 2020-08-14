@@ -2,79 +2,102 @@
 
 void fscene::create_buffers_for_model(fmodel& newElement)
 {
+	auto mainWindow = gvk::context().main_window();
+	
 	//Create Buffers
-	auto positionsBuffer = cgb::create_and_fill(
-		cgb::vertex_buffer_meta::create_from_data(newElement.mPositions).describe_only_member(newElement.mPositions[0], 0, cgb::content_description::position),
-		cgb::memory_usage::device,
-		newElement.mPositions.data(),
-		cgb::sync::with_barriers_on_current_frame()
+	auto positionsBuffer = gvk::context().create_buffer(
+		avk::memory_usage::device, {},
+		avk::vertex_buffer_meta::create_from_data(newElement.mPositions).describe_only_member(newElement.mPositions[0], avk::content_description::position)
+	);
+	positionsBuffer->fill(
+		newElement.mPositions.data(), 0,
+		avk::sync::with_barriers(mainWindow->command_buffer_lifetime_handler())
 	);
 	positionsBuffer.enable_shared_ownership();
 
-	auto indexBuffer = cgb::create_and_fill(
-		cgb::index_buffer_meta::create_from_data(newElement.mIndices),
-		cgb::memory_usage::device,
-		newElement.mIndices.data(),
-		cgb::sync::with_barriers_on_current_frame()
+	auto indexBuffer = gvk::context().create_buffer(
+		avk::memory_usage::device, {},
+		avk::index_buffer_meta::create_from_data(newElement.mIndices)
+	);
+	indexBuffer->fill(
+		newElement.mIndices.data(), 0,
+		avk::sync::with_barriers(mainWindow->command_buffer_lifetime_handler())
 	);
 	indexBuffer.enable_shared_ownership();
 
-	auto texCoordsBuffer = cgb::create_and_fill(
-		cgb::uniform_texel_buffer_meta::create_from_data(newElement.mTexCoords).describe_only_member(newElement.mTexCoords[0]),
-		cgb::memory_usage::device,
-		newElement.mTexCoords.data()
+	auto texCoordsBuffer = gvk::context().create_buffer(
+		avk::memory_usage::device, {},
+		avk::uniform_texel_buffer_meta::create_from_data(newElement.mTexCoords).describe_only_member(newElement.mTexCoords[0])
 	);
-	mTexCoordBufferViews.push_back(cgb::buffer_view_t::create(std::move(texCoordsBuffer)));
-
-	auto normalsBuffer = cgb::create_and_fill(
-		cgb::uniform_texel_buffer_meta::create_from_data(newElement.mNormals).describe_only_member(newElement.mNormals[0]),
-		cgb::memory_usage::device,
-		newElement.mNormals.data()
+	texCoordsBuffer->fill(
+		newElement.mTexCoords.data(), 0,
+		avk::sync::with_barriers(mainWindow->command_buffer_lifetime_handler())
 	);
-	mNormalBufferViews.push_back(cgb::buffer_view_t::create(std::move(normalsBuffer)));
+	mTexCoordBufferViews.push_back(gvk::context().create_buffer_view(std::move(texCoordsBuffer)));
 
-	auto tangentsBuffer = cgb::create_and_fill(
-		cgb::uniform_texel_buffer_meta::create_from_data(newElement.mTangents).describe_only_member(newElement.mTangents[0]),
-		cgb::memory_usage::device,
-		newElement.mTangents.data()
+	auto normalsBuffer = gvk::context().create_buffer(
+		avk::memory_usage::device, {},
+		avk::uniform_texel_buffer_meta::create_from_data(newElement.mNormals).describe_only_member(newElement.mNormals[0])
 	);
-	mTangentBufferViews.push_back(cgb::buffer_view_t::create(std::move(tangentsBuffer)));
-
-	auto indexTexelBuffer = cgb::create_and_fill(
-		cgb::uniform_texel_buffer_meta::create_from_data(newElement.mIndices).set_format<glm::uvec3>(),
-		cgb::memory_usage::device,
-		newElement.mIndices.data()
+	normalsBuffer->fill(
+		newElement.mNormals.data(), 0,
+		avk::sync::with_barriers(mainWindow->command_buffer_lifetime_handler())
 	);
-	mIndexBufferViews.push_back(cgb::buffer_view_t::create(std::move(indexTexelBuffer)));
+	mNormalBufferViews.push_back(gvk::context().create_buffer_view(std::move(normalsBuffer)));
 
-	auto blas = cgb::bottom_level_acceleration_structure_t::create(positionsBuffer, indexBuffer);
+	auto tangentsBuffer = gvk::context().create_buffer(
+		avk::memory_usage::device, {},
+		avk::uniform_texel_buffer_meta::create_from_data(newElement.mTangents).describe_only_member(newElement.mTangents[0])
+	);
+	tangentsBuffer->fill(
+		newElement.mTangents.data(), 0,
+		avk::sync::with_barriers(mainWindow->command_buffer_lifetime_handler())
+	);
+	mTangentBufferViews.push_back(gvk::context().create_buffer_view(std::move(tangentsBuffer)));
+
+	auto indexTexelBuffer = gvk::context().create_buffer(
+		avk::memory_usage::device, {},
+		avk::uniform_texel_buffer_meta::create_from_data(newElement.mIndices).set_format<glm::uvec3>()
+	);
+	indexTexelBuffer->fill(
+		newElement.mIndices.data(), 0,
+		avk::sync::with_barriers(mainWindow->command_buffer_lifetime_handler())
+	);
+	mIndexBufferViews.push_back(gvk::context().create_buffer_view(std::move(indexTexelBuffer)));
+
+	auto blas = gvk::context().create_bottom_level_acceleration_structure({
+			avk::acceleration_structure_size_requirements::from_buffers( avk::vertex_index_buffer_pair{ positionsBuffer, indexBuffer } )
+		}, false);
 	blas.enable_shared_ownership();
-	auto instance = cgb::geometry_instance::create(blas).set_transform(newElement.mTransformation).set_custom_index(mBLASs.size());
+	auto instance = gvk::context().create_geometry_instance(blas)
+		.set_transform_column_major(gvk::to_array(newElement.mTransformation))
+		.set_custom_index(mBLASs.size());
 	instance.mFlags = (newElement.mTransparent) ? vk::GeometryInstanceFlagBitsNV::eForceNoOpaque : vk::GeometryInstanceFlagBitsNV::eForceOpaque;
 	mGeometryInstances.push_back(instance);
 	// Build BLAS and do not sync at all at this point (passing two empty handlers as parameters):
 	//   The idea of this is that multiple BLAS can be built
 	//   in parallel, we only have to make sure to synchronize
 	//   before we start building the TLAS.
-	blas->build(cgb::sync::with_barriers_on_current_frame({}, {}));
+	blas->build({ avk::vertex_index_buffer_pair{ positionsBuffer, indexBuffer } }, {}, avk::sync::with_barriers(mainWindow->command_buffer_lifetime_handler()));
 	mBLASs.push_back(std::move(blas));
 
 	mModelData.emplace_back(newElement);
 }
 
-cgb::material_gpu_data& fscene::get_material_data(size_t materialIndex)
+gvk::material_gpu_data& fscene::get_material_data(size_t materialIndex)
 {
-	mUpdateMaterials = cgb::context().main_window()->number_of_in_flight_frames();
+	mUpdateMaterials = gvk::context().main_window()->number_of_frames_in_flight();
 	return mGpuMaterials[materialIndex];
 }
 
 std::unique_ptr<fscene> fscene::load_scene(const std::string& filename, const std::string& characterfilename)
 {
-	auto fif = cgb::context().main_window()->number_of_in_flight_frames();
+	auto mainWindow = gvk::context().main_window();
+	auto fif = mainWindow->number_of_frames_in_flight();
 
 	std::unique_ptr<fscene> s = std::make_unique<fscene>();
-	s->mLoadedScene = cgb::model_t::load_from_file(filename, aiProcess_Triangulate | aiProcess_CalcTangentSpace);
-	s->mCgbCharacter = cgb::model_t::load_from_file(characterfilename, aiProcess_Triangulate | aiProcess_CalcTangentSpace);
+	s->mLoadedScene = gvk::model_t::load_from_file(filename, aiProcess_Triangulate | aiProcess_CalcTangentSpace);
+	s->mCgbCharacter = gvk::model_t::load_from_file(characterfilename, aiProcess_Triangulate | aiProcess_CalcTangentSpace);
 
 	auto cameras = s->mLoadedScene->cameras();
 	assert(cameras.size() > 0);
@@ -105,12 +128,12 @@ std::unique_ptr<fscene> fscene::load_scene(const std::string& filename, const st
 			newElement.mTransformation = s->mLoadedScene->transformation_matrix_for_mesh(meshindex);
 
 			//Get CPU-Data
-			cgb::append_indices_and_vertex_data(
-				cgb::additional_index_data(newElement.mIndices, [&]() { return s->mLoadedScene->indices_for_mesh<uint32_t>(meshindex);						}),
-				cgb::additional_vertex_data(newElement.mPositions, [&]() { return s->mLoadedScene->positions_for_mesh(meshindex);							}),
-				cgb::additional_vertex_data(newElement.mTexCoords, [&]() { return s->mLoadedScene->texture_coordinates_for_mesh<glm::vec2>(meshindex);		}),
-				cgb::additional_vertex_data(newElement.mNormals, [&]() { return s->mLoadedScene->normals_for_mesh(meshindex);								}),
-				cgb::additional_vertex_data(newElement.mTangents, [&]() { return s->mLoadedScene->tangents_for_mesh(meshindex);								})
+			gvk::append_indices_and_vertex_data(
+				gvk::additional_index_data(newElement.mIndices, [&]() { return s->mLoadedScene->indices_for_mesh<uint32_t>(meshindex);						}),
+				gvk::additional_vertex_data(newElement.mPositions, [&]() { return s->mLoadedScene->positions_for_mesh(meshindex);							}),
+				gvk::additional_vertex_data(newElement.mTexCoords, [&]() { return s->mLoadedScene->texture_coordinates_for_mesh<glm::vec2>(meshindex);		}),
+				gvk::additional_vertex_data(newElement.mNormals, [&]() { return s->mLoadedScene->normals_for_mesh(meshindex);								}),
+				gvk::additional_vertex_data(newElement.mTangents, [&]() { return s->mLoadedScene->tangents_for_mesh(meshindex);								})
 			);
 			
 			s->create_buffers_for_model(newElement);
@@ -133,66 +156,65 @@ std::unique_ptr<fscene> fscene::load_scene(const std::string& filename, const st
 	character.mName = "Character";
 	s->mModels.push_back(character);
 	//Create Character Material
-	auto charMat = cgb::material_config();
+	auto charMat = gvk::material_config();
 	charMat.mDiffuseReflectivity = glm::vec4(0.5);
 	s->mMaterials.push_back(charMat);
 	s->create_buffers_for_model(character);
 
 	s->mModelBuffers.resize(fif);
 	for (size_t i = 0; i < fif; ++i) {
-		s->mModelBuffers[i] = cgb::create_and_fill(
-			cgb::storage_buffer_meta::create_from_data(s->mModelData),
-			cgb::memory_usage::host_coherent,
-			s->mModelData.data()
+		s->mModelBuffers[i] = gvk::context().create_buffer(
+			avk::memory_usage::host_coherent, {},
+			avk::storage_buffer_meta::create_from_data(s->mModelData)
 		);
+		s->mModelBuffers[i]->fill(s->mModelData.data(), 0, avk::sync::not_required());
 	}
 
 	//----CREATE GPU BUFFERS-----
 	//Materials + Textures
-	auto [gpuMaterials, imageSamplers] = cgb::convert_for_gpu_usage(
-		s->mMaterials,
-		cgb::image_usage::read_only_sampled_image,
-		cgb::filter_mode::bilinear,
-		cgb::border_handling_mode::repeat,
-		cgb::sync::with_barriers_on_current_frame()
+	auto [gpuMaterials, imageSamplers] = gvk::convert_for_gpu_usage(
+		s->mMaterials, true,
+		avk::image_usage::general_texture,
+		avk::filter_mode::trilinear,
+		avk::border_handling_mode::repeat,
+		avk::sync::with_barriers(mainWindow->command_buffer_lifetime_handler())
 	);
 	s->mMaterialBuffers.resize(fif);
 	for (size_t i = 0; i < fif; ++i) {
-		s->mMaterialBuffers[i] = cgb::create_and_fill(
-			cgb::storage_buffer_meta::create_from_data(gpuMaterials),
-			cgb::memory_usage::host_coherent,
-			gpuMaterials.data(),
-			cgb::sync::with_barriers_on_current_frame()
+		s->mMaterialBuffers[i] = gvk::context().create_buffer(
+			avk::memory_usage::host_coherent, {},
+			avk::storage_buffer_meta::create_from_data(gpuMaterials)
 		);
+		s->mMaterialBuffers[i]->fill(gpuMaterials.data(), 0, avk::sync::not_required());
 	}
 	s->mGpuMaterials = gpuMaterials;
 	s->mImageSamplers = std::move(imageSamplers);
 
 	//Lights
-	std::vector<cgb::lightsource_gpu_data> lights = cgb::convert_lights_for_gpu_usage(s->mLoadedScene->lights());
+	std::vector<gvk::lightsource_gpu_data> lights = gvk::convert_for_gpu_usage(s->mLoadedScene->lights());
 	uint32_t lightCount = lights.size();
-	uint32_t buffersize = sizeof(cgb::lightsource_gpu_data) * lights.size() + sizeof(uint32_t)*4;
+	uint32_t buffersize = sizeof(gvk::lightsource_gpu_data) * lights.size() + sizeof(uint32_t)*4;
 	char* data = new char[buffersize];
 	uint32_t* udata = reinterpret_cast<uint32_t*>(data);
 	memcpy(udata, &lightCount, sizeof(uint32_t));
-	memcpy(udata + 4, lights.data(), sizeof(cgb::lightsource_gpu_data) * lights.size());
-	cgb::lightsource_gpu_data* test = reinterpret_cast<cgb::lightsource_gpu_data*>(udata + 4);
-	s->mLightBuffer = cgb::create_and_fill(
-		cgb::storage_buffer_meta::create_from_size(buffersize),
-		cgb::memory_usage::device,
-		data
+	memcpy(udata + 4, lights.data(), sizeof(gvk::lightsource_gpu_data) * lights.size());
+	gvk::lightsource_gpu_data* test = reinterpret_cast<gvk::lightsource_gpu_data*>(udata + 4);
+	s->mLightBuffer = gvk::context().create_buffer(
+		avk::memory_usage::device, {},
+		avk::storage_buffer_meta::create_from_size(buffersize)
 	);
-	delete data;
+	s->mLightBuffer->fill(data, 0, avk::sync::wait_idle(true));
+	delete[] data;
 
 	//Background Color Buffer
 	s->mBackgroundColor = glm::vec4(0.3, 0.3, 0.3, 0);
 	s->mPerlinBackgroundBuffers.resize(fif);
 	for (size_t i = 0; i < fif; ++i) {
-		s->mPerlinBackgroundBuffers[i] = cgb::create_and_fill(
-			cgb::uniform_buffer_meta::create_from_data(s->mBackgroundColor),
-			cgb::memory_usage::host_coherent,
-			&s->mBackgroundColor
+		s->mPerlinBackgroundBuffers[i] = gvk::context().create_buffer(
+			avk::memory_usage::host_coherent, {},
+			avk::uniform_buffer_meta::create_from_data(s->mBackgroundColor)
 		);
+		s->mPerlinBackgroundBuffers[i]->fill(&s->mBackgroundColor, 0, avk::sync::not_required());
 	}
 
 	//Perlin Gradient Buffer
@@ -210,35 +232,36 @@ std::unique_ptr<fscene> fscene::load_scene(const std::string& filename, const st
 			gdata[latsegs * i + 2 * j + 1] = vec.y;
 		}
 	}
-	s->mPerlinGradientBuffer = cgb::create_and_fill(
-		cgb::storage_buffer_meta::create_from_size(sizeof(float) * lonsegs * latsegs * 2),
-		cgb::memory_usage::host_coherent,
-		gdata
+	s->mPerlinGradientBuffer = gvk::context().create_buffer(
+		avk::memory_usage::host_coherent, {},
+		avk::storage_buffer_meta::create_from_size(sizeof(float) * lonsegs * latsegs * 2)
 	);
+	s->mPerlinGradientBuffer->fill(gdata, 0, avk::sync::not_required());
 	delete gdata;
 
 	//---- CREATE TLAS -----
 	s->mTLASs.reserve(fif);
 	for (decltype(fif) i = 0; i < fif; ++i) {
 		// Each TLAS owns every BLAS (this will only work, if the BLASs themselves stay constant, i.e. read access
-		auto tlas = cgb::top_level_acceleration_structure_t::create(s->mGeometryInstances.size());
+		auto tlas = gvk::context().create_top_level_acceleration_structure(s->mGeometryInstances.size(), true);
 		// Build the TLAS, ...
-		tlas->build(s->mGeometryInstances, cgb::sync::with_barriers_on_current_frame(
+		tlas->build(s->mGeometryInstances, {}, avk::sync::with_barriers(
+					gvk::context().main_window()->command_buffer_lifetime_handler(),
 					// Sync before building the TLAS:
-					[](cgb::command_buffer_t& commandBuffer, cgb::pipeline_stage destinationStage, std::optional<cgb::read_memory_access> readAccess){
-						assert(cgb::pipeline_stage::acceleration_structure_build == destinationStage);
-						assert(!readAccess.has_value() || cgb::memory_access::acceleration_structure_read_access == readAccess.value().value());
+					[](avk::command_buffer_t& commandBuffer, avk::pipeline_stage destinationStage, std::optional<avk::read_memory_access> readAccess){
+						assert(avk::pipeline_stage::acceleration_structure_build == destinationStage);
+						assert(!readAccess.has_value() || avk::memory_access::acceleration_structure_read_access == readAccess.value().value());
 						// Wait on all the BLAS builds that happened before (and their memory):
-						commandBuffer.establish_global_memory_barrier(
-							cgb::pipeline_stage::acceleration_structure_build, destinationStage,
-							cgb::memory_access::acceleration_structure_write_access, readAccess
+						commandBuffer.establish_global_memory_barrier_rw(
+							avk::pipeline_stage::acceleration_structure_build, destinationStage,
+							avk::memory_access::acceleration_structure_write_access, readAccess
 						);
 					},
 					// Whatever comes after must wait for this TLAS build to finish (and its memory to be made available):
 					//   However, that's exactly what the default_handler_after_operation
 					//   does, so let's just use that (it is also the default value for
 					//   this handler)
-					cgb::sync::default_handler_after_operation
+					avk::sync::presets::default_handler_after_operation
 				)
 		);
 		s->mTLASs.push_back(std::move(tlas));
@@ -266,7 +289,7 @@ void fscene::update()
 {
 	int i = 0;
 	for (fmodel& model : mModels) {
-		mGeometryInstances[i].set_transform(model.mTransformation);
+		mGeometryInstances[i].set_transform_column_major(gvk::to_array(model.mTransformation));
 		if (model.mLeaf) {
 			model.mTransparent = true;
 			mGeometryInstances[i].set_instance_offset(4);
@@ -275,22 +298,23 @@ void fscene::update()
 		mModelData[i] = model;
 		++i;
 	}
-	auto fidx = cgb::context().main_window()->in_flight_index_for_frame();
-	cgb::fill(mModelBuffers[fidx], mModelData.data());
+	auto fidx = gvk::context().main_window()->in_flight_index_for_frame();
+	mModelBuffers[fidx]->fill(mModelData.data(), 0, avk::sync::not_required());
 	if (mUpdateMaterials > 0) {
 		--mUpdateMaterials;
-		cgb::fill(mMaterialBuffers[fidx], mGpuMaterials.data());
+		mMaterialBuffers[fidx]->fill(mGpuMaterials.data(), 0, avk::sync::not_required());
 	}
 
-	cgb::fill(mPerlinBackgroundBuffers[fidx], &mBackgroundColor);
+	mPerlinBackgroundBuffers[fidx]->fill(&mBackgroundColor, 0, avk::sync::not_required());
 
-	mTLASs[fidx]->update(mGeometryInstances, cgb::sync::with_barriers_on_current_frame(
+	mTLASs[fidx]->update(mGeometryInstances, {}, avk::sync::with_barriers(
+			gvk::context().main_window()->command_buffer_lifetime_handler(),
 			{}, // Nothing to wait for
-			[](cgb::command_buffer_t& commandBuffer, cgb::pipeline_stage srcStage, std::optional<cgb::write_memory_access> srcAccess){
+			[](avk::command_buffer_t& commandBuffer, avk::pipeline_stage srcStage, std::optional<avk::write_memory_access> srcAccess){
 				// We want this update to be as efficient/as tight as possible
 				commandBuffer.establish_global_memory_barrier(
-					srcStage, cgb::pipeline_stage::ray_tracing_shaders, // => ray tracing shaders must wait on the building of the acceleration structure
-					srcAccess, cgb::memory_access::acceleration_structure_read_access // TLAS-update's memory must be made visible to ray tracing shader's caches (so they can read from)
+					srcStage, avk::pipeline_stage::ray_tracing_shaders, // => ray tracing shaders must wait on the building of the acceleration structure
+					srcAccess.value().value(), avk::memory_access::acceleration_structure_read_access // TLAS-update's memory must be made visible to ray tracing shader's caches (so they can read from)
 				);
 			}
 		)

@@ -4,28 +4,28 @@ void frenderer::initialize()
 {
 	//Create Focus Hit Buffer
 	uint32_t initialfocushit = 0;
-	size_t n = cgb::context().main_window()->number_of_in_flight_frames();
+	size_t n = gvk::context().main_window()->number_of_frames_in_flight();
 	mFocusHitBuffers.resize(n);
 	mFadeBuffers.resize(n);
 	for (int i = 0; i < n; ++i) {
-		mFocusHitBuffers[i] = cgb::create_and_fill(
-			cgb::storage_buffer_meta::create_from_size(sizeof(uint32_t)),
-			cgb::memory_usage::host_coherent,
-			&initialfocushit
+		mFocusHitBuffers[i] = gvk::context().create_buffer(
+			avk::memory_usage::host_coherent, {},
+			avk::storage_buffer_meta::create_from_size(sizeof(uint32_t))
 		);
+		mFocusHitBuffers[i]->fill(&initialfocushit, 0, avk::sync::not_required());
 
-		mFadeBuffers[i] = cgb::create_and_fill(
-			cgb::uniform_buffer_meta::create_from_size(sizeof(float)),
-			cgb::memory_usage::host_coherent,
-			&fadeValue
+		mFadeBuffers[i] = gvk::context().create_buffer(
+			avk::memory_usage::host_coherent, {},
+			avk::uniform_buffer_meta::create_from_size(sizeof(float))
 		);
+		mFadeBuffers[i]->fill(&fadeValue, 0, avk::sync::not_required());
 	}
 
 	// Create offscreen image views to ray-trace into, one for each frame in flight:
 	mOffscreenImageViews.reserve(n);
-	const auto wdth = cgb::context().main_window()->resolution().x;
-	const auto hght = cgb::context().main_window()->resolution().y;
-	const auto frmt = cgb::image_format::from_window_color_buffer(cgb::context().main_window());
+	const auto wdth = gvk::context().main_window()->resolution().x;
+	const auto hght = gvk::context().main_window()->resolution().y;
+	const auto frmt = gvk::image_format::from_window_color_buffer(cgb::context().main_window());
 	cgb::invoke_for_all_in_flight_frames(cgb::context().main_window(), [&](auto inFlightIndex){
 		mOffscreenImageViews.emplace_back(
 			cgb::image_view_t::create(

@@ -1,5 +1,5 @@
 #pragma once
-#include <cg_base.hpp>
+#include <gvk.hpp>
 #include <memory>
 #include <PxPhysicsAPI.h>
 #include <PxFoundation.h>
