@@ -191,7 +191,11 @@ std::unique_ptr<fscene> fscene::load_scene(const std::string& filename, const st
 	s->mImageSamplers = std::move(imageSamplers);
 
 	//Lights
-	std::vector<gvk::lightsource_gpu_data> lights = gvk::convert_for_gpu_usage(s->mLoadedScene->lights());
+	std::vector<gvk::lightsource> loadedLights = s->mLoadedScene->lights();
+	std::vector<gvk::lightsource_gpu_data> lights;
+	lights.resize(loadedLights.size());
+	gvk::convert_for_gpu_usage(loadedLights, loadedLights.size(), glm::mat4{1.0f}, lights);
+	
 	uint32_t lightCount = lights.size();
 	uint32_t buffersize = sizeof(gvk::lightsource_gpu_data) * lights.size() + sizeof(uint32_t)*4;
 	char* data = new char[buffersize];

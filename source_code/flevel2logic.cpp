@@ -70,7 +70,7 @@ levelstatus flevel2logic::update(float deltaT, double focusHitValue)
 		return levelstatus::WON;
 	}
 
-	if (cgb::input().key_released(cgb::key_code::f10)) {
+	if (gvk::input().key_released(gvk::key_code::f10)) {
 		score = 100.0f;
 		return levelstatus::WON;
 	}

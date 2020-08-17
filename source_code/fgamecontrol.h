@@ -7,12 +7,12 @@
 This class manages the game on a high level. It creates scene, level logic and renderer, and
 it is responsible for changing the levels, as well as reacting to key strokes for pausing and stopping the game.
 */
-class fgamecontrol : public cgb::cg_element
+class fgamecontrol : public gvk::invokee
 {
 
 public:
 	//When creating the Game Control object, the initial scene and level logic of level 1 are loaded.
-	fgamecontrol();
+	fgamecontrol(avk::queue* q);
 
 	//--------------------------
 	//---Overridden functions---
@@ -46,6 +46,8 @@ private:
 	//--------------------------
 	//---Member variables-------
 	//--------------------------
+	avk::queue* mQueue;
+	
 	frenderer mRenderer;						//Renderer object (constant)
 	std::unique_ptr<fscene> mScene;				//Scene object pointer (changes)
 	std::unique_ptr<flevellogic> mLevelLogic;	//Level Logic object pointer (changes)

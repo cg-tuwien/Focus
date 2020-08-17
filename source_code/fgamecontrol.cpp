@@ -1,17 +1,23 @@
 //Author: Simon Fraiss
 #include "includes.h"
 
-fgamecontrol::fgamecontrol() {
+fgamecontrol::fgamecontrol(avk::queue* q) {
+	mQueue = q;
 	mLevelId = 1;
-	mScene = fscene::load_scene(flevel1logic::level_path(), CHAR_PATH);
-	mLevelLogic = std::make_unique<flevel1logic>(mScene.get());
-	mRenderer.set_scene(mScene.get());
-	mRenderer.set_level_logic(mLevelLogic.get());
 }
 
 void fgamecontrol::initialize()
 {
-	cgb::input().set_cursor_mode(cgb::cursor::cursor_disabled_raw_input);
+	mScene = fscene::load_scene(flevel1logic::level_path(), CHAR_PATH);
+	mLevelLogic = std::make_unique<flevel1logic>(mScene.get());
+	mRenderer.set_scene(mScene.get());
+	mRenderer.set_level_logic(mLevelLogic.get());
+	
+	gvk::input().set_cursor_mode(gvk::cursor::cursor_disabled_raw_input);
+
+	gvk::current_composition()->add_element(*get_level_logic());
+	gvk::current_composition()->add_element(*get_scene());
+	gvk::current_composition()->add_element(*get_renderer());
 }
 
 void fgamecontrol::update()
@@ -20,20 +26,20 @@ void fgamecontrol::update()
 	mOldLevelLogic.reset();
 
 	//Esc -> Stop Game
-	if (cgb::input().key_pressed(cgb::key_code::escape)) {
-		cgb::current_composition().stop();
+	if (gvk::input().key_pressed(gvk::key_code::escape)) {
+		gvk::current_composition()->stop();
 	}
 	//Tab -> Pause game
-	if (cgb::input().key_pressed(cgb::key_code::tab)) {
-		bool newstate = cgb::input().is_cursor_disabled();
+	if (gvk::input().key_pressed(gvk::key_code::tab)) {
+		bool newstate = gvk::input().is_cursor_disabled();
 		mLevelLogic->set_paused(newstate);
-		cgb::input().set_cursor_mode(newstate ? cgb::cursor::arrow_cursor : cgb::cursor::cursor_disabled_raw_input);
+		gvk::input().set_cursor_mode(newstate ? gvk::cursor::arrow_cursor : gvk::cursor::cursor_disabled_raw_input);
 	}
 
 	//Fade-In
 	if (mFadeIn >= 0) {
 		mRenderer.set_fade_value(mFadeIn);
-		mFadeIn -= cgb::time().delta_time() * 1.0;
+		mFadeIn -= gvk::time().delta_time() * 1.0;
 		if (mFadeIn <= 0.0f) {
 			mFadeIn = -1.0f;
 			mRenderer.set_fade_value(0.0f);
@@ -51,7 +57,7 @@ void fgamecontrol::update()
 			mFadeOut = 1.0f;
 		}
 		else {
-			mFadeOut -= cgb::time().delta_time() * 0.5;
+			mFadeOut -= gvk::time().delta_time() * 0.5;
 			mRenderer.set_fade_value(1 - mFadeOut);
 			if (mFadeOut <= 0) {
 				next_level();
@@ -69,7 +75,7 @@ void fgamecontrol::update()
 
 void fgamecontrol::finalize()
 {
-	cgb::context().logical_device().waitIdle();
+	gvk::context().device().waitIdle();
 }
 
 fscene* fgamecontrol::get_scene() {
@@ -87,8 +93,8 @@ frenderer* fgamecontrol::get_renderer() {
 //Switches the level to a new one. T is the flevellogic class
 template <typename T>
 void fgamecontrol::switch_level() {
-	cgb::current_composition().remove_element(*mScene.get());
-	cgb::current_composition().remove_element(*mLevelLogic.get());
+	gvk::current_composition()->remove_element(*mScene.get());
+	gvk::current_composition()->remove_element(*mLevelLogic.get());
 	mScene->disable();
 	mLevelLogic->disable();
 	mOldScene = std::move(mScene);
@@ -97,8 +103,8 @@ void fgamecontrol::switch_level() {
 	mRenderer.set_scene(mScene.get());
 	mLevelLogic = std::make_unique<T>(mScene.get());
 	mRenderer.set_level_logic(mLevelLogic.get());
-	cgb::current_composition().add_element(*mScene.get());
-	cgb::current_composition().add_element(*mLevelLogic.get());
+	gvk::current_composition()->add_element(*mScene.get());
+	gvk::current_composition()->add_element(*mLevelLogic.get());
 	++mLevelId;
 }
 
@@ -118,7 +124,7 @@ void fgamecontrol::next_level() {
 			break;
 		}
 		default: {
-			cgb::current_composition().stop();
+			gvk::current_composition()->stop();
 		}
 	}
 }

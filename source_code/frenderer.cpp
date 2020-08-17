@@ -2,6 +2,9 @@
 
 void frenderer::initialize()
 {
+	// Create a descriptor cache that helps us to conveniently create descriptor sets:
+	mDescriptorCache = gvk::context().create_descriptor_cache();
+	
 	//Create Focus Hit Buffer
 	uint32_t initialfocushit = 0;
 	size_t n = gvk::context().main_window()->number_of_frames_in_flight();
@@ -25,77 +28,108 @@ void frenderer::initialize()
 	mOffscreenImageViews.reserve(n);
 	const auto wdth = gvk::context().main_window()->resolution().x;
 	const auto hght = gvk::context().main_window()->resolution().y;
-	const auto frmt = gvk::image_format::from_window_color_buffer(cgb::context().main_window());
-	cgb::invoke_for_all_in_flight_frames(cgb::context().main_window(), [&](auto inFlightIndex){
+	const auto frmt = gvk::format_from_window_color_buffer(gvk::context().main_window());
+	for (size_t i = 0; i < n; ++i) {
 		mOffscreenImageViews.emplace_back(
-			cgb::image_view_t::create(
-				cgb::image_t::create(wdth, hght, frmt, false, 1, cgb::memory_usage::device, cgb::image_usage::versatile_image)
+			gvk::context().create_image_view(
+				gvk::context().create_image(wdth, hght, frmt, 1, avk::memory_usage::device, avk::image_usage::general_storage_image)
 			)
 		);
-		mOffscreenImageViews.back()->get_image().transition_to_layout({}, cgb::sync::with_barriers_on_current_frame());
+		mOffscreenImageViews.back()->get_image().transition_to_layout({}, avk::sync::with_barriers(gvk::context().main_window()->command_buffer_lifetime_handler()));
 		assert((mOffscreenImageViews.back()->config().subresourceRange.aspectMask & vk::ImageAspectFlagBits::eColor) == vk::ImageAspectFlagBits::eColor);
-	});
+	}
 
 	create_descriptor_sets_for_scene();
 }
 
 void frenderer::update()
 {
-	auto index = cgb::context().main_window()->in_flight_index_for_frame();
+	auto index = gvk::context().main_window()->in_flight_index_for_frame();
 
-	cgb::fill(mFadeBuffers[index], &fadeValue);
+	mFadeBuffers[index]->fill(&fadeValue, 0, avk::sync::not_required());
 
-	auto focushitcount = cgb::read<uint32_t>(mFocusHitBuffers[index], cgb::sync::not_required());
-	mLevelLogic->set_focus_hit_value(double(focushitcount) / double(cgb::context().main_window()->swap_chain_extent().width * cgb::context().main_window()->swap_chain_extent().height));
+	auto focushitcount = mFocusHitBuffers[index]->read<uint32_t>(0, avk::sync::not_required());
+	mLevelLogic->set_focus_hit_value(double(focushitcount) / double(gvk::context().main_window()->swap_chain_extent().width * gvk::context().main_window()->swap_chain_extent().height));
 	focushitcount = 0;
-	cgb::fill(mFocusHitBuffers[index], &focushitcount);
+
+	mFocusHitBuffers[index]->fill(&focushitcount, 0, avk::sync::not_required());
 }
 
 void frenderer::render()
 {
-	auto mainWnd = cgb::context().main_window();
+	auto mainWnd = gvk::context().main_window();
 	auto inFlightIndex = mainWnd->in_flight_index_for_frame();
 
 	//An alternative would be to record the command buffers in advance, that would however disable the push constants, 
 	//so we would need to use a uniform buffer for the camera matrix. And recording every frame shouldn't be too much anyway.
 
-	auto cmdbfr = cgb::context().graphics_queue().create_single_use_command_buffer();
+	auto& commandPool = gvk::context().get_command_pool_for_single_use_command_buffers(*mQueue);
+	auto cmdbfr = commandPool->alloc_command_buffer(vk::CommandBufferUsageFlagBits::eOneTimeSubmit);
+	
 	cmdbfr->begin_recording();
 	cmdbfr->bind_pipeline(mPipeline);
-	cmdbfr->bind_descriptors(mPipeline->layout(), {
-		cgb::binding(0, 0, mScene->get_model_buffer(inFlightIndex)),
-		cgb::binding(0, 1, mScene->get_material_buffer(inFlightIndex)),
-		cgb::binding(0, 2, mScene->get_light_buffer()),
-		cgb::binding(0, 3, mScene->get_image_samplers()),
-		cgb::binding(6, 0, mScene->get_index_buffer_views()),
-		cgb::binding(0, 5, mScene->get_texcoord_buffer_views()),
-		cgb::binding(0, 6, mScene->get_normal_buffer_views()),
-		cgb::binding(0, 7, mScene->get_tangent_buffer_views()),
-		cgb::binding(1, 0, mOffscreenImageViews[inFlightIndex]),
-		cgb::binding(2, 0, mScene->get_tlas()[inFlightIndex]),
-		cgb::binding(3, 0, mScene->get_background_buffer(inFlightIndex)),
-		cgb::binding(3, 1, mScene->get_gradient_buffer()),
-		cgb::binding(4, 0, mFocusHitBuffers[inFlightIndex]),
-		cgb::binding(5, 0, mFadeBuffers[inFlightIndex])
-	});
+	cmdbfr->bind_descriptors(mPipeline->layout(), mDescriptorCache.get_or_create_descriptor_sets({
+		avk::descriptor_binding(0, 0, mScene->get_model_buffer(inFlightIndex)),
+		avk::descriptor_binding(0, 1, mScene->get_material_buffer(inFlightIndex)),
+		avk::descriptor_binding(0, 2, mScene->get_light_buffer()),
+		avk::descriptor_binding(0, 3, mScene->get_image_samplers()),
+		avk::descriptor_binding(6, 0, mScene->get_index_buffer_views()),
+		avk::descriptor_binding(0, 5, mScene->get_texcoord_buffer_views()),
+		avk::descriptor_binding(0, 6, mScene->get_normal_buffer_views()),
+		avk::descriptor_binding(0, 7, mScene->get_tangent_buffer_views()),
+		avk::descriptor_binding(1, 0, mOffscreenImageViews[inFlightIndex]),
+		avk::descriptor_binding(2, 0, mScene->get_tlas()[inFlightIndex]),
+		avk::descriptor_binding(3, 0, mScene->get_background_buffer(inFlightIndex)),
+		avk::descriptor_binding(3, 1, mScene->get_gradient_buffer()),
+		avk::descriptor_binding(4, 0, mFocusHitBuffers[inFlightIndex]),
+		avk::descriptor_binding(5, 0, mFadeBuffers[inFlightIndex])
+	}));
 
 	// Set the push constants:
 	const glm::mat4& viewMatrix = mScene->get_camera().view_matrix();
 	cmdbfr->handle().pushConstants(mPipeline->layout_handle(), vk::ShaderStageFlagBits::eRaygenNV, 0, sizeof(viewMatrix), &viewMatrix);
 
+	//mPipeline->print_shader_binding_table_groups();
+	
 	// TRACE. THA. RAYZ.
-	cmdbfr->handle().traceRaysNV(
-		mPipeline->shader_binding_table_handle(), 0,
-		mPipeline->shader_binding_table_handle(), 3 * mPipeline->table_entry_size(), mPipeline->table_entry_size(),
-		mPipeline->shader_binding_table_handle(), 1 * mPipeline->table_entry_size(), mPipeline->table_entry_size(),
-		nullptr, 0, 0,
-		mainWnd->swap_chain_extent().width, mainWnd->swap_chain_extent().height, 1,
-		cgb::context().dynamic_dispatch());
+	cmdbfr->trace_rays(
+		gvk::for_each_pixel(mainWnd),
+		mPipeline->shader_binding_table(),
+		avk::using_raygen_group_at_index(0),
+		avk::using_miss_group_at_index(0),
+		avk::using_hit_group_at_index(0)
+	);
+	//cmdbfr->handle().traceRaysNV(
+	//	mPipeline->shader_binding_table_handle(), 0,
+	//	mPipeline->shader_binding_table_handle(), 3 * mPipeline->table_entry_size(), mPipeline->table_entry_size(),
+	//	mPipeline->shader_binding_table_handle(), 1 * mPipeline->table_entry_size(), mPipeline->table_entry_size(),
+	//	nullptr, 0, 0,
+	//	mainWnd->swap_chain_extent().width, mainWnd->swap_chain_extent().height, 1,
+	//	gvk::context().dynamic_dispatch());
 
-
+	// Sync ray tracing with transfer:
+	cmdbfr->establish_global_memory_barrier(
+		avk::pipeline_stage::ray_tracing_shaders,                       avk::pipeline_stage::transfer,
+		avk::memory_access::shader_buffers_and_images_write_access,     avk::memory_access::transfer_read_access
+	);
+	
+	avk::copy_image_to_another(mOffscreenImageViews[inFlightIndex]->get_image(), mainWnd->current_backbuffer()->image_view_at(0)->get_image(), avk::sync::with_barriers_into_existing_command_buffer(cmdbfr, {}, {}));
+	
+	// Make sure to properly sync with ImGui manager which comes afterwards (it uses a graphics pipeline):
+	cmdbfr->establish_global_memory_barrier(
+		avk::pipeline_stage::transfer,                                  avk::pipeline_stage::color_attachment_output,
+		avk::memory_access::transfer_write_access,                      avk::memory_access::color_attachment_write_access
+	);
+	
 	cmdbfr->end_recording();
-	submit_command_buffer_ownership(std::move(cmdbfr));
-	submit_command_buffer_ownership(mainWnd->copy_to_swapchain_image(mOffscreenImageViews[inFlightIndex]->get_image(), {}, cgb::window::wait_for_previous_commands_directly_into_present).value());
+
+	// The swap chain provides us with an "image available semaphore" for the current frame.
+	// Only after the swapchain image has become available, we may start rendering into it.
+	auto& imageAvailableSemaphore = mainWnd->consume_current_image_available_semaphore();
+	
+	// Submit the draw call and take care of the command buffer's lifetime:
+	mQueue->submit(cmdbfr, imageAvailableSemaphore);
+	mainWnd->handle_lifetime(std::move(cmdbfr));
 }
 
 void frenderer::set_scene(fscene* scene)
@@ -109,32 +143,32 @@ void frenderer::set_scene(fscene* scene)
 
 void frenderer::create_descriptor_sets_for_scene()
 {
-	mPipeline = cgb::ray_tracing_pipeline_for(
-		cgb::define_shader_table(
-			cgb::ray_generation_shader("shaders/default.rgen.spv"),
-			cgb::triangles_hit_group::create_with_rahit_and_rchit("shaders/default.rahit.spv", "shaders/default.rchit.spv"),
-			cgb::triangles_hit_group::create_with_rahit_and_rchit("shaders/shadowray.rahit.spv", "shaders/shadowray.rchit.spv"),
-			cgb::miss_shader("shaders/default.rmiss.spv"),
-			cgb::miss_shader("shaders/shadowray.rmiss.spv"),
-			cgb::triangles_hit_group::create_with_rahit_and_rchit("shaders/leaves.rahit.spv", "shaders/leaves.rchit.spv"),
-			cgb::triangles_hit_group::create_with_rahit_and_rchit("shaders/leaves.rahit.spv", "shaders/shadowray.rchit.spv")
+	mPipeline = gvk::context().create_ray_tracing_pipeline_for(
+		avk::define_shader_table(
+			avk::ray_generation_shader("shaders/default.rgen.spv"),
+			avk::triangles_hit_group::create_with_rahit_and_rchit("shaders/default.rahit.spv", "shaders/default.rchit.spv"),
+			avk::triangles_hit_group::create_with_rahit_and_rchit("shaders/shadowray.rahit.spv", "shaders/shadowray.rchit.spv"),
+			avk::miss_shader("shaders/default.rmiss.spv"),
+			avk::miss_shader("shaders/shadowray.rmiss.spv"),
+			avk::triangles_hit_group::create_with_rahit_and_rchit("shaders/leaves.rahit.spv", "shaders/leaves.rchit.spv"),
+			avk::triangles_hit_group::create_with_rahit_and_rchit("shaders/leaves.rahit.spv", "shaders/shadowray.rchit.spv")
 		),
-		cgb::max_recursion_depth::set_to_max(),
+		gvk::context().get_max_ray_tracing_recursion_depth(),
 		// Define push constants and descriptor bindings:
-		cgb::push_constant_binding_data{ cgb::shader_type::ray_generation, 0, sizeof(glm::mat4) },
-		cgb::binding(0, 0, mScene->get_model_buffer(0)),		// Just take any, this is just to define the layout
-		cgb::binding(0, 1, mScene->get_material_buffer(0)),		// Just take any, this is just to define the layout
-		cgb::binding(0, 2, mScene->get_light_buffer()),
-		cgb::binding(0, 3, mScene->get_image_samplers()),
-		cgb::binding(6, 0, mScene->get_index_buffer_views()),
-		cgb::binding(0, 5, mScene->get_texcoord_buffer_views()),
-		cgb::binding(0, 6, mScene->get_normal_buffer_views()),
-		cgb::binding(0, 7, mScene->get_tangent_buffer_views()),
-		cgb::binding(1, 0, mOffscreenImageViews[0]),			// Just take any, this is just to define the layout
-		cgb::binding(2, 0, mScene->get_tlas()[0]),				// Just take any, this is just to define the layout
-		cgb::binding(3, 0, mScene->get_background_buffer(0)),	// Just take any, this is just to define the layout
-		cgb::binding(3, 1, mScene->get_gradient_buffer()),
-		cgb::binding(4, 0, mFocusHitBuffers[0]),				// Just take any, this is just to define the layout
-		cgb::binding(5, 0, mFadeBuffers[0])						// Just take any, this is just to define the layout
+		avk::push_constant_binding_data{ avk::shader_type::ray_generation, 0, sizeof(glm::mat4) },
+		avk::descriptor_binding(0, 0, mScene->get_model_buffer(0)),		// Just take any, this is just to define the layout
+		avk::descriptor_binding(0, 1, mScene->get_material_buffer(0)),		// Just take any, this is just to define the layout
+		avk::descriptor_binding(0, 2, mScene->get_light_buffer()),
+		avk::descriptor_binding(0, 3, mScene->get_image_samplers()),
+		avk::descriptor_binding(6, 0, mScene->get_index_buffer_views()),
+		avk::descriptor_binding(0, 5, mScene->get_texcoord_buffer_views()),
+		avk::descriptor_binding(0, 6, mScene->get_normal_buffer_views()),
+		avk::descriptor_binding(0, 7, mScene->get_tangent_buffer_views()),
+		avk::descriptor_binding(1, 0, mOffscreenImageViews[0]),			// Just take any, this is just to define the layout
+		avk::descriptor_binding(2, 0, mScene->get_tlas()[0]),				// Just take any, this is just to define the layout
+		avk::descriptor_binding(3, 0, mScene->get_background_buffer(0)),	// Just take any, this is just to define the layout
+		avk::descriptor_binding(3, 1, mScene->get_gradient_buffer()),
+		avk::descriptor_binding(4, 0, mFocusHitBuffers[0]),				// Just take any, this is just to define the layout
+		avk::descriptor_binding(5, 0, mFadeBuffers[0])						// Just take any, this is just to define the layout
 	);
 }

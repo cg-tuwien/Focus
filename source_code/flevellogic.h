@@ -9,7 +9,7 @@ enum class levelstatus {
 /*
 This class resembles the logic of a specific level and is responsible for animations and player controls.
 */
-class flevellogic : public cgb::cg_element {
+class flevellogic : public gvk::invokee {
 public:
 
 	//Please write a new level_path-function in your subclass!
@@ -29,13 +29,13 @@ public:
 
 	void update() override { 
 		if (!mLevelPaused) {
-			mStatus = update(cgb::time().delta_time(), mFocusHitValue);
+			mStatus = update(gvk::time().delta_time(), mFocusHitValue);
 		}
 	}
 
 	void fixed_update() override {
 		if (!mLevelPaused) {
-			fixed_update(cgb::time().fixed_delta_time());
+			fixed_update(gvk::time().fixed_delta_time());
 		}
 	};
 

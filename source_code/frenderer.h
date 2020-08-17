@@ -7,6 +7,8 @@ Also manages the focus hit count buffer and the fade buffer.
 */
 class frenderer : public gvk::invokee {
 private:
+	avk::queue* mQueue;
+	avk::descriptor_cache mDescriptorCache;
 	fscene* mScene = nullptr;
 	flevellogic* mLevelLogic = nullptr;
 
@@ -43,6 +45,10 @@ public:
 	//Sets the level logic
 	void set_level_logic(flevellogic* levellogic) {
 		mLevelLogic = levellogic;
+	}
+
+	void set_queue(avk::queue* q) {
+		mQueue = q;
 	}
 
 private:
