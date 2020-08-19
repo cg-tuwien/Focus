@@ -10,6 +10,8 @@ void fgamecontrol::initialize()
 {
 	mScene = fscene::load_scene(flevel1logic::level_path(), CHAR_PATH);
 	mLevelLogic = std::make_unique<flevel1logic>(mScene.get());
+
+	mRenderer.set_queue(mQueue);
 	mRenderer.set_scene(mScene.get());
 	mRenderer.set_level_logic(mLevelLogic.get());
 	
@@ -87,6 +89,7 @@ flevellogic* fgamecontrol::get_level_logic() {
 }
 
 frenderer* fgamecontrol::get_renderer() {
+	mRenderer.set_queue(mQueue);
 	return &mRenderer;
 }
 

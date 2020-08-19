@@ -6,7 +6,7 @@ void fscene::create_buffers_for_model(fmodel& newElement)
 	
 	//Create Buffers
 	auto positionsBuffer = gvk::context().create_buffer(
-		avk::memory_usage::device, {},
+		avk::memory_usage::device, vk::BufferUsageFlagBits::eRayTracingKHR | vk::BufferUsageFlagBits::eShaderDeviceAddressKHR,
 		avk::vertex_buffer_meta::create_from_data(newElement.mPositions).describe_only_member(newElement.mPositions[0], avk::content_description::position)
 	);
 	positionsBuffer->fill(
@@ -16,7 +16,7 @@ void fscene::create_buffers_for_model(fmodel& newElement)
 	positionsBuffer.enable_shared_ownership();
 
 	auto indexBuffer = gvk::context().create_buffer(
-		avk::memory_usage::device, {},
+		avk::memory_usage::device, vk::BufferUsageFlagBits::eRayTracingKHR | vk::BufferUsageFlagBits::eShaderDeviceAddressKHR,
 		avk::index_buffer_meta::create_from_data(newElement.mIndices)
 	);
 	indexBuffer->fill(
@@ -24,7 +24,7 @@ void fscene::create_buffers_for_model(fmodel& newElement)
 		avk::sync::with_barriers(mainWindow->command_buffer_lifetime_handler())
 	);
 	indexBuffer.enable_shared_ownership();
-
+	
 	auto texCoordsBuffer = gvk::context().create_buffer(
 		avk::memory_usage::device, {},
 		avk::uniform_texel_buffer_meta::create_from_data(newElement.mTexCoords).describe_only_member(newElement.mTexCoords[0])
@@ -78,7 +78,7 @@ void fscene::create_buffers_for_model(fmodel& newElement)
 	//   The idea of this is that multiple BLAS can be built
 	//   in parallel, we only have to make sure to synchronize
 	//   before we start building the TLAS.
-	blas->build({ avk::vertex_index_buffer_pair{ positionsBuffer, indexBuffer } }, {}, avk::sync::with_barriers(mainWindow->command_buffer_lifetime_handler()));
+	blas->build({ avk::vertex_index_buffer_pair{ positionsBuffer, indexBuffer } }, {}, avk::sync::wait_idle()); // Wait idle could be optimized, but lifetime of positionsBuffer and indexBuffer must be handled
 	mBLASs.push_back(std::move(blas));
 
 	mModelData.emplace_back(newElement);
