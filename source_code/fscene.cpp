@@ -67,7 +67,7 @@ void fscene::create_buffers_for_model(fmodel& newElement)
 
 	auto blas = gvk::context().create_bottom_level_acceleration_structure({
 			avk::acceleration_structure_size_requirements::from_buffers( avk::vertex_index_buffer_pair{ positionsBuffer, indexBuffer } )
-		}, false);
+		}, true);
 	blas.enable_shared_ownership();
 	auto instance = gvk::context().create_geometry_instance(blas)
 		.set_transform_column_major(gvk::to_array(newElement.mTransformation))
@@ -173,7 +173,7 @@ std::unique_ptr<fscene> fscene::load_scene(const std::string& filename, const st
 	//----CREATE GPU BUFFERS-----
 	//Materials + Textures
 	auto [gpuMaterials, imageSamplers] = gvk::convert_for_gpu_usage(
-		s->mMaterials, true,
+		s->mMaterials, false,
 		avk::image_usage::general_texture,
 		avk::filter_mode::trilinear,
 		avk::border_handling_mode::repeat,

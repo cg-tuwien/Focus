@@ -89,7 +89,7 @@ void frenderer::render()
 	const glm::mat4& viewMatrix = mScene->get_camera().view_matrix();
 	cmdbfr->handle().pushConstants(mPipeline->layout_handle(), vk::ShaderStageFlagBits::eRaygenNV, 0, sizeof(viewMatrix), &viewMatrix);
 
-	//mPipeline->print_shader_binding_table_groups();
+	mPipeline->print_shader_binding_table_groups();
 	
 	// TRACE. THA. RAYZ.
 	cmdbfr->trace_rays(
@@ -112,7 +112,8 @@ void frenderer::render()
 		avk::pipeline_stage::ray_tracing_shaders,                       avk::pipeline_stage::transfer,
 		avk::memory_access::shader_buffers_and_images_write_access,     avk::memory_access::transfer_read_access
 	);
-	
+
+	mainWnd->current_backbuffer()->image_view_at(0)->get_image().set_target_layout(vk::ImageLayout::ePresentSrcKHR);
 	avk::copy_image_to_another(mOffscreenImageViews[inFlightIndex]->get_image(), mainWnd->current_backbuffer()->image_view_at(0)->get_image(), avk::sync::with_barriers_into_existing_command_buffer(cmdbfr, {}, {}));
 	
 	// Make sure to properly sync with ImGui manager which comes afterwards (it uses a graphics pipeline):
