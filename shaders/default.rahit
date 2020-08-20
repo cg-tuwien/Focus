@@ -1,5 +1,5 @@
 #version 460
-#extension GL_NV_ray_tracing : require
+#extension GL_EXT_ray_tracing : require
 #extension GL_EXT_nonuniform_qualifier : require
 
 struct RayTracingHit {
@@ -82,14 +82,14 @@ layout(set = 0, binding = 3) uniform sampler2D textures[];
 layout(set = 6, binding = 0) uniform usamplerBuffer indexBuffers[];
 layout(set = 0, binding = 6) uniform samplerBuffer normalBuffers[];
 
-rayPayloadInNV RayTracingHit hitValue;
+rayPayloadInEXT RayTracingHit hitValue;
 
-hitAttributeNV vec3 attribs;
+hitAttributeEXT vec3 attribs;
 
 void main()
 {
     const vec3 barycentrics = vec3(1.0 - attribs.x - attribs.y, attribs.x, attribs.y);
-	const int instanceIndex = nonuniformEXT(gl_InstanceCustomIndexNV);
+	const int instanceIndex = nonuniformEXT(gl_InstanceCustomIndexEXT);
 	uint materialIndex = instanceSsbo.instances[instanceIndex].mMaterialIndex;
 	
 	mat3 normalMat = mat3(instanceSsbo.instances[instanceIndex].mNormalMat);
@@ -99,8 +99,8 @@ void main()
 	const vec3 normal2 = texelFetch(normalBuffers[instanceIndex], indices.z).rgb;
 	const vec3 normal = normalize(normalMat*(barycentrics.x * normal0 + barycentrics.y * normal1 + barycentrics.z * normal2));
 
-	vec3 position = gl_WorldRayOriginNV + gl_WorldRayDirectionNV * gl_HitTNV;
-	vec3 eye = normalize(gl_WorldRayOriginNV - position);
+	vec3 position = gl_WorldRayOriginEXT + gl_WorldRayDirectionEXT * gl_HitTEXT;
+	vec3 eye = normalize(gl_WorldRayOriginEXT - position);
 	
 	uint goalsphere = instanceSsbo.instances[instanceIndex].mFlags & 1;
 	float nl = max(dot(normal, eye),0);//we're only looking at the front faces
@@ -111,8 +111,8 @@ void main()
 	} else {
 		hitValue.transparentColor[goalsphere].rgb = accept*1.5*exp(-6*pow(nl-1,2))*matSsbo.materials[materialIndex].mDiffuseReflectivity.rgb + (1-accept)*hitValue.transparentColor[goalsphere].rgb;
 	}
-	hitValue.transparentDist[goalsphere] = accept*min(hitValue.transparentDist[goalsphere], gl_HitTNV) + (1-accept)*hitValue.transparentDist[goalsphere];
+	hitValue.transparentDist[goalsphere] = accept*min(hitValue.transparentDist[goalsphere], gl_HitTEXT) + (1-accept)*hitValue.transparentDist[goalsphere];
 	hitValue.various.x |= goalsphere;
 	
-	ignoreIntersectionNV();
+	ignoreIntersectionEXT();
 }

@@ -77,7 +77,7 @@ void frenderer::render()
 		avk::descriptor_binding(0, 5, mScene->get_texcoord_buffer_views()),
 		avk::descriptor_binding(0, 6, mScene->get_normal_buffer_views()),
 		avk::descriptor_binding(0, 7, mScene->get_tangent_buffer_views()),
-		avk::descriptor_binding(1, 0, mOffscreenImageViews[inFlightIndex]),
+		avk::descriptor_binding(1, 0, mOffscreenImageViews[inFlightIndex]->as_storage_image()),
 		avk::descriptor_binding(2, 0, mScene->get_tlas()[inFlightIndex]),
 		avk::descriptor_binding(3, 0, mScene->get_background_buffer(inFlightIndex)),
 		avk::descriptor_binding(3, 1, mScene->get_gradient_buffer()),
@@ -89,7 +89,7 @@ void frenderer::render()
 	const glm::mat4& viewMatrix = mScene->get_camera().view_matrix();
 	cmdbfr->handle().pushConstants(mPipeline->layout_handle(), vk::ShaderStageFlagBits::eRaygenNV, 0, sizeof(viewMatrix), &viewMatrix);
 
-	mPipeline->print_shader_binding_table_groups();
+	//mPipeline->print_shader_binding_table_groups();
 	
 	// TRACE. THA. RAYZ.
 	cmdbfr->trace_rays(
@@ -99,13 +99,6 @@ void frenderer::render()
 		avk::using_miss_group_at_index(0),
 		avk::using_hit_group_at_index(0)
 	);
-	//cmdbfr->handle().traceRaysNV(
-	//	mPipeline->shader_binding_table_handle(), 0,
-	//	mPipeline->shader_binding_table_handle(), 3 * mPipeline->table_entry_size(), mPipeline->table_entry_size(),
-	//	mPipeline->shader_binding_table_handle(), 1 * mPipeline->table_entry_size(), mPipeline->table_entry_size(),
-	//	nullptr, 0, 0,
-	//	mainWnd->swap_chain_extent().width, mainWnd->swap_chain_extent().height, 1,
-	//	gvk::context().dynamic_dispatch());
 
 	// Sync ray tracing with transfer:
 	cmdbfr->establish_global_memory_barrier(
@@ -165,7 +158,7 @@ void frenderer::create_descriptor_sets_for_scene()
 		avk::descriptor_binding(0, 5, mScene->get_texcoord_buffer_views()),
 		avk::descriptor_binding(0, 6, mScene->get_normal_buffer_views()),
 		avk::descriptor_binding(0, 7, mScene->get_tangent_buffer_views()),
-		avk::descriptor_binding(1, 0, mOffscreenImageViews[0]),			// Just take any, this is just to define the layout
+		avk::descriptor_binding(1, 0, mOffscreenImageViews[0]->as_storage_image()),			// Just take any, this is just to define the layout
 		avk::descriptor_binding(2, 0, mScene->get_tlas()[0]),				// Just take any, this is just to define the layout
 		avk::descriptor_binding(3, 0, mScene->get_background_buffer(0)),	// Just take any, this is just to define the layout
 		avk::descriptor_binding(3, 1, mScene->get_gradient_buffer()),

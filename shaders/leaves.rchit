@@ -1,5 +1,5 @@
 #version 460
-#extension GL_NV_ray_tracing : require
+#extension GL_EXT_ray_tracing : require
 #extension GL_EXT_nonuniform_qualifier : require
 
 //Similar to closest.rchit, just optimized for leaves, e.g. no texture lookup necessary anymore and no normal mapping / reflection
@@ -73,13 +73,29 @@ struct ModelInstanceGpuData {
 };
 
 struct LightGpuData {
-	vec4 mColorAmbient;
-	vec4 mColorDiffuse;
-	vec4 mColorSpecular;
+	/** Color of the light source. */
+	vec4 mColor;
+	/** Direction of the light source. */
 	vec4 mDirection;
+	/** Position of the light source. */
 	vec4 mPosition;
-	vec4 mAngles;
+	/** Angles, where the individual elements contain the following data:
+	 *  [0] ... cosine of halve outer cone angle, i.e. cos(outer/2)
+	 *  [1] ... cosine of halve inner cone angle, i.e. cos(inner/2)
+	 *  [2] ... falloff
+	 *  [3] ... unused
+	 */
+	vec4 mAnglesFalloff;
+	/** Light source attenuation, where the individual elements contain the following data:
+	 *  [0] ... constant attenuation factor
+	 *  [1] ... linear attenuation factor
+	 *  [2] ... quadratic attenuation factor
+	 *  [3] ... unused
+	 */
 	vec4 mAttenuation;
+	/** General information about the light source, where the individual elements contain the following data:
+	 *  [0] ... type of the light source
+	 */
 	ivec4 mInfo;
 };
 
@@ -98,16 +114,16 @@ layout(set = 0, binding = 3) uniform sampler2D textures[];
 layout(set = 6, binding = 0) uniform usamplerBuffer indexBuffers[];
 layout(set = 0, binding = 6) uniform samplerBuffer normalBuffers[];
 
-layout(set = 2, binding = 0) uniform accelerationStructureNV topLevelAS;
+layout(set = 2, binding = 0) uniform accelerationStructureEXT topLevelAS;
 
 layout(set = 3, binding = 0) uniform Background {
 	vec4 color;
 } background;
 
-layout(location = 0) rayPayloadInNV RayTracingHit hitValue;
-hitAttributeNV vec3 attribs;
-layout(location = 1) rayPayloadNV RayTracingHit reflectionHit;
-layout(location = 2) rayPayloadNV float shadowHit;
+layout(location = 0) rayPayloadInEXT RayTracingHit hitValue;
+hitAttributeEXT vec3 attribs;
+layout(location = 1) rayPayloadEXT RayTracingHit reflectionHit;
+layout(location = 2) rayPayloadEXT float shadowHit;
 
 vec3 phongDirectional(vec3 iPosition, vec3 iEye, vec3 iNormal, vec3 iColor, uint iMatIndex, vec3 lDirection, vec3 lIntensity, bool lCheckShadow) {
 	vec3 l = normalize(-lDirection);
@@ -115,7 +131,7 @@ vec3 phongDirectional(vec3 iPosition, vec3 iEye, vec3 iNormal, vec3 iColor, uint
 	float shade = 1.0f;
 	if (lCheckShadow) {
 		float tmax = 1000.0;
-		traceNV(topLevelAS, gl_RayFlagsCullBackFacingTrianglesNV , 0xff, 1 /*sbtOffset*/, 0, 1 /*missIdx*/, iPosition, 0.001, l, tmax, 2);
+		traceRayEXT(topLevelAS, gl_RayFlagsCullBackFacingTrianglesEXT , 0xff, 1 /*sbtOffset*/, 0, 1 /*missIdx*/, iPosition, 0.001, l, tmax, 2);
 		shade = (shadowHit < tmax) ? 0.25 : 1.0;
 	}
 
@@ -137,7 +153,7 @@ vec3 phongPoint(vec3 iPosition, vec3 iEye, vec3 iNormal, vec3 iColor, uint iMatI
 	float shade = 1.0f;
 	if (lCheckShadow) {
 		float tmax = dist;
-		traceNV(topLevelAS, gl_RayFlagsCullBackFacingTrianglesNV , 0xff, 1 /*sbtOffset*/, 0, 1 /*missIdx*/, iPosition, 0.001, l, tmax, 2);
+		traceRayEXT(topLevelAS, gl_RayFlagsCullBackFacingTrianglesEXT , 0xff, 1 /*sbtOffset*/, 0, 1 /*missIdx*/, iPosition, 0.001, l, tmax, 2);
 		shade = (shadowHit < tmax) ? 0.25 : 1.0;
 	}
 
@@ -156,7 +172,7 @@ vec3 phongPoint(vec3 iPosition, vec3 iEye, vec3 iNormal, vec3 iColor, uint iMatI
 void main()
 {
     const vec3 barycentrics = vec3(1.0 - attribs.x - attribs.y, attribs.x, attribs.y);
-	const int instanceIndex = nonuniformEXT(gl_InstanceCustomIndexNV);
+	const int instanceIndex = nonuniformEXT(gl_InstanceCustomIndexEXT);
 	uint materialIndex = instanceSsbo.instances[instanceIndex].mMaterialIndex;
 	mat3 normalMat = mat3(instanceSsbo.instances[instanceIndex].mNormalMat);
 	const ivec3 indices = ivec3(texelFetch(indexBuffers[instanceIndex], gl_PrimitiveID).rgb);
@@ -165,23 +181,23 @@ void main()
 	const vec3 normal2 = texelFetch(normalBuffers[instanceIndex], indices.z).rgb;
 	const vec3 normal = normalize(normalMat*(barycentrics.x * normal0 + barycentrics.y * normal1 + barycentrics.z * normal2));
 
-	vec3 position = gl_WorldRayOriginNV + gl_WorldRayDirectionNV * gl_HitTNV;
-	vec3 eye = normalize(gl_WorldRayOriginNV - position);
+	vec3 position = gl_WorldRayOriginEXT + gl_WorldRayDirectionEXT * gl_HitTEXT;
+	vec3 eye = normalize(gl_WorldRayOriginEXT - position);
 
 	vec3 dColor = matSsbo.materials[materialIndex].mDiffuseReflectivity.rgb * hitValue.color.rgb;
 	vec3 ownColor = (0.9*matSsbo.materials[materialIndex].mAmbientReflectivity.rgb + 0.1*background.color.rgb)*dColor;
 
 	for (uint i = 0; i < lightSsbo.lightCount.x; ++i) {
 		if (lightSsbo.lights[i].mInfo.x == 2) {
-			ownColor += phongPoint(position, eye, normal, dColor, materialIndex, lightSsbo.lights[i].mPosition.xyz, lightSsbo.lights[i].mColorDiffuse.rgb, lightSsbo.lights[i].mAttenuation.xyz, true);
+			ownColor += phongPoint(position, eye, normal, dColor, materialIndex, lightSsbo.lights[i].mPosition.xyz, lightSsbo.lights[i].mColor.rgb, lightSsbo.lights[i].mAttenuation.xyz, true);
 		} else if (lightSsbo.lights[i].mInfo.x == 1) {
-			ownColor += phongDirectional(position, eye, normal, dColor, materialIndex, lightSsbo.lights[i].mDirection.xyz, lightSsbo.lights[i].mColorDiffuse.rgb, true);
+			ownColor += phongDirectional(position, eye, normal, dColor, materialIndex, lightSsbo.lights[i].mDirection.xyz, lightSsbo.lights[i].mColor.rgb, true);
 		}
 	}
 
-	hitValue.various.x = uint(hitValue.transparentDist[1] < gl_HitTNV);
+	hitValue.various.x = uint(hitValue.transparentDist[1] < gl_HitTEXT);
 	hitValue.color.rgb = ownColor.rgb;
-	hitValue.color.rgb += uint(gl_HitTNV > hitValue.transparentDist[0])*hitValue.transparentColor[0].rgb;
-	hitValue.color.rgb += uint(gl_HitTNV > hitValue.transparentDist[1])*hitValue.transparentColor[1].rgb;
+	hitValue.color.rgb += uint(gl_HitTEXT > hitValue.transparentDist[0])*hitValue.transparentColor[0].rgb;
+	hitValue.color.rgb += uint(gl_HitTEXT > hitValue.transparentDist[1])*hitValue.transparentColor[1].rgb;
 
 }

@@ -14,6 +14,7 @@ int main() // <== Starting point ==
 		mainWnd->set_presentaton_mode(gvk::presentation_mode::mailbox);
 		mainWnd->set_number_of_concurrent_frames(3u);
 		mainWnd->set_number_of_presentable_images(3u);
+		mainWnd->request_srgb_framebuffer(false);
 		mainWnd->open();
 
 		auto& singleQueue = gvk::context().create_queue({}, avk::queue_selection_preference::versatile_queue, mainWnd);

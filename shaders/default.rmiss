@@ -1,5 +1,5 @@
 #version 460
-#extension GL_NV_ray_tracing : require
+#extension GL_EXT_ray_tracing : require
 #define M_PI 3.1415926535897932384626433832795
 #define lonsegs 100
 #define latsegs 50
@@ -19,7 +19,7 @@ readonly layout(set = 3, binding = 1) buffer Gradients {
 	float arr[lonsegs*latsegs*2];
 } gradients;
 
-rayPayloadInNV RayTracingHit hitValue;
+rayPayloadInEXT RayTracingHit hitValue;
 
 const float infty = 1. / 0.;
 
@@ -67,8 +67,8 @@ float SRGBReverseGamma(float color) {
 
 void main()
 {
-	float theta = acos(gl_WorldRayDirectionNV.y);
-	float phi = atan(gl_WorldRayDirectionNV.z, gl_WorldRayDirectionNV.x);
+	float theta = acos(gl_WorldRayDirectionEXT.y);
+	float phi = atan(gl_WorldRayDirectionEXT.z, gl_WorldRayDirectionEXT.x);
 	float alpha = 1-clamp(tan((theta-M_PI/2)/1.2),0,1);
     vec3 backgrcolor = alpha*background.color.xyz;
 	vec3 color = exp(-pow(1.9*(theta-M_PI/2),2))*0.05*(perlin(phi, theta, 1) + perlin(phi, theta, 2) + perlin(phi, theta, 4)) + backgrcolor;

@@ -1,5 +1,5 @@
 #version 460
-#extension GL_NV_ray_tracing : require
+#extension GL_EXT_ray_tracing : require
 #extension GL_EXT_nonuniform_qualifier : require
 
 struct RayTracingHit {
@@ -82,14 +82,14 @@ layout(set = 0, binding = 3) uniform sampler2D textures[];
 layout(set = 6, binding = 0) uniform usamplerBuffer indexBuffers[];
 layout(set = 0, binding = 5) uniform samplerBuffer texCoordBuffers[];
 
-rayPayloadInNV RayTracingHit hitValue;
+rayPayloadInEXT RayTracingHit hitValue;
 
-hitAttributeNV vec3 attribs;
+hitAttributeEXT vec3 attribs;
 
 void main()
 {
     const vec3 barycentrics = vec3(1.0 - attribs.x - attribs.y, attribs.x, attribs.y);
-	const int instanceIndex = nonuniformEXT(gl_InstanceCustomIndexNV);
+	const int instanceIndex = nonuniformEXT(gl_InstanceCustomIndexEXT);
 	uint materialIndex = instanceSsbo.instances[instanceIndex].mMaterialIndex;
 	
 	mat3 normalMat = mat3(instanceSsbo.instances[instanceIndex].mNormalMat);
@@ -101,7 +101,7 @@ void main()
 	int textureIdx = matSsbo.materials[materialIndex].mDiffuseTexIndex;
 	vec4 tex = texture(textures[textureIdx], uv);
 	if (tex.a <= 0.1) {
-		ignoreIntersectionNV();
+		ignoreIntersectionEXT();
 	} else {
 		hitValue.color.rgb = tex.rgb;
 	}

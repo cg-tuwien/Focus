@@ -1,9 +1,9 @@
 #version 460
-#extension GL_NV_ray_tracing : require
+#extension GL_EXT_ray_tracing : require
 
-rayPayloadInNV float secondaryRayHitValue;
+rayPayloadInEXT float secondaryRayHitValue;
 
 void main()
 {
-    secondaryRayHitValue = gl_HitTNV;
+    secondaryRayHitValue = gl_HitTEXT;
 }
