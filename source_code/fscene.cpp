@@ -173,7 +173,7 @@ std::unique_ptr<fscene> fscene::load_scene(const std::string& filename, const st
 	//----CREATE GPU BUFFERS-----
 	//Materials + Textures
 	auto [gpuMaterials, imageSamplers] = gvk::convert_for_gpu_usage(
-		s->mMaterials, true,
+		s->mMaterials, true, true,
 		avk::image_usage::general_texture,
 		avk::filter_mode::trilinear,
 		avk::border_handling_mode::repeat,
