@@ -67,7 +67,7 @@ void frenderer::render()
 	auto cmdbfr = commandPool->alloc_command_buffer(vk::CommandBufferUsageFlagBits::eOneTimeSubmit);
 	
 	cmdbfr->begin_recording();
-	cmdbfr->bind_pipeline(mPipeline);
+	cmdbfr->bind_pipeline(avk::const_referenced(mPipeline));
 	cmdbfr->bind_descriptors(mPipeline->layout(), mDescriptorCache.get_or_create_descriptor_sets({
 		avk::descriptor_binding(0, 0, mScene->get_model_buffer(inFlightIndex)),
 		avk::descriptor_binding(0, 1, mScene->get_material_buffer(inFlightIndex)),
@@ -107,7 +107,7 @@ void frenderer::render()
 	);
 
 	mainWnd->current_backbuffer()->image_view_at(0)->get_image().set_target_layout(vk::ImageLayout::ePresentSrcKHR);
-	avk::copy_image_to_another(mOffscreenImageViews[inFlightIndex]->get_image(), mainWnd->current_backbuffer()->image_view_at(0)->get_image(), avk::sync::with_barriers_into_existing_command_buffer(cmdbfr, {}, {}));
+	avk::copy_image_to_another(mOffscreenImageViews[inFlightIndex]->get_image(), mainWnd->current_backbuffer()->image_view_at(0)->get_image(), avk::sync::with_barriers_into_existing_command_buffer(*cmdbfr, {}, {}));
 	
 	// Make sure to properly sync with ImGui manager which comes afterwards (it uses a graphics pipeline):
 	cmdbfr->establish_global_memory_barrier(
@@ -119,7 +119,7 @@ void frenderer::render()
 
 	// The swap chain provides us with an "image available semaphore" for the current frame.
 	// Only after the swapchain image has become available, we may start rendering into it.
-	auto& imageAvailableSemaphore = mainWnd->consume_current_image_available_semaphore();
+	auto imageAvailableSemaphore = mainWnd->consume_current_image_available_semaphore();
 	
 	// Submit the draw call and take care of the command buffer's lifetime:
 	mQueue->submit(cmdbfr, imageAvailableSemaphore);
