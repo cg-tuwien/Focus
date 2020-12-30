@@ -86,8 +86,8 @@ void frenderer::render()
 	}));
 
 	// Set the push constants:
-	const glm::mat4& viewMatrix = mScene->get_camera().view_matrix();
-	cmdbfr->handle().pushConstants(mPipeline->layout_handle(), vk::ShaderStageFlagBits::eRaygenNV, 0, sizeof(viewMatrix), &viewMatrix);
+	auto cameraTransform = mScene->get_camera().global_transformation_matrix();
+	cmdbfr->handle().pushConstants(mPipeline->layout_handle(), vk::ShaderStageFlagBits::eRaygenNV, 0, sizeof(cameraTransform), &cameraTransform);
 
 	//mPipeline->print_shader_binding_table_groups();
 	

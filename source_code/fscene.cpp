@@ -6,7 +6,12 @@ void fscene::create_buffers_for_model(fmodel& newElement)
 	
 	//Create Buffers
 	auto positionsBuffer = gvk::context().create_buffer(
-		avk::memory_usage::device, vk::BufferUsageFlagBits::eRayTracingKHR | vk::BufferUsageFlagBits::eShaderDeviceAddressKHR,
+		avk::memory_usage::device, 
+#if VK_HEADER_VERSION >= 162
+#else
+		vk::BufferUsageFlagBits::eRayTracingKHR |
+#endif
+		vk::BufferUsageFlagBits::eShaderDeviceAddressKHR,
 		avk::vertex_buffer_meta::create_from_data(newElement.mPositions).describe_only_member(newElement.mPositions[0], avk::content_description::position)
 	);
 	positionsBuffer->fill(
@@ -16,7 +21,12 @@ void fscene::create_buffers_for_model(fmodel& newElement)
 	positionsBuffer.enable_shared_ownership();
 
 	auto indexBuffer = gvk::context().create_buffer(
-		avk::memory_usage::device, vk::BufferUsageFlagBits::eRayTracingKHR | vk::BufferUsageFlagBits::eShaderDeviceAddressKHR,
+		avk::memory_usage::device, 
+#if VK_HEADER_VERSION >= 162
+#else
+		vk::BufferUsageFlagBits::eRayTracingKHR |
+#endif
+		vk::BufferUsageFlagBits::eShaderDeviceAddressKHR,
 		avk::index_buffer_meta::create_from_data(newElement.mIndices)
 	);
 	indexBuffer->fill(

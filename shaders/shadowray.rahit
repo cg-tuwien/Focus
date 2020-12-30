@@ -6,5 +6,6 @@ hitAttributeEXT vec3 attribs;
 
 void main()
 {
-	ignoreIntersectionEXT();
+	// 21    2020-10-21    dgkoch     ignoreIntersectionEXT and terminateRayEXT are jump statements instead of builtin functions (vulkan #2374)
+	ignoreIntersectionEXT;
 }

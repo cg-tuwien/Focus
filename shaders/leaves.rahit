@@ -101,7 +101,8 @@ void main()
 	int textureIdx = matSsbo.materials[materialIndex].mDiffuseTexIndex;
 	vec4 tex = texture(textures[textureIdx], uv);
 	if (tex.a <= 0.1) {
-		ignoreIntersectionEXT();
+		// 21    2020-10-21    dgkoch     ignoreIntersectionEXT and terminateRayEXT are jump statements instead of builtin functions (vulkan #2374)
+		ignoreIntersectionEXT;
 	} else {
 		hitValue.color.rgb = tex.rgb;
 	}

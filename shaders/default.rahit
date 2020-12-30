@@ -114,5 +114,6 @@ void main()
 	hitValue.transparentDist[goalsphere] = accept*min(hitValue.transparentDist[goalsphere], gl_HitTEXT) + (1-accept)*hitValue.transparentDist[goalsphere];
 	hitValue.various.x |= goalsphere;
 	
-	ignoreIntersectionEXT();
+	// 21    2020-10-21    dgkoch     ignoreIntersectionEXT and terminateRayEXT are jump statements instead of builtin functions (vulkan #2374)
+	ignoreIntersectionEXT;
 }
