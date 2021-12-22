@@ -12,7 +12,8 @@ void fscene::create_buffers_for_model(fmodel& newElement)
 		vk::BufferUsageFlagBits::eRayTracingKHR |
 #endif
 		vk::BufferUsageFlagBits::eShaderDeviceAddressKHR,
-		avk::vertex_buffer_meta::create_from_data(newElement.mPositions).describe_only_member(newElement.mPositions[0], avk::content_description::position)
+		avk::vertex_buffer_meta::create_from_data(newElement.mPositions).describe_only_member(newElement.mPositions[0], avk::content_description::position),
+		avk::read_only_input_to_acceleration_structure_builds_buffer_meta::create_from_data(newElement.mPositions)
 	);
 	positionsBuffer->fill(
 		newElement.mPositions.data(), 0,
@@ -27,7 +28,8 @@ void fscene::create_buffers_for_model(fmodel& newElement)
 		vk::BufferUsageFlagBits::eRayTracingKHR |
 #endif
 		vk::BufferUsageFlagBits::eShaderDeviceAddressKHR,
-		avk::index_buffer_meta::create_from_data(newElement.mIndices)
+		avk::index_buffer_meta::create_from_data(newElement.mIndices),
+		avk::read_only_input_to_acceleration_structure_builds_buffer_meta::create_from_data(newElement.mIndices)
 	);
 	indexBuffer->fill(
 		newElement.mIndices.data(), 0,
@@ -182,11 +184,10 @@ std::unique_ptr<fscene> fscene::load_scene(const std::string& filename, const st
 
 	//----CREATE GPU BUFFERS-----
 	//Materials + Textures
-	auto [gpuMaterials, imageSamplers] = gvk::convert_for_gpu_usage(
+	auto [gpuMaterials, imageSamplers] = gvk::convert_for_gpu_usage<gvk::material_gpu_data>(
 		s->mMaterials, true, true,
 		avk::image_usage::general_texture,
 		avk::filter_mode::trilinear,
-		avk::border_handling_mode::repeat,
 		avk::sync::with_barriers(mainWindow->command_buffer_lifetime_handler())
 	);
 	s->mMaterialBuffers.resize(fif);
